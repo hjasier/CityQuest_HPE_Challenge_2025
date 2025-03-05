@@ -1,11 +1,12 @@
 import { View, Text , Image } from 'react-native'
 import React, { useCallback, useEffect, useState } from 'react'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
-import MacrosMain from '../screens/Explore'
+import Explore from '../screens/Explore'
 
 
 import { useNavigation } from '@react-navigation/native';
 import { Icon } from '@rneui/themed'
+import MapScreen from '../screens/MapScreen';
 
 
 
@@ -67,22 +68,22 @@ const TabNavigator = () => {
       
       tabBarIcon: ({focused , color , size }) => {
 
-        if (route.name === 'Macros') {
+        if (route.name === 'Explore') {
           return <Icon name="search" type="font-awesome-5" color={focused ? "#36BFF9":"gray"} />
         } 
-        else if (route.name === 'UserStats') {
+        else if (route.name === 'MapScreen') {
           return <Icon name="flag" type="font-awesome-5" color={focused ? "#36BFF9":"gray"} />
         }
-        else if (route.name === 'ExMain') {
+        else if (route.name === 'aa') {
           return <Icon name="comment" type="font-awesome-5" color={focused ? "#36BFF9":"gray"} />
         }
       }
 
     })}>
 
-      <Tab.Screen name="Macros" component={MacrosMain} options={{headerShown:false}}/>
-      <Tab.Screen name="UserStats" component={MacrosMain} options={{headerShown:false}} />
-      <Tab.Screen name="ExMain" component={MacrosMain} options={{headerShown:false}}/>
+      <Tab.Screen name="Explore" component={Explore} options={{headerShown:false}}/>
+      <Tab.Screen name="MapScreen" component={MapScreen} options={{headerShown:false}} />
+      <Tab.Screen name="aa" component={MapScreen} options={{headerShown:false}}/>
       
 
 

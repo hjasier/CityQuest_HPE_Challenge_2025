@@ -8,7 +8,7 @@ import { TouchableOpacity } from 'react-native-gesture-handler';
 import ChallengeCard from '../components/ChallengeCard';
 
 
-const MacrosMain = () => {
+const Explore = () => {
 
   return (
     <SafeAreaView className="flex-1">
@@ -24,4 +24,4 @@ const MacrosMain = () => {
   )
 }
 
-export default MacrosMain
+export default Explore

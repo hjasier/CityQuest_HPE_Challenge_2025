@@ -2,6 +2,7 @@ import { View, Text } from 'react-native'
 import TabNavigator from './TabNavigator'
 import { createStackNavigator } from '@react-navigation/stack';
 import Explore from '../screens/Explore';
+import MapScreen from '../screens/MapScreen';
 
 
 
@@ -14,6 +15,7 @@ const StackNavigator = () => {
       
         <Stack.Screen name="Main" component={TabNavigator}/>
         <Stack.Screen name="Explore" component={Explore} options={{headerShown:false}} />
+        <Stack.Screen name="MapScreen" component={MapScreen} options={{headerShown:false}} />
 
         
 
