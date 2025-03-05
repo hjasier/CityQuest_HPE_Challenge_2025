@@ -1,0 +1,26 @@
+import { View, Text } from 'react-native'
+import TabNavigator from './TabNavigator'
+import { createStackNavigator } from '@react-navigation/stack';
+import Explore from '../screens/Explore';
+
+
+
+const Stack = createStackNavigator();
+
+const StackNavigator = () => {
+
+  return (
+    <Stack.Navigator>
+      
+        <Stack.Screen name="Main" component={TabNavigator}/>
+        <Stack.Screen name="Explore" component={Explore} options={{headerShown:false}} />
+
+        
+
+        
+
+    </Stack.Navigator>
+  )
+}
+
+export default StackNavigator

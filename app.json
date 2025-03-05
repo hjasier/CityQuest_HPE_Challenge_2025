@@ -1,0 +1,64 @@
+{
+  "expo": {
+    "name": "cds_app",
+    "slug": "cds_app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "platforms": [
+      "ios",
+      "android"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "$(PRODUCT_NAME) needs access to your Camera."
+      },
+      "runtimeVersion": {
+        "policy": "appVersion"
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.hjasier.cds_app",
+      "permissions": [
+        "CAMERA",
+        "WRITE_EXTERNAL_STORAGE"
+      ],
+      "runtimeVersion": "1.0.0"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-asset",
+      "expo-secure-store",
+      "expo-camera"
+    ],
+    "hooks": {},
+    "extra": {
+      "eas": {
+        "build": {
+          "releaseChannel": "preview"
+        },
+        "projectId": "06f32d72-676c-4abd-8e97-d871d53f31c4"
+      }
+    },
+    "owner": "hjasier",
+    "updates": {
+      "url": "https://u.expo.dev/06f32d72-676c-4abd-8e97-d871d53f31c4",
+      "checkAutomatically": "ON_LOAD",
+      "enabled": true,
+      "fallbackToCacheTimeout": 0
+    }
+  }
+}
