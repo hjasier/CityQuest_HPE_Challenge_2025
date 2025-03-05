@@ -4,31 +4,28 @@ import Map from "../components/Map";
 import BottomSheetComponent from "../components/BottomSheet";
 
 const MapScreen = () => {
-  const bottomSheetRef = useRef(null); // Referencia para el modal
 
-  const openModal = () => {
-    if (bottomSheetRef.current) {
-      bottomSheetRef.current.expand(); // Abre el modal cuando se presiona el botón
-    }
-  };
 
   return (
-    <View className="flex-1 relative">
+    <View style={{ flex: 1, position: 'relative' }}>
       {/* Mapa en el fondo */}
       <Map />
 
       {/* Botón flotante */}
       <TouchableOpacity
-        onPress={openModal} // Llama a la función que abre el modal
-        className="absolute bottom-10 right-5 bg-blue-500 p-4 rounded-full shadow-lg"
+        style={{
+          position: "absolute", bottom: 10, right: 5, backgroundColor: "#3b82f6", padding: 16, borderRadius: 50, shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 5, shadowOffset: { width: 0, height: 3 }
+        }}
       >
-        <Text className="text-white font-bold">Abrir</Text>
+        <Text style={{ color: 'white', fontWeight: 'bold' }}>Abrir</Text>
       </TouchableOpacity>
 
       {/* Modal que se abrirá con el botón */}
-      <BottomSheetComponent bottomSheetRef={bottomSheetRef} />
+      <BottomSheetComponent  />
     </View>
   );
 };
+
+
 
 export default MapScreen;

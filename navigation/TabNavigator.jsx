@@ -7,6 +7,7 @@ import Explore from '../screens/Explore'
 import { useNavigation } from '@react-navigation/native';
 import { Icon } from '@rneui/themed'
 import MapScreen from '../screens/MapScreen';
+import TabOneScreen from '../screens/TabOneScreen';
 
 
 
@@ -74,7 +75,7 @@ const TabNavigator = () => {
         else if (route.name === 'MapScreen') {
           return <Icon name="flag" type="font-awesome-5" color={focused ? "#36BFF9":"gray"} />
         }
-        else if (route.name === 'aa') {
+        else if (route.name === 'TabOneScreen') {
           return <Icon name="comment" type="font-awesome-5" color={focused ? "#36BFF9":"gray"} />
         }
       }
@@ -83,7 +84,7 @@ const TabNavigator = () => {
 
       <Tab.Screen name="Explore" component={Explore} options={{headerShown:false}}/>
       <Tab.Screen name="MapScreen" component={MapScreen} options={{headerShown:false}} />
-      <Tab.Screen name="aa" component={MapScreen} options={{headerShown:false}}/>
+      <Tab.Screen name="TabOneScreen" component={TabOneScreen} options={{headerShown:false}}/>
       
 
 
