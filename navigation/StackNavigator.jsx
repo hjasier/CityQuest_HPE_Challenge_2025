@@ -19,10 +19,7 @@ const StackNavigator = () => {
         <Stack.Screen name="MapScreen" component={MapScreen} options={{headerShown:false}} />
         <Stack.Screen name="ChallengeDetailsScreen" component={ChallengeDetailsScreen} options={{headerShown:false}} />
 
-        
-
-        
-
+      
     </Stack.Navigator>
   )
 }
