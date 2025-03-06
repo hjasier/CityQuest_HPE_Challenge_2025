@@ -35,12 +35,12 @@ const ChallengeDetails = () => {
       
       {/* Action Buttons */}
       <View className="flex-row justify-between pb-6">
-        <TouchableOpacity className="flex-row items-center justify-center bg-blue-100 rounded-lg py-3 px-6 w-44">
+        <TouchableOpacity className="flex-row items-center justify-center bg-blue-100 rounded-lg py-3 px-6 w-36">
           <CheckCircle stroke="#3B82F6" width={20} height={20} />
           <Text className="ml-2 font-semibold text-blue-600">Completar</Text>
         </TouchableOpacity>
         
-        <TouchableOpacity className="flex-row items-center justify-center bg-gray-100 rounded-lg py-3 px-6 w-44">
+        <TouchableOpacity className="flex-row items-center justify-center bg-gray-100 rounded-lg py-3 px-6 w-36">
           <Navigation2 stroke="#4B5563" width={20} height={20} />
           <Text className="ml-2 font-semibold text-gray-600">Ruta</Text>
         </TouchableOpacity>

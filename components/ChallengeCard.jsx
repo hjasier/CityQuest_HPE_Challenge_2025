@@ -2,10 +2,14 @@ import { View, Text, TouchableOpacity, Image } from 'react-native'
 import React from 'react'
 import testImg from '../assets/testImg.png'
 import { Icon } from '@rneui/base'
+import { useNavigation } from '@react-navigation/native'
 
 const ChallengeCard = () => {
+
+  const navigation = useNavigation();
+
   return (
-    <TouchableOpacity>
+    <TouchableOpacity onPress={() => navigation.navigate("ChallengeDetailsScreen")}>
     <View className="rounded-lg shadow-md p-4 mx-2">
       {/* Challenge Title */}
       <View className="flex flex-row">
