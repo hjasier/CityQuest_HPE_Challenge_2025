@@ -8,6 +8,7 @@ import { useNavigation } from '@react-navigation/native';
 import { Icon } from '@rneui/themed'
 import MapScreen from '../screens/MapScreen';
 import TabOneScreen from '../screens/TabOneScreen';
+import ChallengeDetailsScreen from '../screens/ChallengeDetailsScreen';
 
 
 
@@ -69,7 +70,7 @@ const TabNavigator = () => {
       
       tabBarIcon: ({focused , color , size }) => {
 
-        if (route.name === 'Explore') {
+        if (route.name === 'ChallengeDetailsScreen') {
           return <Icon name="search" type="font-awesome-5" color={focused ? "#36BFF9":"gray"} />
         } 
         else if (route.name === 'MapScreen') {
@@ -82,7 +83,7 @@ const TabNavigator = () => {
 
     })}>
 
-      <Tab.Screen name="Explore" component={Explore} options={{headerShown:false}}/>
+      <Tab.Screen name="ChallengeDetailsScreen" component={ChallengeDetailsScreen} options={{headerShown:false}}/>
       <Tab.Screen name="MapScreen" component={MapScreen} options={{headerShown:false}} />
       <Tab.Screen name="TabOneScreen" component={TabOneScreen} options={{headerShown:false}}/>
       

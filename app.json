@@ -33,7 +33,9 @@
       "package": "com.hjasier.cds_app",
       "permissions": [
         "CAMERA",
-        "WRITE_EXTERNAL_STORAGE"
+        "WRITE_EXTERNAL_STORAGE",
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
       ],
       "runtimeVersion": "1.0.0"
     },
@@ -43,7 +45,8 @@
     "plugins": [
       "expo-asset",
       "expo-secure-store",
-      "expo-camera"
+      "expo-camera",
+      "expo-sqlite"
     ],
     "hooks": {},
     "extra": {
@@ -51,7 +54,7 @@
         "build": {
           "releaseChannel": "preview"
         },
-        "projectId": "06f32d72-676c-4abd-8e97-d871d53f31c4"
+        "projectId": "c9b1853d-e8da-4873-a670-fe5a3b40fbdb"
       }
     },
     "owner": "hjasier",
