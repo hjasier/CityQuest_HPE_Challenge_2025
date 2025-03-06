@@ -6,7 +6,7 @@ import BottomSheetChallengeDetails from '../components/BottomSheetChallengeDetai
 
 const ChallengeDetailsScreen = ({ navigation }) => {
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <View className="flex-1 bg-white">
       {/* Header with back button */}
       <View className="absolute z-10 top-12 left-4">
         <TouchableOpacity 
@@ -30,7 +30,7 @@ const ChallengeDetailsScreen = ({ navigation }) => {
 
       {/* Bottom Sheet with Challenge Details */}
       <BottomSheetChallengeDetails />
-    </SafeAreaView>
+    </View>
   )
 }
 

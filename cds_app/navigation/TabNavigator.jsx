@@ -9,6 +9,7 @@ import { Icon } from '@rneui/themed'
 import MapScreen from '../screens/MapScreen';
 import TabOneScreen from '../screens/TabOneScreen';
 import ChallengeDetailsScreen from '../screens/ChallengeDetailsScreen';
+import LeaderboardScreen from '../screens/LeaderboardScreen';
 
 
 
@@ -76,7 +77,7 @@ const TabNavigator = () => {
         else if (route.name === 'MapScreen') {
           return <Icon name="flag" type="font-awesome-5" color={focused ? "#36BFF9":"gray"} />
         }
-        else if (route.name === 'TabOneScreen') {
+        else if (route.name === 'LeaderboardScreen') {
           return <Icon name="comment" type="font-awesome-5" color={focused ? "#36BFF9":"gray"} />
         }
       }
@@ -85,7 +86,7 @@ const TabNavigator = () => {
 
       <Tab.Screen name="ChallengeDetailsScreen" component={ChallengeDetailsScreen} options={{headerShown:false}}/>
       <Tab.Screen name="MapScreen" component={MapScreen} options={{headerShown:false}} />
-      <Tab.Screen name="TabOneScreen" component={TabOneScreen} options={{headerShown:false}}/>
+      <Tab.Screen name="LeaderboardScreen" component={LeaderboardScreen} options={{headerShown:false}}/>
       
 
 
