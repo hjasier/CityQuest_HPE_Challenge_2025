@@ -1,8 +1,12 @@
-import { View, Text, Image, TouchableOpacity } from 'react-native'
+import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native'
 import React from 'react'
 import { MapPin, CheckCircle, Navigation2 } from 'react-native-feather'
+import MapView from 'react-native-maps';
+
 
 const ChallengeDetails = () => {
+
+    
   return (
     <View className="flex-1">
       {/* Challenge Description */}
@@ -17,14 +21,16 @@ const ChallengeDetails = () => {
       </View>
       
       {/* Map View */}
-      <View className="w-full h-32 rounded-lg overflow-hidden mb-6">
-        <Image
-          source={{
-            uri: 'https://maps.googleapis.com/maps/api/staticmap?center=Deusto,Bilbao&zoom=14&size=600x300&maptype=roadmap&markers=color:red%7CDeusto,Bilbao&key=YOUR_API_KEY'
-          }}
-          className="w-full h-full"
-          resizeMode="cover"
-        />
+      <View className="w-full h-48 rounded-lg overflow-hidden mb-6">
+      <MapView 
+        style={styles.map}
+        initialRegion={{
+          latitude: 37.78825,
+          longitude: -122.4324,
+          latitudeDelta: 0.0922,
+          longitudeDelta: 0.0421,
+        }}
+      />
       </View>
       
       {/* Action Buttons */}
@@ -42,5 +48,18 @@ const ChallengeDetails = () => {
     </View>
   )
 }
+
+
+const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      width: '100%',
+      height: '100%',
+    },
+    map: {
+      ...StyleSheet.absoluteFillObject,
+    },
+});
+
 
 export default ChallengeDetails
