@@ -1,30 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { supabase } from './database/supabase';
 import Auth from './components/Auth';
 import StackNavigator from './navigation/StackNavigator';
-
+import { SessionProvider, useSession } from './hooks/SessionProvider';
 
 export default function App() {
-  const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Obtener sesión inicial
+    // Esto es para cargar la sesión al inicio
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
       setLoading(false);
     });
-
-    // Escuchar cambios en la sesión
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-
-    return () => authListener.subscription.unsubscribe();
   }, []);
 
   if (loading) {
@@ -37,9 +27,11 @@ export default function App() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <NavigationContainer>
-        {session && session.user ? <StackNavigator /> : <Auth />}
-      </NavigationContainer>
+      <SessionProvider>
+        <NavigationContainer>
+          <StackNavigator />
+        </NavigationContainer>
+      </SessionProvider>
     </GestureHandlerRootView>
   );
 }

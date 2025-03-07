@@ -7,6 +7,7 @@ import MapScreen from '../screens/MapScreen';
 import TabOneScreen from '../screens/TabOneScreen';
 import ChallengeDetailsScreen from '../screens/ChallengeDetailsScreen';
 import LeaderboardScreen from '../screens/LeaderboardScreen';
+import Account from '../components/Account';
 
 
 
@@ -87,7 +88,7 @@ const TabNavigator = () => {
       <Tab.Screen name="ChallengeDetailsScreen" component={ChallengeDetailsScreen} options={{headerShown:false}}/>
       <Tab.Screen name="MapScreen" component={MapScreen} options={{headerShown:false}} />
       <Tab.Screen name="LeaderboardScreen" component={LeaderboardScreen} options={{headerShown:false}}/>
-      <Tab.Screen name="TEST" component={LeaderboardScreen} options={{headerShown:false}}/>
+      <Tab.Screen name="TEST" component={Account} options={{headerShown:false}}/>
 
       
 
