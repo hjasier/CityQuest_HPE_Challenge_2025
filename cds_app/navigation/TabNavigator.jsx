@@ -4,7 +4,6 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { useNavigation } from '@react-navigation/native';
 import { Icon } from '@rneui/themed'
 import MapScreen from '../screens/MapScreen';
-import TabOneScreen from '../screens/TabOneScreen';
 import ChallengeDetailsScreen from '../screens/ChallengeDetailsScreen';
 import LeaderboardScreen from '../screens/LeaderboardScreen';
 import Account from '../components/Account';

@@ -13,10 +13,7 @@ const Explore = () => {
   return (
     <SafeAreaView className="flex-1">
 
-      <ChallengeCard />
-      <ChallengeCard />
-      <ChallengeCard />
-      <ChallengeCard />
+
 
 
 

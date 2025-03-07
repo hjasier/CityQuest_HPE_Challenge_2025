@@ -4,7 +4,7 @@ import testImg from '../assets/testImg.png'
 import { Icon } from '@rneui/base'
 import { useNavigation } from '@react-navigation/native'
 
-const ChallengeCard = () => {
+const ChallengeCard = ({challenge}) => {
 
   const navigation = useNavigation();
 
@@ -18,7 +18,7 @@ const ChallengeCard = () => {
         </View>
       </View>
       <View className="flex flex-row items-center mb-3">
-        <Text className="text-base font-semibold text-gray-800">Probar un pintxo en un restaurante local.</Text>
+        <Text className="text-base font-semibold text-gray-800">{challenge.name}</Text>
       </View>
 
       {/* Content Container */}
