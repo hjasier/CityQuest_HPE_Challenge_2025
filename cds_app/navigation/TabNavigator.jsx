@@ -1,9 +1,6 @@
 import { View, Text , Image } from 'react-native'
 import React, { useCallback, useEffect, useState } from 'react'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
-import Explore from '../screens/Explore'
-
-
 import { useNavigation } from '@react-navigation/native';
 import { Icon } from '@rneui/themed'
 import MapScreen from '../screens/MapScreen';
@@ -80,6 +77,9 @@ const TabNavigator = () => {
         else if (route.name === 'LeaderboardScreen') {
           return <Icon name="comment" type="font-awesome-5" color={focused ? "#36BFF9":"gray"} />
         }
+        else if (route.name === 'TEST') {
+          return <Icon name="comment" type="font-awesome-5" color={focused ? "#36BFF9":"gray"} />
+        }
       }
 
     })}>
@@ -87,6 +87,8 @@ const TabNavigator = () => {
       <Tab.Screen name="ChallengeDetailsScreen" component={ChallengeDetailsScreen} options={{headerShown:false}}/>
       <Tab.Screen name="MapScreen" component={MapScreen} options={{headerShown:false}} />
       <Tab.Screen name="LeaderboardScreen" component={LeaderboardScreen} options={{headerShown:false}}/>
+      <Tab.Screen name="TEST" component={LeaderboardScreen} options={{headerShown:false}}/>
+
       
 
 
