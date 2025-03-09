@@ -11,15 +11,6 @@ const MapScreen = () => {
       {/* Mapa en el fondo */}
       <Map />
 
-      {/* Botón flotante */}
-      <TouchableOpacity
-        style={{
-          position: "absolute", bottom: 10, right: 5, backgroundColor: "#3b82f6", padding: 16, borderRadius: 50, shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 5, shadowOffset: { width: 0, height: 3 }
-        }}
-      >
-        <Text style={{ color: 'white', fontWeight: 'bold' }}>Abrir</Text>
-      </TouchableOpacity>
-
       {/* Modal que se abrirá con el botón */}
       <BottomSheetComponent  />
     </View>
