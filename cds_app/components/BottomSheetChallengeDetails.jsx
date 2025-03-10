@@ -1,14 +1,39 @@
 import { View, Text, StyleSheet } from 'react-native'
-import React, { useRef, useMemo } from 'react'
+import React, { useRef, useMemo, useState } from 'react'
 import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet'
 import ChallengeDetails from './ChallengeDetails'
+import { ScrollView } from 'react-native-gesture-handler'
 
 const BottomSheetChallengeDetails = ({ bottomSheetRef }) => {
   // Ref for the bottom sheet
   const sheetRef = useRef(bottomSheetRef || null);
   
   // Define snap points
-  const snapPoints = useMemo(() => ['60%', '85%','100%'], []);
+  const snapPoints = useMemo(() => ['65%', '85%', '100%'], []);
+  
+  // State to track if the bottom sheet is fully open
+  const [isFullyOpened, setIsFullyOpened] = useState(false);
+
+  // Handle the onChange event of the BottomSheet
+  const handleSheetChanges = (index) => {
+    // Check if the sheet is fully open
+    if (index === 2) {
+      setIsFullyOpened(true);
+    } else {
+      setIsFullyOpened(false);
+    }
+  };
+
+  // Handle the scroll event to detect when user tries to scroll past the top
+  const handleScroll = (event) => {
+    const contentOffsetY = event.nativeEvent.contentOffset.y;
+
+    // If the user is at the top and tries to scroll up when the sheet is fully open
+    if (contentOffsetY <= 0 && isFullyOpened) {
+      // Set the BottomSheet to 85% instead of closing it
+      sheetRef.current?.snapToIndex(1); // Snap to the 85% position
+    }
+  };
 
   return (
     <BottomSheet
@@ -17,34 +42,45 @@ const BottomSheetChallengeDetails = ({ bottomSheetRef }) => {
       initialSnapIndex={0}
       handleIndicatorStyle={styles.indicator}
       backgroundStyle={styles.bottomSheetBackground}
+      onChange={handleSheetChanges}  // Add the onChange event listener
     >
       <BottomSheetView style={styles.contentContainer}>
-        {/* Card Title */}
-        <Text className="text-2xl font-bold mb-2">
-          Prueba Comida Local en el Área de Deusto
-        </Text>
-        
-        {/* Difficulty and Rating */}
-        <View className="flex-row items-center mb-1">
-          <Text className="text-gray-700 mr-2">Fácil</Text>
-          <View className="flex-row items-center">
-            <Text className="text-green-500 font-bold">★</Text>
-            <Text className="ml-1">4.3</Text>
+        {/* Conditionally render ScrollView based on the bottom sheet state */}
+        <ScrollView 
+          className="flex-1" 
+          scrollEnabled={isFullyOpened}
+          onScroll={handleScroll}  // Detect the scroll event
+          scrollEventThrottle={16}  // To optimize performance
+        >
+          {/* Card Title */}
+          <Text className="text-2xl font-bold mb-2">
+            Prueba Comida Local en el Área de Deusto
+          </Text>
+          
+          {/* Difficulty and Rating */}
+          <View className="flex-row items-center mb-1">
+            <Text className="text-gray-700 mr-2">Fácil</Text>
+            <View className="flex-row items-center">
+              <Text className="text-green-500 font-bold">★</Text>
+              <Text className="ml-1">4.3</Text>
+            </View>
           </View>
-        </View>
-        
-        {/* Location */}
-        <Text className="text-gray-600 mb-4">
-          Deusto, Bilbao, Vizcaya
-        </Text>
-        
-        <View className="h-0.5 bg-gray-100 mb-4" />
-        
-        {/* Challenge Details Component */}
-        <ChallengeDetails />
+          
+          {/* Location */}
+          <Text className="text-gray-600 mb-4">
+            Deusto, Bilbao, Vizcaya
+          </Text>
+          
+          <View className="h-0.5 bg-gray-100 mb-4" />
+          
+          {/* Challenge Details Component */}
+          <ChallengeDetails />
+
+          
+        </ScrollView>
       </BottomSheetView>
     </BottomSheet>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -73,4 +109,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default BottomSheetChallengeDetails
+export default BottomSheetChallengeDetails;

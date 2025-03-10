@@ -6,6 +6,7 @@ import { supabase } from './database/supabase';
 import Auth from './components/Auth';
 import StackNavigator from './navigation/StackNavigator';
 import { SessionProvider, useSession } from './hooks/SessionProvider';
+import * as NavigationBar from 'expo-navigation-bar';
 
 export default function App() {
   const [loading, setLoading] = useState(true);
@@ -24,6 +25,12 @@ export default function App() {
       </View>
     );
   }
+
+  NavigationBar.setPositionAsync('absolute')
+  // transparent backgrounds to see through
+  NavigationBar.setBackgroundColorAsync('#ffffff00')
+  // changes the color of the button icons "dark||light"
+  //NavigationBar.setButtonStyleAsync("dark");
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

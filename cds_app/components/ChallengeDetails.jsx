@@ -1,10 +1,31 @@
-import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native'
-import React from 'react'
+import { View, Text, Image, TouchableOpacity, StyleSheet , Alert } from 'react-native'
 import { MapPin, CheckCircle, Navigation2 } from 'react-native-feather'
 import MapView from 'react-native-maps';
+import React, { useState, useEffect } from 'react';
+import * as Location from 'expo-location';
+import ChallengeReviews from './ChallengeReviews';
 
 
 const ChallengeDetails = () => {
+  const [location, setLocation] = useState(null);
+
+  useEffect(() => {
+    (async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permiso denegado', 'Se necesita acceso a la ubicación para mostrar el mapa.');
+        return;
+      }
+
+      let currentLocation = await Location.getCurrentPositionAsync({});
+      setLocation({
+        latitude: currentLocation.coords.latitude,
+        longitude: currentLocation.coords.longitude,
+        latitudeDelta: 0.005,
+        longitudeDelta: 0.005,
+      });
+    })();
+  }, []);
 
     
   return (
@@ -24,27 +45,20 @@ const ChallengeDetails = () => {
       <View className="w-full h-48 rounded-lg overflow-hidden mb-6">
       <MapView 
         style={styles.map}
-        initialRegion={{
-          latitude: 37.78825,
-          longitude: -122.4324,
-          latitudeDelta: 0.0922,
-          longitudeDelta: 0.0421,
-        }}
+        region={location} 
+        showsUserLocation={true}
+        followsUserLocation={true}
+        scrollEnabled={false}  // Evita que el usuario deslice el mapa
+        zoomEnabled={true}  // Permite hacer zoom
       />
       </View>
-      
-      {/* Action Buttons */}
-      <View className="flex-row justify-between pb-6">
-        <TouchableOpacity className="flex-row items-center justify-center bg-blue-100 rounded-lg py-3 px-6 w-36">
-          <CheckCircle stroke="#3B82F6" width={20} height={20} />
-          <Text className="ml-2 font-semibold text-blue-600">Completar</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity className="flex-row items-center justify-center bg-gray-100 rounded-lg py-3 px-6 w-36">
-          <Navigation2 stroke="#4B5563" width={20} height={20} />
-          <Text className="ml-2 font-semibold text-gray-600">Ruta</Text>
-        </TouchableOpacity>
+
+      {/* Reviews */}
+      <View className="flex-row items-center mb-6">
+        <ChallengeReviews />
       </View>
+      
+
     </View>
   )
 }

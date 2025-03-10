@@ -7,6 +7,7 @@ import MapScreen from '../screens/MapScreen';
 import ChallengeDetailsScreen from '../screens/ChallengeDetailsScreen';
 import LeaderboardScreen from '../screens/LeaderboardScreen';
 import Account from '../components/Account';
+import CTabBar from '../components/CTabBar';
 
 
 
@@ -61,36 +62,36 @@ const TabNavigator = () => {
   return (
     <Tab.Navigator 
     initialRouteName={initialRouteName}
+    //tabBar={props => <CTabBar {...props} />}
     screenOptions={({route}) => ({
       tabBarActiveTintColor: '#36BFF9',
       tabBarInactiveTintColor: 'gray',
       tabBarShowLabel: false,
       
+      
       tabBarIcon: ({focused , color , size }) => {
+        const iconSize = 20; // Set the desired icon size
 
-        if (route.name === 'ChallengeDetailsScreen') {
-          return <Icon name="search" type="font-awesome-5" color={focused ? "#36BFF9":"gray"} />
+        if (route.name === 'MapScreen') {
+          return <Icon name="search" type="font-awesome-5" color={focused ? "#36BFF9":"gray"} size={iconSize} />
         } 
-        else if (route.name === 'MapScreen') {
-          return <Icon name="flag" type="font-awesome-5" color={focused ? "#36BFF9":"gray"} />
+        else if (route.name === 'MapScreen2') {
+          return <Icon name="flag" type="font-awesome-5" color={focused ? "#36BFF9":"gray"} size={iconSize} />
         }
         else if (route.name === 'LeaderboardScreen') {
-          return <Icon name="comment" type="font-awesome-5" color={focused ? "#36BFF9":"gray"} />
+          return <Icon name="trophy" type="font-awesome-5" color={focused ? "#36BFF9":"gray"} size={iconSize} />
         }
         else if (route.name === 'TEST') {
-          return <Icon name="comment" type="font-awesome-5" color={focused ? "#36BFF9":"gray"} />
+          return <Icon name="comment" type="font-awesome-5" color={focused ? "#36BFF9":"gray"} size={iconSize} />
         }
       }
 
     })}>
 
-      <Tab.Screen name="ChallengeDetailsScreen" component={ChallengeDetailsScreen} options={{headerShown:false}}/>
-      <Tab.Screen name="MapScreen" component={MapScreen} options={{headerShown:false}} />
+      <Tab.Screen name="MapScreen" component={MapScreen} options={{headerShown:false}}/>
+      <Tab.Screen name="MapScreen2" component={MapScreen} options={{headerShown:false}} />
       <Tab.Screen name="LeaderboardScreen" component={LeaderboardScreen} options={{headerShown:false}}/>
       <Tab.Screen name="TEST" component={Account} options={{headerShown:false}}/>
-
-      
-
 
     </Tab.Navigator>
   )

@@ -3,10 +3,16 @@ import React from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { ArrowLeft } from 'react-native-feather'
 import BottomSheetChallengeDetails from '../components/BottomSheetChallengeDetails'
+import { useNavigation } from '@react-navigation/native'
+import FixedPanel from '../components/FixedPanel'
 
-const ChallengeDetailsScreen = ({ navigation }) => {
+const ChallengeDetailsScreen = () => {
+
+  const navigation = useNavigation();
+
   return (
     <View className="flex-1 bg-white">
+
       {/* Header with back button */}
       <View className="absolute z-10 top-12 left-4">
         <TouchableOpacity 
@@ -30,6 +36,7 @@ const ChallengeDetailsScreen = ({ navigation }) => {
 
       {/* Bottom Sheet with Challenge Details */}
       <BottomSheetChallengeDetails />
+      <FixedPanel />
     </View>
   )
 }
