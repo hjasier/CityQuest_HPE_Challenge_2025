@@ -51,6 +51,8 @@ const BottomSheetChallengeDetails = ({ bottomSheetRef }) => {
           scrollEnabled={isFullyOpened}
           onScroll={handleScroll}  // Detect the scroll event
           scrollEventThrottle={16}  // To optimize performance
+          showsVerticalScrollIndicator={false} // Oculta la barra vertical
+          showsHorizontalScrollIndicator={false} // (Opcional) Oculta la barra horizontal
         >
           {/* Card Title */}
           <Text className="text-2xl font-bold mb-2">

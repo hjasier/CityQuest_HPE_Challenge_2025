@@ -5,6 +5,7 @@ import { ArrowLeft } from 'react-native-feather'
 import BottomSheetChallengeDetails from '../components/BottomSheetChallengeDetails'
 import { useNavigation } from '@react-navigation/native'
 import FixedPanel from '../components/FixedPanel'
+import FixedHeaderChallengeDetails from '../components/FixedHeaderChallengeDetails'
 
 const ChallengeDetailsScreen = () => {
 
@@ -13,15 +14,8 @@ const ChallengeDetailsScreen = () => {
   return (
     <View className="flex-1 bg-white">
 
-      {/* Header with back button */}
-      <View className="absolute z-10 top-12 left-4">
-        <TouchableOpacity 
-          onPress={() => navigation.goBack()} 
-          className="bg-white p-2 rounded-full shadow-md"
-        >
-          <ArrowLeft stroke="#000" width={24} height={24} />
-        </TouchableOpacity>
-      </View>
+      {/* Fixed Header */}
+      <FixedHeaderChallengeDetails />
 
       {/* Food Image */}
       <View className="w-full h-72">

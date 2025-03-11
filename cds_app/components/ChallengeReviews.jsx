@@ -1,4 +1,4 @@
-import { View, Text, Image, ScrollView } from 'react-native';
+import { View, Text, Image, ScrollView, Touchable, TouchableOpacity } from 'react-native';
 import React from 'react';
 import { tw } from 'nativewind';
 
@@ -44,6 +44,14 @@ const StarRating = ({ rating }) => {
 
 const ChallengeReviews = () => {
   return (
+    <View>
+      <View>
+        <Text className="text-2xl font-semibold">Reseñas</Text>
+        <View className="flex-row items-center">
+          <Text className="text-slate-600 text-4xl font-bold my-1">4.3</Text>
+          <Text className="text-yellow-500 text-2xl ">★</Text>
+        </View>
+    </View>
     <View className="space-y-4 pb-36">
       {reviews.map((review, index) => (
         <View key={index} className="p-4 bg-white rounded-lg shadow-md">
@@ -61,6 +69,13 @@ const ChallengeReviews = () => {
           <Text className="mt-2 text-gray-700">{review.reviewText}</Text>
         </View>
       ))}
+              
+      <TouchableOpacity className="bg-gray-100 text-white text-center items-center py-3 rounded-full">
+        <Text className="font-bold">Mostrar todas las reseñas</Text>
+      </TouchableOpacity>
+    </View>
+
+    
     </View>
   );
 };
