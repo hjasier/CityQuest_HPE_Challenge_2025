@@ -7,6 +7,7 @@ import Auth from './components/Auth';
 import StackNavigator from './navigation/StackNavigator';
 import { SessionProvider, useSession } from './hooks/SessionProvider';
 import * as NavigationBar from 'expo-navigation-bar';
+import { StatusBar } from 'expo-status-bar';
 
 export default function App() {
   const [loading, setLoading] = useState(true);
@@ -30,13 +31,19 @@ export default function App() {
   // transparent backgrounds to see through
   NavigationBar.setBackgroundColorAsync('#ffffff00')
   // changes the color of the button icons "dark||light"
-  //NavigationBar.setButtonStyleAsync("dark");
+  NavigationBar.setButtonStyleAsync("dark");
+
+
+  //NavigationBar.setVisibilityAsync(false); //quitar la barra de abajo
 
   return (
+    
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SessionProvider>
         <NavigationContainer>
           <StackNavigator />
+          {/* Status Bar transparente , no se donde devería ir esto pero bueno ya se movera*/}
+          <StatusBar translucent backgroundColor="transparent" style="dark" />
         </NavigationContainer>
       </SessionProvider>
     </GestureHandlerRootView>

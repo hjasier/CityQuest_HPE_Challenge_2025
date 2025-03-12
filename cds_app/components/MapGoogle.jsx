@@ -3,7 +3,7 @@ import { StyleSheet, View, Alert } from 'react-native';
 import MapView from 'react-native-maps';
 import * as Location from 'expo-location';
 
-const Map = () => {
+const MapGoogle = () => {
   const [location, setLocation] = useState(null);
 
   useEffect(() => {
@@ -56,4 +56,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Map;
+export default MapGoogle;

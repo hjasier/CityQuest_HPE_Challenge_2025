@@ -66,19 +66,19 @@ const TabNavigator = () => {
     screenOptions={({route}) => ({
       tabBarActiveTintColor: '#36BFF9',
       tabBarInactiveTintColor: 'gray',
-      tabBarShowLabel: false,
+      tabBarShowLabel: true,
       
       
       tabBarIcon: ({focused , color , size }) => {
         const iconSize = 20; // Set the desired icon size
 
-        if (route.name === 'MapScreen') {
+        if (route.name === 'Explore') {
           return <Icon name="search" type="font-awesome-5" color={focused ? "#36BFF9":"gray"} size={iconSize} />
         } 
-        else if (route.name === 'MapScreen2') {
+        else if (route.name === 'Algo') {
           return <Icon name="flag" type="font-awesome-5" color={focused ? "#36BFF9":"gray"} size={iconSize} />
         }
-        else if (route.name === 'LeaderboardScreen') {
+        else if (route.name === 'Leaderboard') {
           return <Icon name="trophy" type="font-awesome-5" color={focused ? "#36BFF9":"gray"} size={iconSize} />
         }
         else if (route.name === 'TEST') {
@@ -88,9 +88,9 @@ const TabNavigator = () => {
 
     })}>
 
-      <Tab.Screen name="MapScreen" component={MapScreen} options={{headerShown:false}}/>
-      <Tab.Screen name="MapScreen2" component={MapScreen} options={{headerShown:false}} />
-      <Tab.Screen name="LeaderboardScreen" component={LeaderboardScreen} options={{headerShown:false}}/>
+      <Tab.Screen name="Explore" component={MapScreen} options={{headerShown:false}}/>
+      <Tab.Screen name="Algo" component={LeaderboardScreen} options={{headerShown:false}} />
+      <Tab.Screen name="Leaderboard" component={LeaderboardScreen} options={{headerShown:false}}/>
       <Tab.Screen name="TEST" component={Account} options={{headerShown:false}}/>
 
     </Tab.Navigator>

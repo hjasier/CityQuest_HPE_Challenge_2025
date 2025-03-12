@@ -2,6 +2,7 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import { useState } from 'react';
 import { Button, StyleSheet, Text, TouchableOpacity, View , Vibration } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import RequestPermission from '../components/RequestPermission';
 
 const ChallengeScanQRScreen = () => {
 
@@ -16,14 +17,16 @@ const ChallengeScanQRScreen = () => {
     }
 
     if (!permission.granted) {
-    // Camera permissions are not granted yet.
-    return (
-        <View style={styles.container}>
-        <Text style={{ textAlign: 'center' }}>Permiso para espiar tu camara uwu (ꈍᴗꈍ)♡</Text>
-        <Button onPress={requestPermission} title="grant permission" />
-        </View>
-    );
+      return (
+        <RequestPermission 
+          icon="camera-outline"
+          title="Permiso para espiar tu camara uwu (ꈍᴗꈍ)♡"
+          description="Necesitamos acceso a tu cámara para tomar fotos."
+          onRequest={requestPermission}
+        />
+      );
     }
+
 
     function toggleCameraFacing() {
     setFacing(current => (current === 'back' ? 'front' : 'back'));

@@ -31,7 +31,7 @@ const ChallengeCompletedScreen = ({ route }) => {
 
       {/* Botón de Continuar */}
       <Pressable
-        onPress={() => navigation.navigate("MapScreen")}
+        onPress={() => navigation.navigate("Main")}
         className="mt-6 bg-yellow-500 px-6 py-3 rounded-lg active:scale-95"
       >
         <Text className="text-lg font-semibold text-gray-900">Continuar</Text>

@@ -9,6 +9,7 @@ import ChallengeReviews from './ChallengeReviews';
 const ChallengeDetails = () => {
   const [location, setLocation] = useState(null);
 
+
   useEffect(() => {
     (async () => {
       let { status } = await Location.requestForegroundPermissionsAsync();
@@ -43,14 +44,14 @@ const ChallengeDetails = () => {
       
       {/* Map View */}
       <View className="w-full h-48 rounded-lg overflow-hidden mb-6">
-      <MapView 
+      {/* <MapView 
         style={styles.map}
         region={location} 
         showsUserLocation={true}
         followsUserLocation={true}
         scrollEnabled={false}  // Evita que el usuario deslice el mapa
         zoomEnabled={true}  // Permite hacer zoom
-      />
+      /> */}
       </View>
 
       {/* Reviews */}

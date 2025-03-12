@@ -1,6 +1,8 @@
 import React, { useRef } from "react";
 import { View, TouchableOpacity, Text } from "react-native";
-import Map from "../components/Map";
+import MapGoogle from "../components/MapGoogle";
+import MapMapBox from "../components/MapMapBox";
+
 import BottomSheetComponent from "../components/BottomSheet";
 
 const MapScreen = () => {
@@ -11,7 +13,7 @@ const MapScreen = () => {
 
 
       {/* Mapa en el fondo */}
-      <Map />
+      <MapMapBox />
       {/* Modal que se abrirá con el botón */}
       <BottomSheetComponent  />
 
