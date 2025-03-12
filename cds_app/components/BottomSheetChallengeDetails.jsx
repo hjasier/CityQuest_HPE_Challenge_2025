@@ -26,6 +26,11 @@ const BottomSheetChallengeDetails = ({ bottomSheetRef }) => {
 
   // Handle the scroll event to detect when user tries to scroll past the top
   const handleScroll = (event) => {
+    const { contentOffset } = event.nativeEvent;
+    const scrollY = contentOffset.y; // Posición vertical del scroll
+    console.log("Posición del scroll:", scrollY);
+
+
     const contentOffsetY = event.nativeEvent.contentOffset.y;
 
     // If the user is at the top and tries to scroll up when the sheet is fully open
@@ -47,7 +52,7 @@ const BottomSheetChallengeDetails = ({ bottomSheetRef }) => {
       <BottomSheetView style={styles.contentContainer}>
         {/* Conditionally render ScrollView based on the bottom sheet state */}
         <ScrollView 
-          className="flex-1" 
+          className="flex-1 px-5" 
           scrollEnabled={isFullyOpened}
           onScroll={handleScroll}  // Detect the scroll event
           scrollEventThrottle={16}  // To optimize performance
@@ -101,7 +106,6 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     flex: 1,
-    paddingHorizontal: 20,
     paddingTop: 10,
   },
   indicator: {

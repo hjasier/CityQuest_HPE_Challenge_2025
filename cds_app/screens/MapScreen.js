@@ -8,11 +8,14 @@ const MapScreen = () => {
 
   return (
     <View style={{ flex: 1, position: 'relative' }}>
+
+
       {/* Mapa en el fondo */}
       <Map />
-
       {/* Modal que se abrirá con el botón */}
       <BottomSheetComponent  />
+
+      
     </View>
   );
 };

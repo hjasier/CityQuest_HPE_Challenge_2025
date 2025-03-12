@@ -46,8 +46,25 @@
       "expo-asset",
       "expo-secure-store",
       "expo-camera",
-      "expo-sqlite"
-    ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Show current location on map."
+        }
+      ],
+      [
+        "@rnmapbox/maps",
+        {
+          
+          "RNMapboxMapsDownloadToken":"sk.eyJ1IjoiYXNpaWVyIiwiYSI6ImNtODYweWxvbTAwNGcyaXFzeWNndHRodzMifQ.Kl3w4UT-iYCrOv2O60tpGg",
+          "RNMapboxMaps": {
+            "accessToken": "sk.eyJ1IjoiYXNpaWVyIiwiYSI6ImNtODYweWxvbTAwNGcyaXFzeWNndHRodzMifQ.Kl3w4UT-iYCrOv2O60tpGg",
+            "DownloadToken":"sk.eyJ1IjoiYXNpaWVyIiwiYSI6ImNtODYweWxvbTAwNGcyaXFzeWNndHRodzMifQ.Kl3w4UT-iYCrOv2O60tpGg"
+          },
+        }
+      ]
+    ]
+    ,
     "hooks": {},
     "extra": {
       "eas": {
