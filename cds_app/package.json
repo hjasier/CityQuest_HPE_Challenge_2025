@@ -58,6 +58,7 @@
     "react-native-gesture-handler": "~2.20.2",
     "react-native-get-random-values": "~1.11.0",
     "react-native-gifted-charts": "^1.4.56",
+    "react-native-heroicons": "^4.0.0",
     "react-native-linear-gradient": "^2.8.3",
     "react-native-maps": "1.18.0",
     "react-native-popup-menu": "^0.16.1",

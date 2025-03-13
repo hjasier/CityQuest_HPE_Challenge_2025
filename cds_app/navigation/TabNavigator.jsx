@@ -8,6 +8,8 @@ import ChallengeDetailsScreen from '../screens/ChallengeDetailsScreen';
 import LeaderboardScreen from '../screens/LeaderboardScreen';
 import Account from '../components/Account';
 import CTabBar from '../components/CTabBar';
+import LeaderBoard2Screen from '../screens/LeaderBoard2Screen';
+import FeedScreen from '../screens/FeedScreen';
 
 
 
@@ -75,7 +77,7 @@ const TabNavigator = () => {
         if (route.name === 'Explore') {
           return <Icon name="search" type="font-awesome-5" color={focused ? "#36BFF9":"gray"} size={iconSize} />
         } 
-        else if (route.name === 'Algo') {
+        else if (route.name === 'Feed') {
           return <Icon name="flag" type="font-awesome-5" color={focused ? "#36BFF9":"gray"} size={iconSize} />
         }
         else if (route.name === 'Leaderboard') {
@@ -89,8 +91,8 @@ const TabNavigator = () => {
     })}>
 
       <Tab.Screen name="Explore" component={MapScreen} options={{headerShown:false}}/>
-      <Tab.Screen name="Algo" component={LeaderboardScreen} options={{headerShown:false}} />
-      <Tab.Screen name="Leaderboard" component={LeaderboardScreen} options={{headerShown:false}}/>
+      <Tab.Screen name="Leaderboard" component={LeaderBoard2Screen} options={{headerShown:false}}/>
+      <Tab.Screen name="Feed" component={FeedScreen} options={{headerShown:false}} />
       <Tab.Screen name="TEST" component={Account} options={{headerShown:false}}/>
 
     </Tab.Navigator>

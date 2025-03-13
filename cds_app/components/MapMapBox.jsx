@@ -28,7 +28,7 @@ const Map = () => {
       {location ? (
         <MapboxGL.MapView style={styles.map} zoomEnabled scaleBarEnabled={false} styleURL='mapbox://styles/asiier/cm86e6z8s007t01safl5m10hl/draft'>
           <MapboxGL.Camera centerCoordinate={location} zoomLevel={15} />
-          <MapboxGL.UserLocation visible={true} />
+          {/* <MapboxGL.UserLocation visible={true} /> */}
         </MapboxGL.MapView>
       ) : (
         <View style={styles.loading} />
