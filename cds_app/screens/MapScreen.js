@@ -4,6 +4,7 @@ import MapGoogle from "../components/MapGoogle";
 import MapMapBox from "../components/MapMapBox";
 
 import BottomSheetComponent from "../components/BottomSheet";
+import AIButton from "../components/AIButton"
 
 const MapScreen = () => {
 
@@ -11,9 +12,9 @@ const MapScreen = () => {
   return (
     <View style={{ flex: 1, position: 'relative' }}>
 
-
       {/* Mapa en el fondo */}
-      <MapMapBox />
+      <MapMapBox/>
+      <AIButton/>
       {/* Modal que se abrirá con el botón */}
       <BottomSheetComponent  />
 
