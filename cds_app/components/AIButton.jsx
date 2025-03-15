@@ -1,6 +1,10 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { Animated, PanResponder, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
+import { Animated, PanResponder, TouchableOpacity, Dimensions, View } from 'react-native';
 import { Icon } from '@rneui/base';
+import { styled } from 'nativewind';
+
+const AnimatedView = styled(Animated.View);
+const StyledTouchableOpacity = styled(TouchableOpacity);
 
 const { width, height } = Dimensions.get('window');
 const BUTTON_SIZE = 60;
@@ -10,7 +14,7 @@ const initialPosition = {
   y: height / 2 - BUTTON_SIZE / 2,
 };
 
-const DraggableButton = ({ onPress, onRadial1, onRadial2, customBounds = {} }) => {
+const DraggableButton = ({ mapRef, onRadial1, onRadial2, onPress, customBounds = {} }) => {
   // Main button position
   const pan = useRef(new Animated.ValueXY(initialPosition)).current;
   // Animation for menu open/close and main button scale
@@ -21,12 +25,38 @@ const DraggableButton = ({ onPress, onRadial1, onRadial2, customBounds = {} }) =
   // States
   const [showMenu, setShowMenu] = useState(false);
   const [buttonPosition, setButtonPosition] = useState(initialPosition);
+  const [location, setLocation] = useState(null);
   const autoCloseTimerRef = useRef(null);
 
   // Calculate screen center
   const screenCenter = {
     x: width / 2,
     y: height / 2
+  };
+
+  // Handle button press
+  const handleButtonPress = () => {
+    console.log('Main button pressed');
+    if (onPress) onPress();
+  };
+
+  // Handle radial button 1 press - Example: Take a photo at current location
+  const handleRadial1Press = () => {
+    console.log('Camera button pressed');
+    if (onRadial1) onRadial1();
+  };
+
+  // Handle radial button 2 press - Example: Center map on user location
+  const handleRadial2Press = () => {
+    console.log('Chat button pressed');
+    if (onRadial2) onRadial2();
+    if (location && mapRef && mapRef.current) {
+      mapRef.current.setCamera({
+        centerCoordinate: location,
+        zoomLevel: 15,
+        animationDuration: 1000,
+      });
+    }
   };
 
   // Effect to update button position when dragged
@@ -90,14 +120,13 @@ const DraggableButton = ({ onPress, onRadial1, onRadial2, customBounds = {} }) =
         }).start();
 
         // Treat as tap if movement was minimal
-        if (Math.abs(gestureState.dx) < 5 && Math.abs(gestureState.dy) < 5 && onPress) {
-          onPress();
+        if (Math.abs(gestureState.dx) < 5 && Math.abs(gestureState.dy) < 5) {
+          handleMainButtonPress();
         }
       },
     })
   ).current;
 
-  // Rest of the component remains the same...
   const handleMainButtonPress = () => {
     if (showMenu) {
       closeMenu();
@@ -193,145 +222,89 @@ const DraggableButton = ({ onPress, onRadial1, onRadial2, customBounds = {} }) =
     
     return (
       <>
-        <Animated.View
-          style={[
-            styles.menuButton,
-            {
-              opacity: radialButtonOpacity,
-              transform: [
-                { translateX: menuAnim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [0, x1]
-                }) },
-                { translateY: menuAnim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [0, y1]
-                }) },
-                { scale: Animated.multiply(radialButtonScale, radialScale1) }
-              ],
-              backgroundColor: 'green',
-            },
-          ]}
+        <AnimatedView
+          className="absolute w-[30px] h-[30px] rounded-full bg-green-600 justify-center items-center shadow-md z-10"
+          style={{
+            opacity: radialButtonOpacity,
+            transform: [
+              { translateX: menuAnim.interpolate({
+                inputRange: [0, 1],
+                outputRange: [0, x1]
+              }) },
+              { translateY: menuAnim.interpolate({
+                inputRange: [0, 1],
+                outputRange: [0, y1]
+              }) },
+              { scale: Animated.multiply(radialButtonScale, radialScale1) }
+            ],
+          }}
         >
-          <TouchableOpacity
-            style={styles.touchable}
-            onPress={() => handleRadialButtonPress(onRadial1)}
+          <StyledTouchableOpacity
+            className="w-full h-full rounded-full justify-center items-center"
+            onPress={() => handleRadialButtonPress(handleRadial1Press)}
           >
             <Icon name="camera" type="ionicon" color="white" size={15} />
-          </TouchableOpacity>
-        </Animated.View>
+          </StyledTouchableOpacity>
+        </AnimatedView>
         
-        <Animated.View
-          style={[
-            styles.menuButton,
-            {
-              opacity: radialButtonOpacity,
-              transform: [
-                { translateX: menuAnim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [0, x2]
-                }) },
-                { translateY: menuAnim.interpolate({
-                  inputRange: [0, 1],
-                  outputRange: [0, y2]
-                }) },
-                { scale: Animated.multiply(radialButtonScale, radialScale2) }
-              ],
-              backgroundColor: 'green',
-            },
-          ]}
+        <AnimatedView
+          className="absolute w-[30px] h-[30px] rounded-full bg-green-600 justify-center items-center shadow-md z-10"
+          style={{
+            opacity: radialButtonOpacity,
+            transform: [
+              { translateX: menuAnim.interpolate({
+                inputRange: [0, 1],
+                outputRange: [0, x2]
+              }) },
+              { translateY: menuAnim.interpolate({
+                inputRange: [0, 1],
+                outputRange: [0, y2]
+              }) },
+              { scale: Animated.multiply(radialButtonScale, radialScale2) }
+            ],
+          }}
         >
-          <TouchableOpacity
-            style={styles.touchable}
-            onPress={() => handleRadialButtonPress(onRadial2)}
+          <StyledTouchableOpacity
+            className="w-full h-full rounded-full justify-center items-center"
+            onPress={() => handleRadialButtonPress(handleRadial2Press)}
           >
             <Icon name="chatbox" type="ionicon" color="white" size={15} />
-          </TouchableOpacity>
-        </Animated.View>
+          </StyledTouchableOpacity>
+        </AnimatedView>
       </>
     );
   };
 
   return (
-    <Animated.View
-      style={[
-        styles.container,
-        {
-          transform: [
-            ...pan.getTranslateTransform(),
-          ],
-        },
-      ]}
+    <AnimatedView
+      className="absolute w-[60px] h-[60px] justify-center items-center z-50"
+      style={{
+        transform: [
+          ...pan.getTranslateTransform(),
+        ],
+      }}
       {...panResponder.panHandlers}
     >
       {renderRadialButtons()}
       
-      <Animated.View
-        style={[
-          styles.button,
-          {
-            transform: [
-              { scale: mainButtonScale },
-            ],
-          },
-        ]}
+      <AnimatedView
+        className="w-[60px] h-[60px] rounded-full bg-green-600 justify-center items-center shadow-md z-20"
+        style={{
+          transform: [
+            { scale: mainButtonScale },
+          ],
+        }}
       >
-        <TouchableOpacity
-          style={styles.touchable}
+        <StyledTouchableOpacity
+          className="w-full h-full rounded-full justify-center items-center"
           onPress={handleMainButtonPress}
           activeOpacity={0.8}
         >
           <Icon name={showMenu ? "mic" : "sparkles-sharp"} type="ionicon" color="white" size={28} />
-        </TouchableOpacity>
-      </Animated.View>
-    </Animated.View>
+        </StyledTouchableOpacity>
+      </AnimatedView>
+    </AnimatedView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    position: 'absolute',
-    width: BUTTON_SIZE,
-    height: BUTTON_SIZE,
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 1000,
-  },
-  button: {
-    width: BUTTON_SIZE,
-    height: BUTTON_SIZE,
-    borderRadius: BUTTON_SIZE / 2,
-    backgroundColor: 'green',
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 2,
-    zIndex: 2,
-  },
-  touchable: {
-    width: '100%',
-    height: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: BUTTON_SIZE / 2,
-  },
-  menuButton: {
-    position: 'absolute',
-    width: BUTTON_SIZE / 2,
-    height: BUTTON_SIZE / 2,
-    borderRadius: (BUTTON_SIZE / 2) / 2,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 2,
-    zIndex: 1,
-  },
-});
 
 export default DraggableButton;
