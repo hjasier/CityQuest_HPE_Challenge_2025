@@ -10,7 +10,7 @@ const initialPosition = {
   y: height / 2 - BUTTON_SIZE / 2,
 };
 
-const DraggableButton = ({ onPress, onRadial1, onRadial2 }) => {
+const DraggableButton = ({ onPress, onRadial1, onRadial2, customBounds = {} }) => {
   // Main button position
   const pan = useRef(new Animated.ValueXY(initialPosition)).current;
   // Animation for menu open/close and main button scale
@@ -69,11 +69,18 @@ const DraggableButton = ({ onPress, onRadial1, onRadial2 }) => {
       onPanResponderRelease: (evt, gestureState) => {
         pan.flattenOffset();
         
-        // Ensure button stays within screen boundaries
+        // Ensure button stays within screen boundaries, respecting custom bounds
         const currentX = pan.x._value;
         const currentY = pan.y._value;
-        const clampedX = Math.max(0, Math.min(currentX, width - BUTTON_SIZE));
-        const clampedY = Math.max(0, Math.min(currentY, height - BUTTON_SIZE));
+        
+        // Apply custom bounds if provided, otherwise use screen bounds
+        const minX = customBounds.minX !== undefined ? customBounds.minX : 0;
+        const maxX = customBounds.maxX !== undefined ? customBounds.maxX : width - BUTTON_SIZE;
+        const minY = customBounds.minY !== undefined ? customBounds.minY : 0;
+        const maxY = customBounds.maxY !== undefined ? customBounds.maxY - BUTTON_SIZE : height - BUTTON_SIZE;
+        
+        const clampedX = Math.max(minX, Math.min(currentX, maxX));
+        const clampedY = Math.max(minY, Math.min(currentY, maxY));
         
         // Animate button to final position with spring effect
         Animated.spring(pan, {
@@ -90,6 +97,7 @@ const DraggableButton = ({ onPress, onRadial1, onRadial2 }) => {
     })
   ).current;
 
+  // Rest of the component remains the same...
   const handleMainButtonPress = () => {
     if (showMenu) {
       closeMenu();
