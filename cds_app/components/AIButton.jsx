@@ -281,7 +281,7 @@ const DraggableButton = ({ onPress, onRadial1, onRadial2, customBounds = {} }) =
           onPress={handleMainButtonPress}
           activeOpacity={0.8}
         >
-          <Icon name={showMenu ? "close" : "sparkles-sharp"} type="ionicon" color="white" size={28} />
+          <Icon name={showMenu ? "mic" : "sparkles-sharp"} type="ionicon" color="white" size={28} />
         </TouchableOpacity>
       </Animated.View>
     </Animated.View>
