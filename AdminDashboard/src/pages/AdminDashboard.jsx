@@ -4,6 +4,7 @@ import Sidebar from '../components/SideBar';
 import DashboardContent from '../components/DashboardContent';
 import ChallengesView from '../components/ChallengesContent';
 import LocationsView from '../components/LocationsContent';
+import RewardsView from '../components/RewardsContent';
 
 
 const AdminDashboard = () => {
@@ -29,6 +30,7 @@ const AdminDashboard = () => {
             {activeItem === 'dashboard' && <DashboardContent />}
             {activeItem === 'challenges' && <ChallengesView />}
             {activeItem === 'locations' && <LocationsView />}
+            {activeItem === 'rewards' && <RewardsView />}
             {/* Aquí irían los demás componentes según activeItem */}
           </main>
         </div>
