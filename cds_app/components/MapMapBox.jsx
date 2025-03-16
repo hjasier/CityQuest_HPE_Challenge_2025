@@ -8,7 +8,7 @@ import DraggableButton from './AIButton'; // Import the component
 MapboxGL.setAccessToken("pk.eyJ1IjoiYXNpaWVyIiwiYSI6ImNrenU0aW9zMjE4ZnEyb285eW1yY3p2N3oifQ.T2QoudfHezOdNRnRx2wIcA");
 
 const Map = () => {
-  const [location, setLocation] = useState(null);
+  const [location, setLocation] = useState([ -2.9350, 43.2630 ]);
   const mapRef = useRef(null);
   const { width, height } = Dimensions.get('window');
 
