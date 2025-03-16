@@ -105,9 +105,8 @@ const DraggableButton = ({ mapRef, onRadial1, onRadial2, onPress, customBounds =
         longPressTimerRef.current = setTimeout(() => {
           // Only trigger if there was no drag
           if (!hasDraggedRef.current) {
-            console.log('Recording');
+            console.log('Recording started');
             setIsRecording(true);
-            // You can add additional logic for long press here
           }
         }, 500); // 0.5 seconds for long press
         
@@ -125,6 +124,12 @@ const DraggableButton = ({ mapRef, onRadial1, onRadial2, onPress, customBounds =
             clearTimeout(longPressTimerRef.current);
             longPressTimerRef.current = null;
           }
+          
+          // If recording was active, stop it when dragging
+          if (isRecording) {
+            console.log('Recording stopped due to movement');
+            setIsRecording(false);
+          }
         }
         
         Animated.event(
@@ -139,8 +144,9 @@ const DraggableButton = ({ mapRef, onRadial1, onRadial2, onPress, customBounds =
           longPressTimerRef.current = null;
         }
         
-        // Stop recording if it was active
+        // Explicitly stop recording when touch is released
         if (isRecording) {
+          console.log('Recording stopped on release');
           setIsRecording(false);
         }
         
@@ -325,19 +331,27 @@ const DraggableButton = ({ mapRef, onRadial1, onRadial2, onPress, customBounds =
     );
   };
 
+  // Ensure the waveform is rendered separately from the main component
+  // This prevents issues where the waveform might not disappear properly
+  const renderCenterWaveform = () => {
+    if (!isRecording) return null;
+    
+    return (
+      <StyledView className="absolute top-0 left-0 bottom-0 right-0 justify-center items-center z-50 pointer-events-none">
+        <StyledView className="w-32 h-32 rounded-full bg-green-600 justify-center items-center shadow-lg">
+          <AudioWaveformButton isRecording={true} />
+        </StyledView>
+      </StyledView>
+    );
+  };
+
   return (
     <>
       {/* Center screen waveform that appears during recording */}
-      {isRecording && (
-        <StyledView className="absolute top-0 left-0 bottom-0 right-0 justify-center items-center z-50">
-          <StyledView className="w-32 h-32 rounded-full bg-green-600 justify-center items-center shadow-lg">
-            <AudioWaveformButton isRecording={isRecording} />
-          </StyledView>
-        </StyledView>
-      )}
+      {renderCenterWaveform()}
       
       <AnimatedView
-        className="absolute w-[60px] h-[60px] justify-center items-center z-50"
+        className="absolute w-[60px] h-[60px] justify-center items-center z-40"
         style={{
           transform: [
             ...pan.getTranslateTransform(),
