@@ -2,9 +2,11 @@ import React, { useRef, useState, useEffect } from 'react';
 import { Animated, PanResponder, TouchableOpacity, Dimensions, View } from 'react-native';
 import { Icon } from '@rneui/base';
 import { styled } from 'nativewind';
+import AudioWaveformButton from './AudioWaveformButton';
 
 const AnimatedView = styled(Animated.View);
 const StyledTouchableOpacity = styled(TouchableOpacity);
+const StyledView = styled(View);
 
 const { width, height } = Dimensions.get('window');
 const BUTTON_SIZE = 60;
@@ -26,6 +28,7 @@ const DraggableButton = ({ mapRef, onRadial1, onRadial2, onPress, customBounds =
   const [showMenu, setShowMenu] = useState(false);
   const [buttonPosition, setButtonPosition] = useState(initialPosition);
   const [location, setLocation] = useState(null);
+  const [isRecording, setIsRecording] = useState(false);
   const autoCloseTimerRef = useRef(null);
   // For long press detection
   const longPressTimerRef = useRef(null);
@@ -102,8 +105,8 @@ const DraggableButton = ({ mapRef, onRadial1, onRadial2, onPress, customBounds =
         longPressTimerRef.current = setTimeout(() => {
           // Only trigger if there was no drag
           if (!hasDraggedRef.current) {
-            console.log('Long press detected on main button (0.5+ seconds)');
-            // You can add additional logic for long press here
+            console.log('Recording started');
+            setIsRecording(true);
           }
         }, 500); // 0.5 seconds for long press
         
@@ -121,6 +124,12 @@ const DraggableButton = ({ mapRef, onRadial1, onRadial2, onPress, customBounds =
             clearTimeout(longPressTimerRef.current);
             longPressTimerRef.current = null;
           }
+          
+          // If recording was active, stop it when dragging
+          if (isRecording) {
+            console.log('Recording stopped due to movement');
+            setIsRecording(false);
+          }
         }
         
         Animated.event(
@@ -133,6 +142,12 @@ const DraggableButton = ({ mapRef, onRadial1, onRadial2, onPress, customBounds =
         if (longPressTimerRef.current) {
           clearTimeout(longPressTimerRef.current);
           longPressTimerRef.current = null;
+        }
+        
+        // Explicitly stop recording when touch is released
+        if (isRecording) {
+          console.log('Recording stopped on release');
+          setIsRecording(false);
         }
         
         pan.flattenOffset();
@@ -181,7 +196,7 @@ const DraggableButton = ({ mapRef, onRadial1, onRadial2, onPress, customBounds =
       
       // Auto-close menu after 5 seconds
       autoCloseTimerRef.current = setTimeout(() => {
-        closeMenu();
+        if (!onPress) closeMenu();
       }, 5000);
     }
   };
@@ -316,35 +331,54 @@ const DraggableButton = ({ mapRef, onRadial1, onRadial2, onPress, customBounds =
     );
   };
 
+  // Ensure the waveform is rendered separately from the main component
+  // This prevents issues where the waveform might not disappear properly
+  const renderCenterWaveform = () => {
+    if (!isRecording) return null;
+    
+    return (
+      <StyledView className="absolute top-0 left-0 bottom-0 right-0 justify-center items-center z-50 pointer-events-none">
+        <StyledView className="w-32 h-32 rounded-full bg-green-600 justify-center items-center shadow-lg">
+          <AudioWaveformButton isRecording={true} />
+        </StyledView>
+      </StyledView>
+    );
+  };
+
   return (
-    <AnimatedView
-      className="absolute w-[60px] h-[60px] justify-center items-center z-50"
-      style={{
-        transform: [
-          ...pan.getTranslateTransform(),
-        ],
-      }}
-      {...panResponder.panHandlers}
-    >
-      {renderRadialButtons()}
+    <>
+      {/* Center screen waveform that appears during recording */}
+      {renderCenterWaveform()}
       
       <AnimatedView
-        className="w-[60px] h-[60px] rounded-full bg-green-600 justify-center items-center shadow-md z-20"
+        className="absolute w-[60px] h-[60px] justify-center items-center z-40"
         style={{
           transform: [
-            { scale: mainButtonScale },
+            ...pan.getTranslateTransform(),
           ],
         }}
+        {...panResponder.panHandlers}
       >
-        <StyledTouchableOpacity
-          className="w-full h-full rounded-full justify-center items-center"
-          onPress={handleMainButtonPress}
-          activeOpacity={0.8}
+        {renderRadialButtons()}
+        
+        <AnimatedView
+          className="w-[60px] h-[60px] rounded-full bg-green-600 justify-center items-center shadow-md z-20"
+          style={{
+            transform: [
+              { scale: mainButtonScale },
+            ],
+          }}
         >
-          <Icon name={showMenu ? "mic" : "sparkles-sharp"} type="ionicon" color="white" size={28} />
-        </StyledTouchableOpacity>
+          <StyledTouchableOpacity
+            className="w-full h-full rounded-full justify-center items-center"
+            onPress={handleMainButtonPress}
+            activeOpacity={0.8}
+          >
+            <Icon name={showMenu ? "mic" : "sparkles-sharp"} type="ionicon" color="white" size={28} />
+          </StyledTouchableOpacity>
+        </AnimatedView>
       </AnimatedView>
-    </AnimatedView>
+    </>
   );
 };
 
