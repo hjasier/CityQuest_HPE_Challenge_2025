@@ -27,6 +27,10 @@ const DraggableButton = ({ mapRef, onRadial1, onRadial2, onPress, customBounds =
   const [buttonPosition, setButtonPosition] = useState(initialPosition);
   const [location, setLocation] = useState(null);
   const autoCloseTimerRef = useRef(null);
+  // For long press detection
+  const longPressTimerRef = useRef(null);
+  const pressStartTimeRef = useRef(null);
+  const hasDraggedRef = useRef(false);
 
   // Calculate screen center
   const screenCenter = {
@@ -76,6 +80,9 @@ const DraggableButton = ({ mapRef, onRadial1, onRadial2, onPress, customBounds =
       if (autoCloseTimerRef.current) {
         clearTimeout(autoCloseTimerRef.current);
       }
+      if (longPressTimerRef.current) {
+        clearTimeout(longPressTimerRef.current);
+      }
     };
   }, []);
 
@@ -83,20 +90,51 @@ const DraggableButton = ({ mapRef, onRadial1, onRadial2, onPress, customBounds =
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder: () => true,
-      onPanResponderGrant: () => {
+      onPanResponderGrant: (evt) => {
         pan.setOffset({ x: pan.x._value, y: pan.y._value });
         pan.setValue({ x: 0, y: 0 });
+        
+        // Reset drag detection
+        hasDraggedRef.current = false;
+        
+        // Start long press timer
+        pressStartTimeRef.current = Date.now();
+        longPressTimerRef.current = setTimeout(() => {
+          // Only trigger if there was no drag
+          if (!hasDraggedRef.current) {
+            console.log('Long press detected on main button (0.5+ seconds)');
+            // You can add additional logic for long press here
+          }
+        }, 500); // 0.5 seconds for long press
         
         // If menu is open, close it when starting to drag
         if (showMenu) {
           closeMenu();
         }
       },
-      onPanResponderMove: Animated.event(
-        [null, { dx: pan.x, dy: pan.y }],
-        { useNativeDriver: false }
-      ),
+      onPanResponderMove: (evt, gestureState) => {
+        // If moved more than a small threshold, consider it a drag
+        if (Math.abs(gestureState.dx) > 5 || Math.abs(gestureState.dy) > 5) {
+          hasDraggedRef.current = true;
+          // Clear long press timer if dragging
+          if (longPressTimerRef.current) {
+            clearTimeout(longPressTimerRef.current);
+            longPressTimerRef.current = null;
+          }
+        }
+        
+        Animated.event(
+          [null, { dx: pan.x, dy: pan.y }],
+          { useNativeDriver: false }
+        )(evt, gestureState);
+      },
       onPanResponderRelease: (evt, gestureState) => {
+        // Clear long press timer on release
+        if (longPressTimerRef.current) {
+          clearTimeout(longPressTimerRef.current);
+          longPressTimerRef.current = null;
+        }
+        
         pan.flattenOffset();
         
         // Ensure button stays within screen boundaries, respecting custom bounds
@@ -119,9 +157,12 @@ const DraggableButton = ({ mapRef, onRadial1, onRadial2, onPress, customBounds =
           friction: 5
         }).start();
 
-        // Treat as tap if movement was minimal
+        // Treat as tap if movement was minimal and press duration was short
         if (Math.abs(gestureState.dx) < 5 && Math.abs(gestureState.dy) < 5) {
-          handleMainButtonPress();
+          const pressDuration = Date.now() - pressStartTimeRef.current;
+          if (pressDuration < 500) { // Less than 0.5 seconds
+            handleMainButtonPress();
+          }
         }
       },
     })
@@ -211,12 +252,12 @@ const DraggableButton = ({ mapRef, onRadial1, onRadial2, onPress, customBounds =
     const distance = 70; // Distance from main button
     
     // First radial button (45 degrees clockwise from center)
-    const angle1 = angle + Math.PI / 4;
+    const angle1 = angle + Math.PI / 6;
     const x1 = Math.cos(angle1) * distance;
     const y1 = Math.sin(angle1) * distance;
     
     // Second radial button (45 degrees counter-clockwise from center)
-    const angle2 = angle - Math.PI / 4;
+    const angle2 = angle - Math.PI / 6;
     const x2 = Math.cos(angle2) * distance;
     const y2 = Math.sin(angle2) * distance;
     
