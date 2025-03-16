@@ -25,28 +25,7 @@ const Map = () => {
     })();
   }, []);
 
-  // Handle button press
-  const handleButtonPress = () => {
-    console.log('Main button pressed');
-  };
 
-  // Handle radial button 1 press - Example: Take a photo at current location
-  const handleRadial1Press = () => {
-    console.log('Camera button pressed');
-    // Implement camera functionality here
-  };
-
-  // Handle radial button 2 press - Example: Center map on user location
-  const handleRadial2Press = () => {
-    console.log('Chat button pressed');
-    if (location && mapRef.current) {
-      mapRef.current.setCamera({
-        centerCoordinate: location,
-        zoomLevel: 15,
-        animationDuration: 1000,
-      });
-    }
-  };
 
   return (
     <View style={styles.container}>
@@ -63,12 +42,7 @@ const Map = () => {
             {/* <MapboxGL.UserLocation visible={true} /> */}
           </MapboxGL.MapView>
           
-          {/* DraggableButton - contained within the map's boundaries */}
-          <DraggableButton
-            onPress={handleButtonPress}
-            onRadial1={handleRadial1Press}
-            onRadial2={handleRadial2Press}
-          />
+
         </View>
       ) : (
         <View style={styles.loading} />
