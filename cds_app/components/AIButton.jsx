@@ -3,10 +3,10 @@ import { Animated, PanResponder, TouchableOpacity, Dimensions, View } from 'reac
 import { Icon } from '@rneui/base';
 import { styled } from 'nativewind';
 import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
+import { useNavigation } from '@react-navigation/native';
 
 const AnimatedView = styled(Animated.View);
-const StyledTouchableOpacity = styled(TouchableOpacity);
-const StyledView = styled(View);
+
 
 const { width, height } = Dimensions.get('window');
 const BUTTON_SIZE = 60;
@@ -17,6 +17,7 @@ const initialPosition = {
 };
 
 const DraggableButton = () => {
+  const navigation = useNavigation();
   const [isRecording, setIsRecording] = useState(false);
   const [isDragging, setIsDragging] = useState(false); // Nuevo estado para controlar el arrastre
   
@@ -44,6 +45,7 @@ const DraggableButton = () => {
   ).current;
 
   const onMainButtonPress = () => {
+    navigation.navigate('AIChat');
     if (!isDragging) { // Solo permitir el toque si no estamos arrastrando
       setIsRecording(!isRecording);
       console.log('Main Button Pressed');

@@ -46,6 +46,8 @@
       "expo-asset",
       "expo-secure-store",
       "expo-camera",
+      "@livekit/react-native-expo-plugin", 
+      "@config-plugins/react-native-webrtc",
       [
         "expo-location",
         {
