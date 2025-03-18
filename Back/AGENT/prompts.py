@@ -10,7 +10,9 @@ WELCOME_MESSAGE = """
     they dont have a profile ask them to say create profile.
 """
 
-LOOKUP_VIN_MESSAGE = lambda msg: f"""If the user has provided a VIN attempt to look it up. 
-                                    If they don't have a VIN or the VIN does not exist in the database 
-                                    create the entry in the database using your tools. If the user doesn't have a vin, ask them for the
-                                    details required to create a new car. Here is the users message: {msg}"""
+LOOKUP_VIN_MESSAGE = lambda msg: f"""
+If the user has provided a VIN attempt to look it up. 
+If they don't have a VIN or the VIN does not exist in the database 
+create the entry in the database using your tools. If the user doesn't have a vin, ask them for the
+details required to create a new car. Here is the users message: {msg}
+"""

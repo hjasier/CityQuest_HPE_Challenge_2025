@@ -1,0 +1,7 @@
+livekit-agents
+livekit-plugins-openai
+livekit-plugins-azure
+livekit-plugins-silero
+python-dotenv
+livekit-api
+uvicorn

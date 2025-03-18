@@ -1,15 +1,14 @@
 import os
-from livekit import api
-from flask import Flask, request
-from dotenv import load_dotenv
-from flask_cors import CORS
-from livekit.api import LiveKitAPI, ListRoomsRequest
 import uuid
+from flask import Blueprint, request
+from flask_cors import CORS
+from dotenv import load_dotenv
+from livekit.api import LiveKitAPI, ListRoomsRequest, AccessToken, VideoGrants
 
 load_dotenv()
 
-app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}})
+auth_bp = Blueprint("auth", __name__)
+CORS(auth_bp, resources={r"/*": {"origins": "*"}})
 
 async def generate_room_name():
     name = "room-" + str(uuid.uuid4())[:8]
@@ -24,7 +23,7 @@ async def get_rooms():
     await api.aclose()
     return [room.name for room in rooms.rooms]
 
-@app.route("/getToken")
+@auth_bp.route("/getToken")
 async def get_token():
     name = request.args.get("name", "my name")
     room = request.args.get("room", None)
@@ -32,15 +31,12 @@ async def get_token():
     if not room:
         room = await generate_room_name()
         
-    token = api.AccessToken(os.getenv("LIVEKIT_API_KEY"), os.getenv("LIVEKIT_API_SECRET")) \
+    token = AccessToken(os.getenv("LIVEKIT_API_KEY"), os.getenv("LIVEKIT_API_SECRET")) \
         .with_identity(name)\
         .with_name(name)\
-        .with_grants(api.VideoGrants(
+        .with_grants(VideoGrants(
             room_join=True,
             room=room
         ))
     
     return token.to_jwt()
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5001, debug=True)
