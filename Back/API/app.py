@@ -15,10 +15,12 @@ socketio.init_app(app)
 # Importar rutas (blueprints)
 from api.Auth import auth_bp
 from api.WebSocketManager import websocket_bp
+from api.RouteGenerator import route_generator_bp
 
 # Registrar blueprints
 app.register_blueprint(auth_bp)
 app.register_blueprint(websocket_bp)
+app.register_blueprint(route_generator_bp)
 
 # Ejecutar la aplicación con Flask-SocketIO
 if __name__ == '__main__':

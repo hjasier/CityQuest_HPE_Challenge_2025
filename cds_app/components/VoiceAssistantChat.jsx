@@ -8,7 +8,8 @@ import {
 import { Track } from "livekit-client";
 import { Ionicons } from '@expo/vector-icons'; // Requiere instalar: npm install @expo/vector-icons
 import useWebSocket from "../hooks/useWebSocket";  // Importa el hook que creamos
-
+import { useNavigation } from '@react-navigation/native';
+import ConnectionFace from "./ConnectionFace";
 
 
 const Message = ({ type, text }) => {
@@ -106,8 +107,8 @@ const VoiceAssistantChat = ({isConnected}) => {
     }, 100);
   }, [agentTranscriptions, userTranscriptions]);
 
-
-  const { message, sendMessage, connected } = useWebSocket();
+  const navigation = useNavigation();
+  const { message, sendMessage, connected } = useWebSocket(navigation);
 
   
 
@@ -127,16 +128,7 @@ const VoiceAssistantChat = ({isConnected}) => {
           <Text className="text-blue-100 text-center text-sm">Habla para interactuar</Text>
         </TouchableOpacity>
         <View className=" absolute left-4 top-5 flex-col items-center justify-center mt-4 space-y-1">
-          <View
-              className={`h-3 w-3 rounded-full mr-2 ${
-              isConnected ? "bg-green-400" : "bg-red-400"
-              }`}
-          />
-          <View
-              className={`h-3 w-3 rounded-full mr-2 ${
-                connected ? "bg-green-400" : "bg-red-400"
-              }`}
-          />
+          <ConnectionFace isConnected={isConnected} connected={connected} />
         </View>
       </View>
       

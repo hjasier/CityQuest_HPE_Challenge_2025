@@ -10,7 +10,7 @@ from livekit.agents.multimodal import MultimodalAgent
 from livekit.plugins import openai
 from dotenv import load_dotenv
 from api import AssistantFnc
-from prompts import WELCOME_MESSAGE, INSTRUCTIONS, LOOKUP_VIN_MESSAGE
+from prompts import WELCOME_MESSAGE, INSTRUCTIONS
 import os
 
 load_dotenv()
@@ -40,22 +40,13 @@ async def entrypoint(ctx: JobContext):
     
     @session.on("user_speech_committed")
     def on_user_speech_committed(msg: llm.ChatMessage):
+        # Si el contenido del mensaje es una lista, la convierte en una cadena donde cada elemento se separa por un
+        # salto de línea (\n), y si el elemento es una imagen (ChatImage), lo reemplaza por la palabra [image].
         if isinstance(msg.content, list):
             msg.content = "\n".join("[image]" if isinstance(x, llm.ChatImage) else x for x in msg)
             
-        if assistant_fnc.has_car():
-            handle_query(msg)
-        else:
-            find_profile(msg)
+        handle_query(msg)
         
-    def find_profile(msg: llm.ChatMessage):
-        session.conversation.item.create(
-            llm.ChatMessage(
-                role="system",
-                content=LOOKUP_VIN_MESSAGE(msg)
-            )
-        )
-        session.response.create()
         
     def handle_query(msg: llm.ChatMessage):
         session.conversation.item.create(
@@ -65,6 +56,9 @@ async def entrypoint(ctx: JobContext):
             )
         )
         session.response.create()
+    
+    
+    
     
 if __name__ == "__main__":
     cli.run_app(WorkerOptions(entrypoint_fnc=entrypoint))

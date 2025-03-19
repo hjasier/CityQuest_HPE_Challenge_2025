@@ -19,32 +19,9 @@ const Tab = createBottomTabNavigator()
 
 const TabNavigator = () => {
   const navigation = useNavigation();
-  const [initialRouteName, setInitialRouteName] = useState(''); 
-  const [isLoading, setIsLoading] = useState(true); 
+  const [isLoading, setIsLoading] = useState(false); 
 
   
-  useEffect(() => {
-    const getLastTab = async () => {
-      try {
-        console.log('Obteniendo lastTab...');
-        const lastTab = await AsyncStorage.getItem('lastTab') || 'None';
-        console.log('lastTab GETEADO:', lastTab);
-        if (lastTab !== 'None') {
-          console.log('Hay lastTab:', lastTab);
-        } else {
-          console.log('No hay lastTab');
-          navigation.navigate("Explore");
-        }
-      } catch (e) {
-        console.log(e);
-      }
-      finally {
-        setIsLoading(false);
-      }
-    };
-    getLastTab();
-  }, []);
-
   useEffect(() => {
     navigation.setOptions({
       headerShown: false,
@@ -63,8 +40,7 @@ const TabNavigator = () => {
 
   return (
     <Tab.Navigator 
-    initialRouteName={initialRouteName}
-    //tabBar={props => <CTabBar {...props} />}
+    tabBar={props => <CTabBar {...props} />}
     screenOptions={({route}) => ({
       tabBarActiveTintColor: '#36BFF9',
       tabBarInactiveTintColor: 'gray',

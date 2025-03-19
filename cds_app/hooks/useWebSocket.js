@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import io from "socket.io-client";
 import { SERVER_API_URL } from "@env"; 
 
-const useWebSocket = () => {
+const useWebSocket = (navigation) => {
   const [socket, setSocket] = useState(null);
   const [message, setMessage] = useState("");
   const [connected, setConnected] = useState(false);
@@ -29,6 +29,12 @@ const useWebSocket = () => {
       // Cuando Flask envíe un comando, lo manejamos aquí
       console.log("Received mobile action:", data);
       setMessage(data);
+
+      // Si el mensaje es 'calculate_route', navegar a la pantalla "Route"
+      if (data.show_route) {
+        navigation.navigate("Route");
+      }
+      
     });
 
     setSocket(socketConnection);
@@ -36,7 +42,7 @@ const useWebSocket = () => {
     return () => {
       socketConnection.disconnect();
     };
-  }, []);
+  }, [navigation]);
 
   const sendMessage = (data) => {
     console.log("Socket is connected:", connected);

@@ -6,11 +6,12 @@ import { v4 as uuidv4 } from 'uuid';
 import { configureSynced } from '@legendapp/state/sync';
 import { observablePersistAsyncStorage } from '@legendapp/state/persist-plugins/async-storage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { EXPO_PUBLIC_SUPABASE_URL, EXPO_PUBLIC_SUPABASE_ANON_KEY } from "@env";
 
 // Initialize Supabase client
 const supabase = createClient(
-  process.env.EXPO_PUBLIC_SUPABASE_URL,
-  process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY
+  EXPO_PUBLIC_SUPABASE_URL,
+  EXPO_PUBLIC_SUPABASE_ANON_KEY
 );
 
 // Function to generate IDs locally
@@ -32,16 +33,20 @@ const customSynced = configureSynced(syncedSupabase, {
 });
 
 // Observable for challenges collection
-export const challenges$ = observable(
+export const Challenge$ = observable(
   customSynced({
     supabase,
-    collection: 'challenges',
+    collection: 'Challenge', // Update collection name to match your database
     select: (from) =>
-      from.select('id, name, description, category, difficulty, reward, image_url, start_date, end_date, deleted, created_at, updated_at'),
+      from
+        .select(
+          'id, type, completion_type, location, name, description, reward, active, repeatable, cooldown_time, cover_url, priority, created_at, updated_at, expiration_date'
+        ) // Update the fields to match the new structure
+        .eq('deleted', false), // If you have a 'deleted' flag in the database, add filtering
     actions: ['read', 'create', 'update', 'delete'],
     realtime: true,
     persist: {
-      name: 'challenges',
+      name: 'Challenge',
       retrySync: true,
     },
     retry: {
@@ -49,86 +54,3 @@ export const challenges$ = observable(
     },
   })
 );
-
-
-
-// Observable for locations collection
-export const locations$ = observable(
-  customSynced({
-    supabase,
-    collection: 'locations',
-    select: (from) =>
-      from.select('id, challenge_id, name, latitude, longitude, address'),
-    actions: ['read', 'create', 'update', 'delete'],
-    realtime: true,
-    persist: {
-      name: 'locations',
-      retrySync: true,
-    },
-    retry: {
-      infinite: true,
-    },
-  })
-  
-);
-
-// Observable for challenge details collection
-export const challengeDetails$ = observable(
-  customSynced({
-    supabase,
-    collection: 'challenge_details',
-    select: (from) =>
-      from.select('id, challenge_id, detail_type, details'),
-    actions: ['read', 'create', 'update', 'delete'],
-    realtime: true,
-    persist: {
-      name: 'challenge_details',
-      retrySync: true,
-    },
-    retry: {
-      infinite: true,
-    },
-  })
-);
-
-// Function to add a new challenge
-export function addChallenge(name, description) {
-  const id = generateId();
-  challenges$[id].assign({
-    id,
-    name,
-    description,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    deleted: false,
-  });
-}
-
-// Function to add a new location to a challenge
-export function addLocation(challengeId, name, latitude, longitude, address) {
-  const id = generateId();
-  locations$[id].assign({
-    id,
-    challenge_id: challengeId,
-    name,
-    latitude,
-    longitude,
-    address,
-  });
-}
-
-// Function to add new challenge details
-export function addChallengeDetail(challengeId, detailType, details) {
-  const id = generateId();
-  challengeDetails$[id].assign({
-    id,
-    challenge_id: challengeId,
-    detail_type: detailType,
-    details: details,
-  });
-}
-
-// Function to toggle challenge completion status (example for managing states)
-export function toggleChallengeStatus(id) {
-  challenges$[id].done.set((prev) => !prev);
-}

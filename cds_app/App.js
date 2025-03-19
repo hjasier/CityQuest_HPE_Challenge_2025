@@ -8,11 +8,9 @@ import StackNavigator from './navigation/StackNavigator';
 import { SessionProvider, useSession } from './hooks/SessionProvider';
 import * as NavigationBar from 'expo-navigation-bar';
 import { StatusBar } from 'expo-status-bar';
-import { registerGlobals  } from '@livekit/react-native';
-
+import { registerGlobals } from '@livekit/react-native';
 
 registerGlobals();
-
 
 
 export default function App() {
@@ -25,6 +23,8 @@ export default function App() {
       setLoading(false);
     });
   }, []);
+
+
 
   if (loading) {
     return (

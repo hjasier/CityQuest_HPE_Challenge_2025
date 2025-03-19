@@ -1,15 +1,13 @@
-import React, { useEffect } from 'react';
+import React, { useState } from 'react';
 import { FlatList, SafeAreaView, View, Text, ActivityIndicator } from 'react-native';
-import ChallengeCard from './ChallengeCard'; // Make sure this component exists and is styled correctly
+import ChallengeCard from './ChallengeCard'; 
 import { observer } from '@legendapp/state/react';
-import { challenges$  } from '../database/SupaLegend'; // Import the observable
+import { Challenge$ } from '../database/SupaLegend'; // Import the observable
 
-
-
-
-// Observer to listen for changes in challenges$
 const ChallengeList = observer(() => {
-  const challenges = challenges$.get();
+  // Directly bind to the observable instead of using state
+  const challenges = Challenge$.get(); // Automatically listens for changes
+
   
   if (!challenges) {
     return (
@@ -21,7 +19,7 @@ const ChallengeList = observer(() => {
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      <View className="">
+      <View>
         <View className="items-center">
           <Text className="text-lg">{Object.values(challenges).length} Retos Disponibles</Text>
         </View>

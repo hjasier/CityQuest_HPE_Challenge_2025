@@ -7,7 +7,7 @@ const BottomSheetComponent = ({ bottomSheetRef }) => {
   const sheetRef = useRef(null);
   const [isOpen, setIsOpen] = useState(true);
 
-  const snapPoints = useMemo(() => ['8%', '50%', '70%', '100%'], []);
+  const snapPoints = useMemo(() => ['17%', '50%', '70%', '100%'], []);
 
   return (
     <BottomSheet
@@ -26,11 +26,11 @@ const BottomSheetComponent = ({ bottomSheetRef }) => {
 
 const styles = StyleSheet.create({
   bottomSheet: {
-    backgroundColor: 'white',
+    backgroundColor: 'rgba(255, 255, 255, 0.75)',
     flex: 1,
   },
   bottomSheetContent: {
-    backgroundColor: 'white',  
+    backgroundColor:'rgba(255, 255, 255, 0.75)',  
     flex: 1,
   }
 });
