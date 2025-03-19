@@ -7,6 +7,9 @@ import {
 } from "@livekit/components-react";
 import { Track } from "livekit-client";
 import { Ionicons } from '@expo/vector-icons'; // Requiere instalar: npm install @expo/vector-icons
+import useWebSocket from "../hooks/useWebSocket";  // Importa el hook que creamos
+
+
 
 const Message = ({ type, text }) => {
   const isAgent = type === "agent";
@@ -103,18 +106,38 @@ const VoiceAssistantChat = ({isConnected}) => {
     }, 100);
   }, [agentTranscriptions, userTranscriptions]);
 
+
+  const { message, sendMessage, connected } = useWebSocket();
+
+  
+
+  const openCamera = () => {
+    // Lógica para abrir la cámara, por ejemplo con Expo Camera
+    sendMessage("TESST DE MENSAJE");
+    console.log("Abriendo la cámara...");
+  };
+
+
   return (
     <View className="flex-1 bg-white">
       {/* Header */}
       <View className="bg-blue-500 p-4 rounded-b-2xl shadow-md">
         <Text className="text-white text-xl font-bold text-center">Laki</Text>
-        <Text className="text-blue-100 text-center text-sm">Habla para interactuar</Text>
-
-        <View
-            className={`h-3 w-3 rounded-full mr-2 ${
-            isConnected ? "bg-green-400" : "bg-red-400"
-            }`}
-        />
+        <TouchableOpacity onPress={openCamera}>
+          <Text className="text-blue-100 text-center text-sm">Habla para interactuar</Text>
+        </TouchableOpacity>
+        <View className=" absolute left-4 top-5 flex-col items-center justify-center mt-4 space-y-1">
+          <View
+              className={`h-3 w-3 rounded-full mr-2 ${
+              isConnected ? "bg-green-400" : "bg-red-400"
+              }`}
+          />
+          <View
+              className={`h-3 w-3 rounded-full mr-2 ${
+                connected ? "bg-green-400" : "bg-red-400"
+              }`}
+          />
+        </View>
       </View>
       
       {/* Chat Status */}

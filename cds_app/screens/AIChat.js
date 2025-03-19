@@ -3,7 +3,6 @@ import { AudioSession, LiveKitRoom} from '@livekit/react-native';
 import VoiceAssistantChat from "../components/VoiceAssistantChat";
 import { LIVEKIT_WS_URL, LIVEKIT_TOKEN } from "@env"; 
 
-
 const AIChat = () => {
   const [isConnected, setIsConnected] = useState(false);
 
@@ -19,7 +18,6 @@ const AIChat = () => {
   }, []);
 
 
-  
   return (
     <LiveKitRoom
       serverUrl={LIVEKIT_WS_URL}
