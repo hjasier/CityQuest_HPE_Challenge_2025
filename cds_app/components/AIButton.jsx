@@ -12,6 +12,8 @@ import {
   resetButton,
   setUserSpeakingMode
 } from '../utils/ButtonAnimations';
+import RecordingMessage from './RecordingMessage';
+import CameraMessageView from './CameraMessageView';
 
 const AnimatedView = styled(Animated.View);
 const { width, height } = Dimensions.get('window');
@@ -30,6 +32,7 @@ const DraggableButton = () => {
   const [isPressing, setIsPressing] = useState(false);
   const [isAiThinking, setIsAiThinking] = useState(false);
   const [isAiSpeaking, setIsAiSpeaking] = useState(false);
+  const [showCamera, setShowCamera] = useState(false);
   const pan = useRef(new Animated.ValueXY(initialPosition)).current;
   
   // Initialize animation values from the utility
@@ -37,7 +40,7 @@ const DraggableButton = () => {
   const pulseValue = animValues.current.pulseValue;
   const borderAnimation = animValues.current.borderAnimation;
   const speakingAnimation = animValues.current.speakingAnimation;
-
+  
   // Create interpolated rotation
   const borderRotation = createBorderRotation(borderAnimation);
 
@@ -48,6 +51,16 @@ const DraggableButton = () => {
   useEffect(() => {
     isRecordingRef.current = { isRecording, isDragging };
     console.log("isRecording state changed to:", isRecording);
+    
+    // When recording starts, show camera view after a short delay
+    // This simulates a behavior where text appears first, then camera activates
+    if (isRecording) {
+      setTimeout(() => {
+        setShowCamera(true);
+      }, 500);
+    } else {
+      setShowCamera(false);
+    }
   }, [isRecording, isDragging]);
 
   // Create wrapped functions that pass the required dependencies
@@ -107,6 +120,20 @@ const DraggableButton = () => {
       style={{ transform: [...pan.getTranslateTransform()] }}
       {...panResponder.panHandlers}
     >
+      {/* Initial text message - visible only when recording but camera not yet shown */}
+      {isRecording && !showCamera && (
+        <RecordingMessage 
+          isRecording={isRecording && !showCamera}
+          customMessage="Starting camera..." 
+        />
+      )}
+      
+      {/* Camera view with text overlay - replaces the text message after delay */}
+      <CameraMessageView 
+        isVisible={showCamera} 
+        customMessage="I'm listening... Speak now" 
+      />
+      
       {/* Spinner animation for AI thinking */}
       {isAiThinking && (
         <AnimatedView
