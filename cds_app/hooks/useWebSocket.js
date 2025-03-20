@@ -8,9 +8,9 @@ const useWebSocket = (navigation) => {
   const [socket, setSocket] = useState(null);
   const [message, setMessage] = useState("");
   const [connected, setConnected] = useState(false);
+  const [isAiIsSeeing, setIsAiIsSeeing] = useState(false); // Estado para controlar la cámara
 
   useEffect(() => {
-
     console.log("Connecting to WebSocket:", SERVER_API_URL);
     // Crear la conexión WebSocket
     const socketConnection = io(SERVER_API_URL, {
@@ -36,7 +36,9 @@ const useWebSocket = (navigation) => {
       if (data.show_route) {
         navigation.navigate("Route");
       }
-      
+      else if (data.show_camera) {
+        setIsAiIsSeeing(true); 
+      }
     });
 
     setSocket(socketConnection);
@@ -54,7 +56,11 @@ const useWebSocket = (navigation) => {
     }
   };
 
-  return { message, sendMessage, connected };
+  const toggleCamera = () => {
+    setIsAiIsSeeing((prev) => !prev);
+  };
+
+  return { message, sendMessage, connected, isAiIsSeeing, toggleCamera };
 };
 
 export default useWebSocket;

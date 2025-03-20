@@ -11,6 +11,17 @@ websocket_bp = Blueprint("websocket", __name__)
 # Diccionario para almacenar clientes conectados (por ID de sesión)
 connected_clients = {}
 
+@websocket_bp.route("/emit_test")
+def emit_test():
+    socketio.emit("mobile_action", {"show_camera": "¡Hola, mundo!"}, namespace="/")
+    return "Mensaje enviado"
+
+@websocket_bp.route("/emit_test2")
+def emit_test2():
+    handle_calculate_route("data")
+    return "Mensaje enviado"
+
+
 @socketio.on("connect")
 def handle_connect():
     client_id = request.sid  # Identificador único del cliente
@@ -40,17 +51,14 @@ def handle_calculate_route(data):
     # Calcular la ruta (esto es solo un ejemplo, reemplázalo con tu lógica real)
     route = calculate_route("destination")
     
-    # Obtener el ID del cliente que envió la petición
-    client_id = request.sid
     logging.info("EMITIENDO RUTA")
     # Enviar la ruta calculada de vuelta al cliente que la solicitó
-    emit("mobile_action", {"show_route": route}, room=client_id)
+    socketio.emit("mobile_action", {"show_route": route}, namespace="/")
 
 def handle_other_actions(data):
-    """Maneja acciones distintas a calcular una ruta."""
-    # Si no es una acción de calcular ruta, reenviar el comando al móvil
+    # Reenviar el comando al móvil
     logging.info(f"Enviando comando al móvil: {data}")
-    emit("mobile_action", data, broadcast=True)
+    socketio.emit("mobile_action", data, namespace="/")
 
 
 
@@ -66,6 +74,6 @@ def handle_mobile_response(data):
 def handle_test_alive(data):
     """Recibe mensajes de prueba de los clientes"""
     logging.info(f"Mensaje ALIVE recibido: {data}")
-    emit("ALIVE", data, broadcast=True)
+    socketio.emit("ALIVE", data, namespace="/")
 
 

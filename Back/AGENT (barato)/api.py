@@ -2,26 +2,31 @@ import enum
 from typing import Annotated
 from livekit.agents import llm
 import logging
+from livekit.agents import llm
+import socketio
 
 logger = logging.getLogger("building-recognition")
 logger.setLevel(logging.INFO)
 
 
+sio = socketio.Client()
+sio.connect("http://localhost:5000")
+
+
 class AssistantFnc(llm.FunctionContext):
     def __init__(self) -> None:
         super().__init__()
+    
+    @llm.ai_callable(description="Abre el modal de la camara en el dispositivo del usuario para que pueda enseñarte el objeto , edificio , lugar que desea reconocer")
+    def open_camera(self):
+        logging.info("Abriendo la cámara en tu móvil...")
+        sio.emit("server_command", {"action": "open_camera"})
+        return "Dame un momento , apunta la cámara al frente"
 
-    @llm.ai_callable(description="Activate the camera view to recognize the building in front of the user")
-    def activate_camera_view(self):
-        logger.info("Activating camera view to recognize the building")
-        # Here you would add the code to activate the camera view
-        # For example, you might call a function that opens the camera and starts image recognition
-        # For now, we'll just return a message indicating the camera view is activated
-        return "Camera view activated. Recognizing the building in front of you..."
-
-    @llm.ai_callable(description="Get information about the building in front of the user")
-    def get_building_info(self):
-        logger.info("Getting information about the building")
-        # Here you would add the code to recognize the building and get information about it
-        # For now, we'll just return a placeholder message
-        return "The building in front of you is the Empire State Building."
+    @llm.ai_callable(description="Mostrar al usuario una ruta con los retos de por medio como puntos de interes")
+    def calculate_route(self, destination: Annotated[str, llm.TypeInfo(description="Destino final")]):
+        logging.info(f"Calculando la ruta a {destination}...")
+        sio.emit("server_command", {"action": "calculate_route", "destination": destination})
+        return f"Calculando la ruta a {destination}..."
+    
+    

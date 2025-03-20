@@ -5,3 +5,4 @@ livekit-plugins-silero
 python-dotenv
 livekit-api
 uvicorn
+requests

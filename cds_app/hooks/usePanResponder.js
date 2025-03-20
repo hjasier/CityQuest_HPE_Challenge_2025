@@ -9,11 +9,13 @@ export const usePanResponder = ({
   pan,
   navigation,
   isRecordingRef,
+  isVoiceConnectedRef,
   isAiThinking,
   isAiSpeaking,
   setIsDragging,
   setIsPressing,
   setIsRecording,
+  setIsVoiceConnected,
   pulseValue,
   setUserSpeakingMode
 }) => {
@@ -36,7 +38,7 @@ export const usePanResponder = ({
         
         // Start the long press timer
         longPressTimer.current = setTimeout(() => {
-          if (!isRecordingRef.current.isDragging) {
+          if (!isVoiceConnectedRef.current.isDragging) {
             Vibration.vibrate(200); // Vibrate for 200ms
             setUserSpeakingMode();
           }
@@ -49,7 +51,7 @@ export const usePanResponder = ({
       onPanResponderMove: (_, gestureState) => {
         // If movement is beyond threshold, consider it dragging
         if (Math.abs(gestureState.dx) > DRAG_THRESHOLD || Math.abs(gestureState.dy) > DRAG_THRESHOLD) {
-          if (!isRecordingRef.current.isDragging) {
+          if (!isVoiceConnectedRef.current.isDragging) {
             setIsDragging(true);
             // Cancel long press timer when dragging starts
             if (longPressTimer.current) {
@@ -75,13 +77,14 @@ export const usePanResponder = ({
         
         // Handle tap for navigation only if NOT recording/thinking/speaking
         if (touchDuration < 500 && isMovementMinimal) {
-          console.log("Current recording state:", isRecordingRef.current.isRecording);
+          console.log("Current session state:", isVoiceConnectedRef.current.isVoiceConnected);
           
-          if (!isRecordingRef.current.isRecording && !isAiThinking && !isAiSpeaking) {
-            console.log("Short tap detected - navigating to AIChat");
-            navigation.navigate('AIChat');
-          } else if (isRecordingRef.current.isRecording) {
-            console.log("Button is already recording - stopping recording");
+          if (!isVoiceConnectedRef.current.isVoiceConnected && !isAiThinking && !isAiSpeaking) {
+            console.log("Short tap detected - navigating to AIChatScreen");
+            navigation.navigate('AIChatScreen');
+          } else if (isVoiceConnectedRef.current.isVoiceConnected) {
+            console.log("Session is already live - stopping recording");
+            setIsVoiceConnected(false);
             setIsRecording(false);
             pulseValue.stopAnimation();
             pulseValue.setValue(1);

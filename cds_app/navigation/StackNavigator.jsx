@@ -6,7 +6,7 @@ import MapScreen from '../screens/MapScreen';
 import ChallengeDetailsScreen from '../screens/ChallengeDetailsScreen';
 import ChallengeScanQRScreen from '../screens/ChallengeScanQRScreen';
 import ChallengeCompletedScreen from '../screens/ChallengeCompletedScreen';
-import AIChat from '../screens/AIChat';
+import AIChatScreen from '../screens/AIChatScreen';
 import Route from '../screens/Route';
 import AIButton from "../components/AIButton";
 
@@ -18,8 +18,8 @@ const StackNavigator = () => {
     state?.routes[state.index]?.name
   );
   
-  // Only show AIButton if we're not on the AIChat screen
-  const showAIButton = currentScreen !== 'AIChat';
+  // Only show AIButton if we're not on the AIChatScreen screen
+  const showAIButton = currentScreen !== 'AIChatScreen';
   
   return (
     <>
@@ -29,10 +29,11 @@ const StackNavigator = () => {
         <Stack.Screen name="ChallengeDetailsScreen" component={ChallengeDetailsScreen} options={{ headerShown: false }} />
         <Stack.Screen name="ChallengeScanQRScreen" component={ChallengeScanQRScreen} options={{ headerShown: false }} />
         <Stack.Screen name="ChallengeCompletedScreen" component={ChallengeCompletedScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="AIChat" component={AIChat} options={{ headerShown: false }} />
+        <Stack.Screen name="AIChatScreen" component={AIChatScreen} options={{ headerShown: false }} />
         <Stack.Screen name="Route" component={Route} options={{ headerShown: false }} />
       </Stack.Navigator>
-      {/* Botón de asistente de voz - only show if not on AIChat screen */}
+
+      {/* Botón de asistente de voz */}
       {showAIButton && <AIButton />}
     </>
   );

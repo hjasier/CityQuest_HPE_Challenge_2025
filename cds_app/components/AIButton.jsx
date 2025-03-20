@@ -4,16 +4,14 @@ import { Icon } from '@rneui/base';
 import { styled } from 'nativewind';
 import { useNavigation } from '@react-navigation/native';
 import { usePanResponder } from '../hooks/usePanResponder';
-import { 
-  createAnimationValues, 
-  createBorderRotation,
-  setAIThinkingMode,
-  setAISpeakingMode,
-  resetButton,
-  setUserSpeakingMode
-} from '../utils/ButtonAnimations';
-import RecordingMessage from './RecordingMessage';
+import { createAnimationValues, createBorderRotation,setAIThinkingMode,setAISpeakingMode,resetButton,setUserSpeakingMode} from '../utils/ButtonAnimations';
+import FloatingTranscription from './FloatingTranscription';
 import CameraMessageView from './CameraMessageView';
+import useVoiceAssistant from '../hooks/useVoiceAssistant';
+import { LiveKitRoom } from '@livekit/react-native';
+import useWebSocket from "../hooks/useWebSocket";  
+import FloatingButton from './FloatingButton';
+
 
 const AnimatedView = styled(Animated.View);
 const { width, height } = Dimensions.get('window');
@@ -28,11 +26,13 @@ const initialPosition = {
 const DraggableButton = () => {
   const navigation = useNavigation();
   const [isRecording, setIsRecording] = useState(false);
+  const [isVoiceConnected, setIsVoiceConnected] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [isPressing, setIsPressing] = useState(false);
   const [isAiThinking, setIsAiThinking] = useState(false);
   const [isAiSpeaking, setIsAiSpeaking] = useState(false);
-  const [showCamera, setShowCamera] = useState(false);
+
+
   const pan = useRef(new Animated.ValueXY(initialPosition)).current;
   
   // Initialize animation values from the utility
@@ -40,28 +40,33 @@ const DraggableButton = () => {
   const pulseValue = animValues.current.pulseValue;
   const borderAnimation = animValues.current.borderAnimation;
   const speakingAnimation = animValues.current.speakingAnimation;
-  
-  // Create interpolated rotation
   const borderRotation = createBorderRotation(borderAnimation);
 
   // Create a ref to track current state values for the pan responder
   const isRecordingRef = useRef({ isRecording, isDragging });
+  const isVoiceConnectedRef = useRef({ isVoiceConnected, isDragging });
 
   // Update the ref whenever state changes
+  // useEffect(() => {
+  //   isRecordingRef.current = { isRecording, isDragging };
+  //   console.log("isRecording state changed to:", isRecording);
+  // }, [isRecording, isDragging]);
+
   useEffect(() => {
-    isRecordingRef.current = { isRecording, isDragging };
-    console.log("isRecording state changed to:", isRecording);
-    
-    // When recording starts, show camera view after a short delay
-    // This simulates a behavior where text appears first, then camera activates
-    if (isRecording) {
-      setTimeout(() => {
-        setShowCamera(true);
-      }, 500);
-    } else {
-      setShowCamera(false);
-    }
-  }, [isRecording, isDragging]);
+    isVoiceConnectedRef.current = { isVoiceConnected, isDragging };
+    console.log("isVoiceConnected state changed to:", isVoiceConnected);
+  }, [isVoiceConnected, isDragging]);
+
+  const handleResetButton = () => {
+    resetButton(
+      setIsAiThinking, 
+      setIsAiSpeaking, 
+      setIsRecording,
+      borderAnimation, 
+      speakingAnimation
+    );
+  };
+
 
   // Create wrapped functions that pass the required dependencies
   const handleSetAIThinkingMode = () => {
@@ -84,14 +89,6 @@ const DraggableButton = () => {
     );
   };
 
-  const handleResetButton = () => {
-    resetButton(
-      setIsAiThinking, 
-      setIsAiSpeaking, 
-      borderAnimation, 
-      speakingAnimation
-    );
-  };
 
   const handleSetUserSpeakingMode = () => {
     setUserSpeakingMode(
@@ -100,39 +97,72 @@ const DraggableButton = () => {
     );
   };
 
-  // Set up pan responder with all the necessary dependencies
   const { panResponder } = usePanResponder({
     pan,
     navigation,
     isRecordingRef,
+    isVoiceConnectedRef,
     isAiThinking,
     isAiSpeaking,
     setIsDragging,
     setIsPressing,
     setIsRecording,
+    setIsVoiceConnected,
     pulseValue,
     setUserSpeakingMode: handleSetUserSpeakingMode
   });
 
+  const { isConnected, setIsConnected, token, serverUrl } = useVoiceAssistant();
+  const { message, sendMessage, connected, isAiIsSeeing, toggleCamera } = useWebSocket(navigation);
+
+
+  useEffect(() => {
+    if (isRecording) {
+      setIsVoiceConnected(true);
+      console.log("Assistant Connected:", isConnected);
+      if (!isConnected) {
+        setIsConnected(true);
+      }
+    } else {
+      if (isConnected) {
+        setIsConnected(false);
+      }
+    }
+  }, [isRecording, isConnected, setIsConnected]);
+
+  useEffect(() => {
+    console.log("WEBSOCKET connected:", connected);
+  } ,[connected]);
+
   return (
+    <LiveKitRoom
+    serverUrl={serverUrl}
+    token={token}
+    connect={isVoiceConnected}
+    audio={true}
+    video={false}
+    onConnected={() => setIsConnected(true)}
+    onDisconnected={() => setIsVoiceConnected(false)}
+  >
     <AnimatedView
       className="absolute w-[60px] h-[60px] justify-center items-center z-40"
       style={{ transform: [...pan.getTranslateTransform()] }}
       {...panResponder.panHandlers}
     >
+
+      {/* Camera view with text overlay - replaces the text message after delay */}
+      <CameraMessageView 
+        isVisible={isAiIsSeeing} 
+      />
+
       {/* Initial text message - visible only when recording but camera not yet shown */}
-      {isRecording && !showCamera && (
-        <RecordingMessage 
-          isRecording={isRecording && !showCamera}
-          customMessage="Starting camera..." 
+      {isVoiceConnected  && (
+        <FloatingTranscription 
+          isConnected={isConnected}
         />
       )}
       
-      {/* Camera view with text overlay - replaces the text message after delay */}
-      <CameraMessageView 
-        isVisible={showCamera} 
-        customMessage="I'm listening... Speak now" 
-      />
+
       
       {/* Spinner animation for AI thinking */}
       {isAiThinking && (
@@ -154,34 +184,12 @@ const DraggableButton = () => {
             transform: [{ scale: speakingAnimation }],
           }}
         />
-      )}
+      )}  
       
-      <View 
-        className={`w-[60px] h-[60px] rounded-full ${isRecording ? 'bg-red-500' : 'bg-primary'} justify-center items-center shadow-md overflow-hidden`}
-      >
-        {isRecording ? (
-          // Mic animation for recording
-          <AnimatedView
-            style={{
-              transform: [{ scale: pulseValue }],
-            }}
-          >
-            <View className="flex-row mt-1">
-              {[1, 2, 3].map((dot, index) => (
-                <View 
-                  key={index} 
-                  className="w-1.5 h-1.5 bg-white rounded-full mx-0.5" 
-                />
-              ))}
-            </View>
-          </AnimatedView>
-        ) : isAiThinking || isAiSpeaking ? (
-          <Icon name="sparkles-sharp" type="ionicon" color="white" size={28} />
-        ) : (
-          <Icon name="sparkles-sharp" type="ionicon" color="white" size={28} />
-        )}
-      </View>
+      <FloatingButton handleResetButton={handleResetButton} handleSetUserSpeakingMode={handleSetUserSpeakingMode} handleSetAISpeakingMode={handleSetAISpeakingMode} handleSetAIThinkingMode={handleSetAIThinkingMode} isVoiceConnected={isVoiceConnected} isRecording={isRecording} />
+
     </AnimatedView>
+  </LiveKitRoom>
   );
 };
 

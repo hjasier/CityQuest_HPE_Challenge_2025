@@ -13,11 +13,11 @@ sio.connect("http://localhost:5000")
 
 class AssistantFnc(llm.FunctionContext):
     
-    @llm.ai_callable(description="Abrir la cámara en el móvil")
+    @llm.ai_callable(description="Abre el modal de la camara en el dispositivo del usuario para que pueda enseñarte el objeto , edificio , lugar que desea reconocer")
     def open_camera(self):
         logging.info("Abriendo la cámara en tu móvil...")
         sio.emit("server_command", {"action": "open_camera"})
-        return "Abriendo la cámara en tu móvil..."
+        return "Dame un momento , apunta la cámara al frente"
 
     @llm.ai_callable(description="Mostrar al usuario una ruta con los retos de por medio como puntos de interes")
     def calculate_route(self, destination: Annotated[str, llm.TypeInfo(description="Destino final")]):

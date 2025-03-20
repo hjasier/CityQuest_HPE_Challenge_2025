@@ -73,7 +73,7 @@ export const setAIThinkingMode = (
   speakingAnimation, 
   borderAnimation
 ) => {
-  setIsRecording(false);
+  //setIsRecording(false);
   setIsAiThinking(true);
   setIsAiSpeaking(false);
   speakingAnimation.stopAnimation();
@@ -88,7 +88,7 @@ export const setAISpeakingMode = (
   borderAnimation, 
   speakingAnimation
 ) => {
-  setIsRecording(false);
+  //setIsRecording(false);
   setIsAiThinking(false);
   setIsAiSpeaking(true);
   borderAnimation.stopAnimation();
@@ -99,11 +99,13 @@ export const setAISpeakingMode = (
 export const resetButton = (
   setIsAiThinking, 
   setIsAiSpeaking, 
+  setIsRecording,
   borderAnimation, 
   speakingAnimation
 ) => {
   setIsAiThinking(false);
   setIsAiSpeaking(false);
+  //setIsRecording(false);
   borderAnimation.stopAnimation();
   borderAnimation.setValue(0);
   speakingAnimation.stopAnimation();

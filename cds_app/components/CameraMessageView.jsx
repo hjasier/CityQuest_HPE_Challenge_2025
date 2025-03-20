@@ -6,7 +6,7 @@ import { Camera, CameraView } from 'expo-camera'; // Changed to expo-camera
 const AnimatedView = styled(Animated.View);
 const AnimatedText = styled(Animated.Text);
 
-const CameraMessageView = ({ isVisible, customMessage }) => {
+const CameraMessageView = ({ isVisible, transcription }) => {
   const viewOpacity = useRef(new Animated.Value(0)).current;
   const [hasPermission, setHasPermission] = useState(null);
   
@@ -35,7 +35,7 @@ const CameraMessageView = ({ isVisible, customMessage }) => {
     }
   }, [isVisible]);
 
-  const message = customMessage || "I'm listening... Speak now";
+  const message = transcription || "I'm listening... Speak now";
 
   if (hasPermission === null) {
     return <View />;

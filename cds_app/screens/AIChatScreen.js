@@ -3,7 +3,7 @@ import { LiveKitRoom } from "@livekit/react-native";
 import VoiceAssistantChat from "../components/VoiceAssistantChat";
 import useVoiceAssistant from "../hooks/useVoiceAssistant"; // Importa el hook
 
-const AIChat = () => {
+const AIChatScreen = () => {
   const { isConnected, setIsConnected, token, serverUrl } = useVoiceAssistant();
 
   return (
@@ -21,4 +21,4 @@ const AIChat = () => {
   );
 };
 
-export default AIChat;
+export default AIChatScreen;

@@ -1,86 +1,15 @@
 import React, { useEffect, useState, useRef } from "react";
-import { View, Text, ScrollView, ActivityIndicator, Image, TouchableOpacity } from "react-native";
-import {
-  useVoiceAssistant,
-  useTrackTranscription,
-  useLocalParticipant,
-} from "@livekit/components-react";
+import { View, Text, ScrollView, TouchableOpacity } from "react-native";
+import {useVoiceAssistant, useTrackTranscription, useLocalParticipant } from "@livekit/components-react";
 import { Track } from "livekit-client";
-import { Ionicons } from '@expo/vector-icons'; // Requiere instalar: npm install @expo/vector-icons
-import useWebSocket from "../hooks/useWebSocket";  // Importa el hook que creamos
+import { Ionicons } from '@expo/vector-icons';
+import useWebSocket from "../hooks/useWebSocket";  
 import { useNavigation } from '@react-navigation/native';
 import ConnectionFace from "./ConnectionFace";
+import ChatStatus from "./ChatStatus";
+import Message from "./Message";
 
 
-const Message = ({ type, text }) => {
-  const isAgent = type === "agent";
-  
-  return (
-    <View className={`mb-3 flex flex-row ${isAgent ? "justify-start" : "justify-end"}`}>
-      {isAgent && (
-        <View className="h-10 w-10 rounded-full bg-blue-100 mr-2 items-center justify-center">
-          <Ionicons name="chatbubble-ellipses" size={20} color="#3b82f6" />
-        </View>
-      )}
-      
-      <View 
-        className={`rounded-2xl px-4 py-3 max-w-[80%] ${
-          isAgent 
-            ? "bg-gray-100 rounded-tl-none" 
-            : "bg-blue-500 rounded-tr-none"
-        }`}
-      >
-        <Text 
-          className={`${
-            isAgent ? "text-gray-800" : "text-white"
-          } text-sm`}
-        >
-          {text}
-        </Text>
-      </View>
-      
-      {!isAgent && (
-        <View className="h-10 w-10 rounded-full bg-blue-500 ml-2 items-center justify-center">
-          <Ionicons name="person" size={18} color="white" />
-        </View>
-      )}
-    </View>
-  );
-};
-
-const ChatStatus = ({ state }) => {
-  let statusMessage = "";
-  let icon = null;
-  
-  switch (state) {
-    case "connecting":
-      statusMessage = "Conectando...";
-      icon = <ActivityIndicator size="small" color="#3b82f6" />;
-      break;
-    case "connected":
-      statusMessage = "Escuchando...";
-      icon = <Ionicons name="mic" size={18} color="#3b82f6" />;
-      break;
-    case "thinking":
-      statusMessage = "Pensando...";
-      icon = <ActivityIndicator size="small" color="#3b82f6" />;
-      break;
-    case "speaking":
-      statusMessage = "Respondiendo...";
-      icon = <Ionicons name="volume-high" size={18} color="#3b82f6" />;
-      break;
-    default:
-      statusMessage = "Esperando...";
-      icon = <Ionicons name="ellipsis-horizontal" size={18} color="#3b82f6" />;
-  }
-  
-  return (
-    <View className="flex-row items-center justify-center py-2 bg-blue-50 rounded-full mb-3">
-      <View className="mr-2">{icon}</View>
-      <Text className="text-blue-500 font-medium">{statusMessage}</Text>
-    </View>
-  );
-};
 
 const VoiceAssistantChat = ({isConnected}) => {
   const { state, audioTrack, agentTranscriptions } = useVoiceAssistant();
@@ -93,6 +22,9 @@ const VoiceAssistantChat = ({isConnected}) => {
 
   const [messages, setMessages] = useState([]);
   const scrollViewRef = useRef();
+  
+  const navigation = useNavigation();
+  const { message, sendMessage, connected } = useWebSocket(navigation);
 
   useEffect(() => {
     const allMessages = [
@@ -107,13 +39,11 @@ const VoiceAssistantChat = ({isConnected}) => {
     }, 100);
   }, [agentTranscriptions, userTranscriptions]);
 
-  const navigation = useNavigation();
-  const { message, sendMessage, connected } = useWebSocket(navigation);
+
 
   
 
   const openCamera = () => {
-    // Lógica para abrir la cámara, por ejemplo con Expo Camera
     sendMessage("TESST DE MENSAJE");
     console.log("Abriendo la cámara...");
   };
