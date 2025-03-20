@@ -79,7 +79,7 @@ const Route = () => {
             ref={cameraRef}
             zoomLevel={15}
             centerCoordinate={initialRegion}
-            animationDuration={0}  // Eliminar la animación inicial
+            animationDuration={0.1}  // Eliminar la animación inicial
           />
 
           {/* Mostrar la ruta */}

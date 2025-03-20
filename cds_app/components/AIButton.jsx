@@ -1,15 +1,22 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { Animated, PanResponder, TouchableOpacity, Dimensions, View } from 'react-native';
+import { Animated, Dimensions, View } from 'react-native';
 import { Icon } from '@rneui/base';
 import { styled } from 'nativewind';
 import { useNavigation } from '@react-navigation/native';
+import { usePanResponder } from '../hooks/usePanResponder';
+import { 
+  createAnimationValues, 
+  createBorderRotation,
+  setAIThinkingMode,
+  setAISpeakingMode,
+  resetButton,
+  setUserSpeakingMode
+} from '../utils/ButtonAnimations';
 
 const AnimatedView = styled(Animated.View);
 const { width, height } = Dimensions.get('window');
 const BUTTON_SIZE = 60;
 const MARGIN_RIGHT = 10;
-const LONG_PRESS_DURATION = 1000; // 2 seconds in milliseconds
-const DRAG_THRESHOLD = 10; // Pixels of movement before considering it a drag
 
 const initialPosition = {
   x: width - BUTTON_SIZE - MARGIN_RIGHT,
@@ -18,105 +25,81 @@ const initialPosition = {
 
 const DraggableButton = () => {
   const navigation = useNavigation();
-  const [isRed, setIsRed] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [isPressing, setIsPressing] = useState(false);
+  const [isAiThinking, setIsAiThinking] = useState(false);
+  const [isAiSpeaking, setIsAiSpeaking] = useState(false);
   const pan = useRef(new Animated.ValueXY(initialPosition)).current;
-  const longPressTimer = useRef(null);
-  const touchStartTime = useRef(0);
-  const initialTouch = useRef({ x: 0, y: 0 });
+  
+  // Initialize animation values from the utility
+  const animValues = useRef(createAnimationValues());
+  const pulseValue = animValues.current.pulseValue;
+  const borderAnimation = animValues.current.borderAnimation;
+  const speakingAnimation = animValues.current.speakingAnimation;
 
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: (_, gestureState) => {
-        // Only become responder if we're moving beyond threshold
-        return Math.abs(gestureState.dx) > DRAG_THRESHOLD || Math.abs(gestureState.dy) > DRAG_THRESHOLD;
-      },
-      onPanResponderGrant: (evt) => {
-        // Remember when and where the touch started
-        touchStartTime.current = Date.now();
-        initialTouch.current = { x: evt.nativeEvent.pageX, y: evt.nativeEvent.pageY };
-        setIsPressing(true);
-        
-        // Start the long press timer
-        longPressTimer.current = setTimeout(() => {
-          if (!isDragging) {
-            setIsRed(true);
-            console.log("Long press detected - turning red");
-          }
-        }, LONG_PRESS_DURATION);
+  // Create interpolated rotation
+  const borderRotation = createBorderRotation(borderAnimation);
 
-        // Prepare for dragging
-        pan.setOffset({ x: pan.x._value, y: pan.y._value });
-        pan.setValue({ x: 0, y: 0 });
-      },
-      onPanResponderMove: (_, gestureState) => {
-        // If movement is beyond threshold, consider it dragging
-        if (Math.abs(gestureState.dx) > DRAG_THRESHOLD || Math.abs(gestureState.dy) > DRAG_THRESHOLD) {
-          if (!isDragging) {
-            setIsDragging(true);
-            // Cancel long press timer when dragging starts
-            if (longPressTimer.current) {
-              clearTimeout(longPressTimer.current);
-              longPressTimer.current = null;
-            }
-          }
-          // Only update position if actually dragging
-          return Animated.event([null, { dx: pan.x, dy: pan.y }], { useNativeDriver: false })(_, gestureState);
-        }
-        return false;
-      },
-      onPanResponderRelease: (_, gestureState) => {
-        // Calculate if this is a tap (short duration, minimal movement)
-        const touchDuration = Date.now() - touchStartTime.current;
-        const isMovementMinimal = Math.abs(gestureState.dx) < DRAG_THRESHOLD && Math.abs(gestureState.dy) < DRAG_THRESHOLD;
-        
-        // Clear the long press timer
-        if (longPressTimer.current) {
-          clearTimeout(longPressTimer.current);
-          longPressTimer.current = null;
-        }
-        
-        // Handle tap for navigation
-        if (touchDuration < 500 && isMovementMinimal && !isRed) {
-          navigation.navigate('AIChat');
-          console.log("Short tap detected - navigating to AIChat");
-        }
-        
-        // Reset states
-        pan.flattenOffset();
-        setIsDragging(false);
-        setIsPressing(false);
-      },
-      onPanResponderTerminate: () => {
-        // If the gesture is terminated for any reason
-        if (longPressTimer.current) {
-          clearTimeout(longPressTimer.current);
-          longPressTimer.current = null;
-        }
-        setIsPressing(false);
-        setIsDragging(false);
-      },
-    })
-  ).current;
+  // Create a ref to track current state values for the pan responder
+  const isRecordingRef = useRef({ isRecording, isDragging });
 
-  // Clean up timer on unmount
+  // Update the ref whenever state changes
   useEffect(() => {
-    return () => {
-      if (longPressTimer.current) {
-        clearTimeout(longPressTimer.current);
-      }
-    };
-  }, []);
+    isRecordingRef.current = { isRecording, isDragging };
+    console.log("isRecording state changed to:", isRecording);
+  }, [isRecording, isDragging]);
 
-  // Double reset option for red state
-  const handleDoublePress = () => {
-    if (isRed) {
-      setIsRed(false);
-      console.log("Double tap detected - resetting red state");
-    }
+  // Create wrapped functions that pass the required dependencies
+  const handleSetAIThinkingMode = () => {
+    setAIThinkingMode(
+      setIsRecording, 
+      setIsAiThinking, 
+      setIsAiSpeaking, 
+      speakingAnimation, 
+      borderAnimation
+    );
   };
+
+  const handleSetAISpeakingMode = () => {
+    setAISpeakingMode(
+      setIsRecording, 
+      setIsAiThinking, 
+      setIsAiSpeaking, 
+      borderAnimation, 
+      speakingAnimation
+    );
+  };
+
+  const handleResetButton = () => {
+    resetButton(
+      setIsAiThinking, 
+      setIsAiSpeaking, 
+      borderAnimation, 
+      speakingAnimation
+    );
+  };
+
+  const handleSetUserSpeakingMode = () => {
+    setUserSpeakingMode(
+      setIsRecording, 
+      pulseValue
+    );
+  };
+
+  // Set up pan responder with all the necessary dependencies
+  const { panResponder } = usePanResponder({
+    pan,
+    navigation,
+    isRecordingRef,
+    isAiThinking,
+    isAiSpeaking,
+    setIsDragging,
+    setIsPressing,
+    setIsRecording,
+    pulseValue,
+    setUserSpeakingMode: handleSetUserSpeakingMode
+  });
 
   return (
     <AnimatedView
@@ -124,11 +107,52 @@ const DraggableButton = () => {
       style={{ transform: [...pan.getTranslateTransform()] }}
       {...panResponder.panHandlers}
     >
+      {/* Spinner animation for AI thinking */}
+      {isAiThinking && (
+        <AnimatedView
+          className="absolute w-[70px] h-[70px] rounded-full border-t-2 border-r-2 border-white opacity-75"
+          style={{
+            transform: [{ rotate: borderRotation }],
+          }}
+        />
+      )}
+      
+      {/* Growing/shrinking border for AI speaking */}
+      {isAiSpeaking && (
+        <AnimatedView
+          className="absolute rounded-full border-2 border-white opacity-75"
+          style={{
+            width: 70,
+            height: 70,
+            transform: [{ scale: speakingAnimation }],
+          }}
+        />
+      )}
+      
       <View 
-        className={`w-[60px] h-[60px] rounded-full ${isRed ? 'bg-red-600' : 'bg-green-600'} justify-center items-center shadow-md`}
-        onDoublePress={handleDoublePress}
+        className={`w-[60px] h-[60px] rounded-full ${isRecording ? 'bg-red-500' : 'bg-primary'} justify-center items-center shadow-md overflow-hidden`}
       >
-        <Icon name="sparkles-sharp" type="ionicon" color="white" size={28} />
+        {isRecording ? (
+          // Mic animation for recording
+          <AnimatedView
+            style={{
+              transform: [{ scale: pulseValue }],
+            }}
+          >
+            <View className="flex-row mt-1">
+              {[1, 2, 3].map((dot, index) => (
+                <View 
+                  key={index} 
+                  className="w-1.5 h-1.5 bg-white rounded-full mx-0.5" 
+                />
+              ))}
+            </View>
+          </AnimatedView>
+        ) : isAiThinking || isAiSpeaking ? (
+          <Icon name="sparkles-sharp" type="ionicon" color="white" size={28} />
+        ) : (
+          <Icon name="sparkles-sharp" type="ionicon" color="white" size={28} />
+        )}
       </View>
     </AnimatedView>
   );

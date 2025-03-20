@@ -3,6 +3,7 @@ python-dotenv
 livekit-api
 flask[async]
 flask-cors
+supabase    
 uvicorn
 bidict==0.23.1
 blinker==1.9.0

@@ -1,7 +1,14 @@
 import React, { useEffect, useRef } from 'react';
-import { View, TouchableOpacity, Text, StyleSheet, Animated, Dimensions } from 'react-native';
+import { View, TouchableOpacity, Text, Animated, Dimensions } from 'react-native';
 import { Icon } from '@rneui/themed';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { styled } from 'nativewind';
+
+const StyledView = styled(View);
+const StyledText = styled(Text);
+const StyledTouchableOpacity = styled(TouchableOpacity);
+const StyledAnimatedView = styled(Animated.View);
+const StyledAnimatedText = styled(Animated.Text);
 
 const { width } = Dimensions.get('window');
 
@@ -89,22 +96,28 @@ const CTabBar = ({ state, descriptors, navigation }) => {
   const indicatorWidth = tabWidth - 10; // Make indicator slightly smaller than tab width
 
   return (
-    <View style={[styles.container, { paddingBottom: insets.bottom }]}>
+    <StyledView className={`absolute bottom-0 left-0 right-0 bg-transparent px-4 pb-5 items-center`} style={{ paddingBottom: insets.bottom }}>
       {/* Floating Tab Bar Container */}
-      <View style={styles.floatingContainer}>
+      <StyledView className={`flex-row bg-[#192841] rounded-[25px] h-[65px] w-full px-[5px] items-center justify-between shadow-lg relative`}
+        style={{
+          shadowColor: '#192841',
+          shadowOffset: { width: 0, height: 10 },
+          shadowOpacity: 0.3,
+          shadowRadius: 15,
+          elevation: 15,
+        }}
+      >
         {/* Moving Indicator */}
-        <Animated.View 
-          style={[
-            styles.movingIndicator,
-            {
-              width: indicatorWidth,
-              transform: [
-                { translateX: indicatorTranslateX },
-                { scaleX: indicatorScaleX },
-                { scaleY: indicatorScaleY }
-              ]
-            }
-          ]}
+        <StyledAnimatedView 
+          className={`h-[50px] bg-primary rounded-[20px] absolute z-0 top-[7.5px] left-[5px]`}
+          style={{
+            width: indicatorWidth,
+            transform: [
+              { translateX: indicatorTranslateX },
+              { scaleX: indicatorScaleX },
+              { scaleY: indicatorScaleY }
+            ]
+          }}
         />
         
         {/* Tab Buttons */}
@@ -147,112 +160,43 @@ const CTabBar = ({ state, descriptors, navigation }) => {
           };
 
           return (
-            <TouchableOpacity
+            <StyledTouchableOpacity
               key={index}
               accessibilityRole="button"
               accessibilityState={isFocused ? { selected: true } : {}}
               accessibilityLabel={options.tabBarAccessibilityLabel}
               testID={options.tabBarTestID}
               onPress={onPress}
-              style={styles.tabButton}
+              className="flex-1 justify-center items-center h-[60px] z-[1]"
             >
-              <Animated.View 
-                style={[
-                  styles.tabContent,
-                  //{ transform: [{ scale: tabScale }] }
-                ]}
-              >
-                <Animated.View
-                  style={{
-                    //transform: [{ translateY: iconTranslateY }]
-                  }}
-                >
+              <StyledAnimatedView className="items-center justify-center">
+                <StyledAnimatedView>
                   <Icon 
                     name={getTabIcon(route.name)} 
                     type={iconType} 
                     color={isFocused ? "#FFFFFF" : "#9CAFC3"}
                     size={22} 
-                    style={styles.icon}
+                    className="mb-1"
                   />
-                </Animated.View>
+                </StyledAnimatedView>
                 
-                <Animated.Text 
-                  style={[
-                    styles.tabLabel,
-                    { 
-                      color: isFocused ? "#FFFFFF" : "#9CAFC3",
-                      opacity: labelOpacity,
-                      transform: [{ scale: labelScale }]
-                    }
-                  ]}
+                <StyledAnimatedText 
+                  className="text-[11px] font-semibold tracking-[0.3px] mt-0.5"
+                  style={{ 
+                    color: isFocused ? "#FFFFFF" : "#9CAFC3",
+                    opacity: labelOpacity,
+                    transform: [{ scale: labelScale }]
+                  }}
                 >
                   {label}
-                </Animated.Text>
-              </Animated.View>
-            </TouchableOpacity>
+                </StyledAnimatedText>
+              </StyledAnimatedView>
+            </StyledTouchableOpacity>
           );
         })}
-      </View>
-    </View>
+      </StyledView>
+    </StyledView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: 'transparent',
-    paddingHorizontal: 16,
-    paddingBottom: 20,
-    alignItems: 'center',
-  },
-  floatingContainer: {
-    flexDirection: 'row',
-    backgroundColor: '#192841',
-    borderRadius: 25,
-    height: 65,
-    width: '100%',
-    paddingHorizontal: 5,
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    elevation: 15,
-    shadowColor: '#192841',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
-    shadowRadius: 15,
-    position: 'relative',
-  },
-  movingIndicator: {
-    height: 50,
-    backgroundColor: '#36BFF9',
-    borderRadius: 20,
-    position: 'absolute',
-    zIndex: 0,
-    top: 7.5,
-    left: 5, // Adjusted left position
-  },
-  tabButton: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    height: 60,
-    zIndex: 1,
-  },
-  tabContent: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  icon: {
-    marginBottom: 4,
-  },
-  tabLabel: {
-    fontSize: 11,
-    fontWeight: '600',
-    letterSpacing: 0.3,
-    marginTop: 2,
-  },
-});
 
 export default CTabBar;

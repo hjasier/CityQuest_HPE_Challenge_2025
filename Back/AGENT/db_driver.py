@@ -1,64 +1,49 @@
-import sqlite3
-from typing import Optional
+import asyncio
+from typing import Optional, List
 from dataclasses import dataclass
-from contextlib import contextmanager
+from supabase import create_client, Client
+import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
+# Supabase credentials (stored in .env file for security)
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+
+# Initialize Supabase client
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+
 
 @dataclass
-class Car:
-    vin: str
-    make: str
-    model: str
-    year: int
+class Challenge:
+    id: int
+    name: str
+    description: str
+    reward: int
+    active: bool
+    cover_url: str
+    created_at: str
 
-class DatabaseDriver:
-    def __init__(self, db_path: str = "auto_db.sqlite"):
-        self.db_path = db_path
-        self._init_db()
 
-    @contextmanager
-    def _get_connection(self):
-        conn = sqlite3.connect(self.db_path)
-        try:
-            yield conn
-        finally:
-            conn.close()
+class SupabaseDatabaseDriver:
+    """Database Driver to interact with Supabase"""
 
-    def _init_db(self):
-        with self._get_connection() as conn:
-            cursor = conn.cursor()
-            
-            # Create cars table
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS cars (
-                    vin TEXT PRIMARY KEY,
-                    make TEXT NOT NULL,
-                    model TEXT NOT NULL,
-                    year INTEGER NOT NULL
-                )
-            """)
-            conn.commit()
 
-    def create_car(self, vin: str, make: str, model: str, year: int) -> Car:
-        with self._get_connection() as conn:
-            cursor = conn.cursor()
-            cursor.execute(
-                "INSERT INTO cars (vin, make, model, year) VALUES (?, ?, ?, ?)",
-                (vin, make, model, year)
-            )
-            conn.commit()
-            return Car(vin=vin, make=make, model=model, year=year)
+    async def get_challenge_by_id(self, challenge_id: int) -> Optional[Challenge]:
+        """Retrieves a challenge by its ID"""
+        response = supabase.table("Challenge").select("*").eq("id", challenge_id).execute()
+        if response.data:
+            return Challenge(**response.data[0])
+        return None
 
-    def get_car_by_vin(self, vin: str) -> Optional[Car]:
-        with self._get_connection() as conn:
-            cursor = conn.cursor()
-            cursor.execute("SELECT * FROM cars WHERE vin = ?", (vin,))
-            row = cursor.fetchone()
-            if not row:
-                return None
-            
-            return Car(
-                vin=row[0],
-                make=row[1],
-                model=row[2],
-                year=row[3]
-            )
+    async def get_all_challenges(self) -> List[Challenge]:
+        """Fetches all active challenges"""
+        response = supabase.table("Challenge").select("*").eq("active", True).execute()
+        return [Challenge(**challenge) for challenge in response.data] if response.data else []
+
+
+
+
+

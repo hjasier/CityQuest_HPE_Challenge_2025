@@ -10,6 +10,8 @@ const useWebSocket = (navigation) => {
   const [connected, setConnected] = useState(false);
 
   useEffect(() => {
+
+    console.log("Connecting to WebSocket:", SERVER_API_URL);
     // Crear la conexión WebSocket
     const socketConnection = io(SERVER_API_URL, {
       transports: ["websocket"],

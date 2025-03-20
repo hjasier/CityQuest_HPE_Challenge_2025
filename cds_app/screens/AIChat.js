@@ -1,49 +1,14 @@
-import React, { useState, useEffect } from "react";
-import { AudioSession, LiveKitRoom} from '@livekit/react-native';
+import React from "react";
+import { LiveKitRoom } from "@livekit/react-native";
 import VoiceAssistantChat from "../components/VoiceAssistantChat";
-import { LIVEKIT_WS_URL, SERVER_API_URL } from "@env"; 
+import useVoiceAssistant from "../hooks/useVoiceAssistant"; // Importa el hook
 
 const AIChat = () => {
-  const [isConnected, setIsConnected] = useState(false);
-  const [token, setToken] = useState(null);
-
-
-  useEffect(() => {
-    const setupAudio = async () => {
-      await AudioSession.startAudioSession();
-    };
-    setupAudio();
-    return () => {
-      AudioSession.stopAudioSession();
-    };
-  }, []);
-
-  
-  {/* Fetchear el token de auth para livekit desde nuestra api */}
-  useEffect(() => {
-    const fetchToken = async () => {
-      console.log('Fetching token');
-      try {
-        const response = await fetch(`${SERVER_API_URL}/getToken`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch token');
-        }
-        const token = await response.text(); 
-        setToken(token);  
-      } catch (error) {
-        console.error('Error fetching token:', error);
-      }
-    };
-    fetchToken();
-  }, []);
-  
-  
-  
-
+  const { isConnected, setIsConnected, token, serverUrl } = useVoiceAssistant();
 
   return (
     <LiveKitRoom
-      serverUrl={LIVEKIT_WS_URL}
+      serverUrl={serverUrl}
       token={token}
       connect={true}
       audio={true}
@@ -51,9 +16,7 @@ const AIChat = () => {
       onConnected={() => setIsConnected(true)}
       onDisconnected={() => setIsConnected(false)}
     >
-
-      <VoiceAssistantChat  isConnected={isConnected} />
-
+      <VoiceAssistantChat isConnected={isConnected} />
     </LiveKitRoom>
   );
 };
