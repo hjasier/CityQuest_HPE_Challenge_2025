@@ -67,7 +67,7 @@ def handle_mobile_response(data):
     """Recibe respuestas del móvil (ej: fotos, ubicación) y las reenvía al agente"""
     logging.info(f"Respuesta del móvil recibida: {data}")
     #esperar 5 segundos y enviar un mensaje de vuelta
-    socketio.sleep(5)
+    socketio.sleep(3)
     handle_calculate_route("data")
 
 @socketio.on("ALIVE")

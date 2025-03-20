@@ -11,6 +11,7 @@ import useVoiceAssistant from '../hooks/useVoiceAssistant';
 import { LiveKitRoom } from '@livekit/react-native';
 import useWebSocket from "../hooks/useWebSocket";  
 import FloatingButton from './FloatingButton';
+import { use } from 'react';
 
 
 const AnimatedView = styled(Animated.View);
@@ -133,6 +134,16 @@ const DraggableButton = () => {
   useEffect(() => {
     console.log("WEBSOCKET connected:", connected);
   } ,[connected]);
+
+  useEffect(() => {
+    //Cerrar en 5 segundos
+    if (isAiIsSeeing) {
+      setTimeout(() => {
+        //toggleCamera();
+      }, 5000);
+    }
+  }
+  ,[isAiIsSeeing]);
 
   return (
     <LiveKitRoom
