@@ -28,17 +28,17 @@ const useWebSocket = (navigation) => {
     });
 
     socketConnection.on("mobile_action", (data) => {
-      // Cuando Flask envíe un comando, lo manejamos aquí
       console.log("Received mobile action:", data);
       setMessage(data);
 
-      // Si el mensaje es 'calculate_route', navegar a la pantalla "Route"
       if (data.show_route) {
         navigation.navigate("Route");
       }
       else if (data.show_camera) {
         setIsAiIsSeeing(true); 
       }
+
+
     });
 
     setSocket(socketConnection);
@@ -48,6 +48,9 @@ const useWebSocket = (navigation) => {
     };
   }, [navigation]);
 
+
+
+  
   const sendMessage = (data) => {
     console.log("Socket is connected:", connected);
     if (socket && connected) {

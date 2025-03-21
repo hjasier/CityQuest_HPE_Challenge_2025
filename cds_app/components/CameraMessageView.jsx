@@ -5,7 +5,10 @@ import { Camera, CameraView } from 'expo-camera';
 import { Gyroscope } from 'expo-sensors';
 import { set } from 'lodash';
 import { useLocalParticipant} from "@livekit/components-react";
-
+import * as FileSystem from "expo-file-system";
+import useWebSocket from "../hooks/useWebSocket";  
+import { useNavigation } from '@react-navigation/native';
+import * as ImageManipulator from 'expo-image-manipulator';
 
 
 const AnimatedView = styled(Animated.View);
@@ -23,8 +26,10 @@ const CameraMessageView = ({ toggleCamera, isVisible, transcription }) => {
   const gyroReadingsRef = useRef([]);
   const cameraRef = useRef(null); // Reference to CameraView
   const localParticipant = useLocalParticipant();
-  
-  
+  const countdownIntervalRef = useRef(null); // Referencia para el intervalo
+  const navigation = useNavigation();
+  const { sendMessage } = useWebSocket(navigation);
+
   
   // Animation for the photo capture flash effect
   const flashAnimation = useRef(new Animated.Value(0)).current;
@@ -72,6 +77,12 @@ const CameraMessageView = ({ toggleCamera, isVisible, transcription }) => {
           if (isStable && countdown > 0) {
             // Reset countdown if large movement detected during countdown
             setIsStable(false);
+
+            if (countdownIntervalRef.current) {
+              clearInterval(countdownIntervalRef.current);
+              countdownIntervalRef.current = null;
+              setCountdown(0); // Resetear el contador
+            }
           }
         }
       });
@@ -118,12 +129,19 @@ const CameraMessageView = ({ toggleCamera, isVisible, transcription }) => {
   // Start countdown timer when phone is stable
   const startCountdown = () => {
     console.log("Starting countdown...");
-    setCountdown(2); 
+    
+    // Limpiar cualquier intervalo previo antes de iniciar uno nuevo
+    if (countdownIntervalRef.current) {
+      clearInterval(countdownIntervalRef.current);
+    }
   
-    const countdownInterval = setInterval(() => {
+    setCountdown(2);
+  
+    countdownIntervalRef.current = setInterval(() => {
       setCountdown(prev => {
         if (prev <= 1) {
-          clearInterval(countdownInterval); 
+          clearInterval(countdownIntervalRef.current); // Limpiar el intervalo
+          countdownIntervalRef.current = null; // Resetear la referencia
           takePhoto();
           return 0;
         }
@@ -157,15 +175,25 @@ const CameraMessageView = ({ toggleCamera, isVisible, transcription }) => {
   const takePhoto = async () => {
     if (cameraRef.current) {
       try {
-        // Play the flash animation
         playFlashAnimation();
-        
-        const photo = await cameraRef.current.takePictureAsync();
+  
+        // Captura la imagen con baja calidad para reducir tamaño
+        const photo = await cameraRef.current.takePictureAsync({
+          quality: 0.3, // Baja calidad al 30% para menos peso
+        });
+  
         console.log("📸 Photo taken!", photo.uri);
+  
+        // Redimensionar la imagen para que pese menos
+        const resizedPhoto = await ImageManipulator.manipulateAsync(
+          photo.uri,
+          [{ resize: { width: 300 } }], // Reducimos el ancho a 300px
+          { compress: 0.3, format: ImageManipulator.SaveFormat.JPEG } // Más compresión
+        );
+  
         setPhotoTaken(true);
-        await sendPhotoToLiveKit(photo);
+        await sendPhotoToServer(resizedPhoto);
       
-        //wait for 500ms before hiding the camera
         setTimeout(() => {
           toggleCamera();
         }, 500);
@@ -178,28 +206,26 @@ const CameraMessageView = ({ toggleCamera, isVisible, transcription }) => {
   };
 
     // Function to send photo to LiveKit assistant
-  const sendPhotoToLiveKit = async (photo) => {
-    try {
-      // Primero necesitamos obtener el blob desde la URI de la foto
-      const response = await fetch(photo.uri);
-      const blob = await response.blob();
-      
-      // Crear un objeto File a partir del blob
-      const fileName = `photo_${Date.now()}.jpg`;
-      const fileToSend = new File([blob], fileName, { type: 'image/jpeg' });
-      
-      // Enviar el archivo usando LiveKit
-      const info = await localParticipant.sendFile(fileToSend, {
-        mimeType: 'image/jpeg',
-        topic: 'user-taken-image', 
-        onProgress: (progress) => console.log('Enviando foto, progreso:', Math.ceil(progress * 100)),
-      });
-      
-      console.log(`Foto enviada con ID de stream: ${info.id}`);
-    } catch (error) {
-      console.error('Error enviando foto a LiveKit:', error);
-    }
-  };
+    const sendPhotoToServer = async (photo) => {
+      try {
+        // Convertir imagen a Base64 pero con menor tamaño
+        const base64Image = await FileSystem.readAsStringAsync(photo.uri, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+    
+        // Crear el payload para enviar
+        const payload = {
+          type: "photo",
+          image: `data:image/jpeg;base64,${base64Image}`, // Enviar en Base64
+        };
+    
+        sendMessage(payload);
+        console.log("📤 Photo sent to WebSocket server");
+      } catch (error) {
+        console.error("Error sending photo to server:", error);
+      }
+    };
+    
 
   useEffect(() => {
     // Request camera permissions

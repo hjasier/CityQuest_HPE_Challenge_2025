@@ -48,10 +48,10 @@ const DraggableButton = () => {
   const isVoiceConnectedRef = useRef({ isVoiceConnected, isDragging });
 
   // Update the ref whenever state changes
-  // useEffect(() => {
-  //   isRecordingRef.current = { isRecording, isDragging };
-  //   console.log("isRecording state changed to:", isRecording);
-  // }, [isRecording, isDragging]);
+  useEffect(() => {
+    isRecordingRef.current = { isRecording, isDragging };
+    console.log("isRecording state changed to:", isRecording);
+  }, [isRecording, isDragging]);
 
   useEffect(() => {
     isVoiceConnectedRef.current = { isVoiceConnected, isDragging };

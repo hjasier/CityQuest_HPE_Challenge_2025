@@ -82,7 +82,8 @@ export const usePanResponder = ({
           if (!isVoiceConnectedRef.current.isVoiceConnected && !isAiThinking && !isAiSpeaking) {
             console.log("Short tap detected - navigating to AIChatScreen");
             navigation.navigate('AIChatScreen');
-          } else if (isVoiceConnectedRef.current.isVoiceConnected) {
+          } 
+          else if (isVoiceConnectedRef.current.isVoiceConnected) {
             console.log("Session is already live - stopping recording");
             setIsVoiceConnected(false);
             setIsRecording(false);

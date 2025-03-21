@@ -46,34 +46,28 @@ def handle_server_command(data):
         handle_other_actions(data)
 
 
-def handle_calculate_route(data):
-    """Maneja la acción de calcular una ruta."""
-    # Calcular la ruta (esto es solo un ejemplo, reemplázalo con tu lógica real)
-    route = calculate_route("destination")
-    
-    logging.info("EMITIENDO RUTA")
-    # Enviar la ruta calculada de vuelta al cliente que la solicitó
-    socketio.emit("mobile_action", {"show_route": route}, namespace="/")
-
-def handle_other_actions(data):
-    # Reenviar el comando al móvil
-    logging.info(f"Enviando comando al móvil: {data}")
-    socketio.emit("mobile_action", data, namespace="/")
-
 
 
 @socketio.on("mobile_response")
 def handle_mobile_response(data):
     """Recibe respuestas del móvil (ej: fotos, ubicación) y las reenvía al agente"""
     logging.info(f"Respuesta del móvil recibida: {data}")
-    #esperar 5 segundos y enviar un mensaje de vuelta
-    socketio.sleep(3)
-    handle_calculate_route("data")
-
-@socketio.on("ALIVE")
-def handle_test_alive(data):
-    """Recibe mensajes de prueba de los clientes"""
-    logging.info(f"Mensaje ALIVE recibido: {data}")
-    socketio.emit("ALIVE", data, namespace="/")
+    
+    if data.get("type") == "photo":
+        socketio.emit("agent_action", {"type":"photo","image": data.get("image")}, namespace="/", include_self=False)
 
 
+
+
+
+
+def handle_calculate_route(data):
+    """Maneja la acción de calcular una ruta."""
+    logging.info("EMITIENDO RUTA")
+    route = calculate_route("destination")
+    socketio.emit("mobile_action", {"show_route": route}, namespace="/")
+
+def handle_other_actions(data):
+    # Reenviar el comando al móvil
+    logging.info(f"RE-Enviando comando al móvil: {data}")
+    socketio.emit("mobile_action", data, namespace="/", include_self=False)
