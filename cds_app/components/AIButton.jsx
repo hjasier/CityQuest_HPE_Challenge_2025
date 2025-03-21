@@ -163,6 +163,7 @@ const DraggableButton = () => {
 
       {/* Camera view with text overlay - replaces the text message after delay */}
       <CameraMessageView 
+        toggleCamera={toggleCamera}
         isVisible={isAiIsSeeing} 
       />
 
