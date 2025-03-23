@@ -3,7 +3,8 @@ OR REPLACE FUNCTION get_top_coin_earners_last_day() RETURNS TABLE (
     user_id UUID,
     username VARCHAR(100),
     total_coins_earned BIGINT
-) AS $ $ BEGIN RETURN QUERY
+) AS $$ 
+BEGIN RETURN QUERY
 SELECT
     u.id AS user_id,
     u.username,
@@ -26,4 +27,4 @@ LIMIT
 
 END;
 
-$ $ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql;
