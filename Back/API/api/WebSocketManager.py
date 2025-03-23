@@ -54,7 +54,7 @@ def handle_mobile_response(data):
     logging.info(f"Respuesta del móvil recibida: {data}")
     
     if data.get("type") == "photo":
-        socketio.emit("agent_action", {"type":"photo","image": data.get("image")}, namespace="/", include_self=False)
+        socketio.emit("agent_action_session", {"type":"photo","image": data.get("image")}, namespace="/", include_self=False)
 
 
 

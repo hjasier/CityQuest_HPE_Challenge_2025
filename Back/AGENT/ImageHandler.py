@@ -32,13 +32,14 @@ image_handler = ImageHandler()
     
 def handle_image(image_data):
     logging.info("[IMAGE HANDLER] Insertando imagen en la conversación...")
+    logging.info("[IMAGE HANDLER] Session: " + str(session_manager.get_session()))
     
     image_content = [ChatImage(image=image_data)]
-    session_manager.get_session().conversation.item.create(
-    llm.ChatMessage(
-        role="user",
-        content=image_content
-    )
-    )
+    # session_manager.get_session().conversation.item.create(
+    # llm.ChatMessage(
+    #     role="user",
+    #     content=image_content
+    # )
+    # )
     logging.info("[IMAGE HANDLER] Added latest frame to conversation context")
     

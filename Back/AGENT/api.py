@@ -23,3 +23,27 @@ class AssistantFnc(llm.FunctionContext):
         return f"Calculando la ruta a {destination}..."
     
     
+    @llm.ai_callable(description="Pedir información sobre un lugar o edificio")
+    def ask_info(self, place: Annotated[str, llm.TypeInfo(description="Nombre del lugar o edificio")]):
+        logging.info(f"Pidiendo información sobre {place}...")
+        sio.emit("server_command", {"ask_info": "ask_info", "place": place})
+        return f"Pidiendo información sobre {place}..."
+
+    
+    @llm.ai_callable(description="Mostrar al usuario una imagen")
+    def show_image(self, image: Annotated[str, llm.TypeInfo(description="URL de la imagen")]):
+        logging.info("Mostrando imagen...")
+        sio.emit("server_command", {"show_image": "show_image", "image": image})
+        return "Mostrando imagen..."
+    
+    @llm.ai_callable(description="Pedir información sobre métodos de transporte")
+    def ask_transport_info(self, transport: Annotated[str, llm.TypeInfo(description="Nombre del medio de transporte")]):
+        logging.info(f"Pidiendo información sobre {transport}...")
+        sio.emit("server_command", {"ask_transport_info": "ask_transport_info", "transport": transport})
+        return f"Pidiendo información sobre {transport}..."
+    
+    
+    
+    
+    
+    

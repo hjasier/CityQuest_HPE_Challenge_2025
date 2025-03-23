@@ -465,7 +465,7 @@ const UserDashboard = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-800 to-gray-900 py-8">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-indigo-600 rounded-t-lg p-6 mb-4">
           <h1 className="text-2xl font-bold text-white mb-2">Submit Your Location</h1>

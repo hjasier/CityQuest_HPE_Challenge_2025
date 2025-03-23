@@ -4,6 +4,8 @@ import logging
 import os
 from dotenv import load_dotenv
 from ImageHandler import handle_image
+from session_handler import session_manager
+
 
 load_dotenv()
 
@@ -14,9 +16,11 @@ logger = logging.getLogger(__name__)
 API_URL = os.getenv("API_SERVER_URL")
 
 # Instancia de la conexión al servidor por sockets
-sio = socketio.Client()
-sio.connect(API_URL)
+sio = socketio.AsyncClient()
 
+async def connect_socket():
+    logging.info("[SOCKETIO] Conectando al servidor...")
+    await sio.connect(API_URL)
 
 
 @sio.event
@@ -31,6 +35,11 @@ def disconnect():
 
 @sio.event
 def agent_action(data):
+    if not session_manager.get_session():
+        logging.error("[SOCKETIO] La sesión aún no está lista.")
+        return
+    else:
+        logging.info("[SOCKETIO] Session: " + str(session_manager.get_session()))
     #logging.info("[SOCKETIO] Acción del agente recibida: %s", data)
     action_type = data.get("type")
     if action_type == "photo":

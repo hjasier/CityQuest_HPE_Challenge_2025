@@ -1,0 +1,50 @@
+
+
+Imagen : Sin comprimir
+Tiempo: 6.33 segundos
+Modelo: gpt-4o-mini
+Prompt: Dime el nombre y solo el nombre del lugar / edificio / monumento / objeto que ves en la imagen
+Respuesta: Museo Guggenheim Bilbao.
+--------------------------------------------------
+Imagen: Comprimida
+Tiempo: 5.16 segundos
+Modelo: gpt-4o-mini
+Prompt: Dime el nombre y solo el nombre del lugar / edificio / monumento / objeto que ves en la imagen
+Respuesta: Museo Guggenheim Bilbao.
+--------------------------------------------------
+Imagen: Comprimida
+Tiempo: 6.06 segundos
+Modelo: gpt-4o
+Prompt: Dime el nombre y solo el nombre del lugar / edificio / monumento / objeto que ves en la imagen
+Respuesta: Museo Guggenheim Bilbao
+--------------------------------------------------
+Imagen: Comprimida
+Tiempo: 3.43 segundos
+Modelo: gpt-4o
+Prompt: Dime el nombre y solo el nombre del lugar / edificio / monumento / objeto que ves en la imagen
+Respuesta: Museo Guggenheim
+--------------------------------------------------
+Imagen: Comprimida
+Tiempo: 5.68 segundos
+Modelo: gpt-4o
+Prompt: Dime el nombre y solo el nombre del lugar / edificio / monumento / objeto que ves en la imagen
+Respuesta: Museo Guggenheim
+--------------------------------------------------
+Imagen: Comprimida
+Tiempo: 3.44 segundos
+Modelo: gpt-4o-mini
+Prompt: Dime el nombre y solo el nombre del lugar / edificio / monumento / objeto que ves en la imagen
+Respuesta: Museo Guggenheim Bilbao
+--------------------------------------------------
+Imagen: Comprimida
+Tiempo: 6.99 segundos
+Modelo: gpt-4o-mini
+Prompt: Describe la imagen , acuerdate de dar los nombres de los edificios y lugares que veas en la imagen.
+Respuesta: La imagen muestra el Museo Guggenheim de Bilbao, una obra maestra de la arquitectura contemporánea diseñada por el arquitecto Frank Gehry. El edificio es conocido por su innovador diseño, que presenta formas curvas y una fachada de paneles de titanio, dando la impresión de movimiento y fluidez. 
+
+En primer plano, se puede ver el acceso principal al museo, que se caracteriza por grandes ventanales que permiten la entrada de luz natural al interior. El agua que parece estar en el primer plano de la imagen es parte de la ría de Bilbao, que rodea el museo, integrando así el entorno natural y urbano. 
+
+Detrás del museo, se pueden distinguir las montañas que rodean la ciudad, lo que añade una capa de belleza natural a la composición, contrastando con la modernidad del edificio. En los alrededores, también podría haber otros edificios característicos de la ciudad, aunque no son claramente visibles en esta imagen. 
+
+El Museo Guggenheim es un símbolo de la revitalización cultural y económica de Bilbao, convirtiéndose en una atracción turística internacional y un importante centro de arte contemporáneo.
+--------------------------------------------------
