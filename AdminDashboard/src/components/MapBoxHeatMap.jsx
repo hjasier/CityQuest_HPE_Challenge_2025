@@ -2,209 +2,300 @@ import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
+// Set Mapbox token directly at the top level
+mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
+
+// Simplified container styles
+const mapContainerStyle = {
+  position: 'relative',
+  fontFamily: 'Arial, sans-serif',
+  height: '100%', 
+  width: '100%',
+  borderRadius: '8px',
+  overflow: 'hidden'
+};
+
+const sidebarStyle = {
+  backgroundColor: 'rgba(35, 55, 75, 0.9)',
+  color: '#fff',
+  padding: '6px 12px',
+  fontFamily: 'monospace',
+  zIndex: 1,
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  margin: '12px',
+  borderRadius: '4px',
+};
+
+const legendStyle = {
+  backgroundColor: 'white',
+  borderRadius: '4px',
+  boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)',
+  padding: '10px',
+  position: 'absolute',
+  bottom: '20px',
+  right: '20px',
+  zIndex: 1,
+};
+
+const legendItemStyle = {
+  display: 'flex',
+  alignItems: 'center',
+  marginBottom: '5px',
+};
+
+const colorBoxStyle = (color) => ({
+  width: '15px',
+  height: '15px',
+  marginRight: '5px',
+  border: '1px solid #ccc',
+  backgroundColor: color,
+});
+
 const MapboxHeatmap = () => {
   const mapContainer = useRef(null);
   const map = useRef(null);
-  const [lng, setLng] = useState(-3.7);
-  const [lat, setLat] = useState(40.4);
-  const [zoom, setZoom] = useState(5);
+  // Set initial view to Bilbao coordinates
+  const [lng, setLng] = useState(-2.9253);
+  const [lat, setLat] = useState(43.2627);
+  const [zoom, setZoom] = useState(11); // Higher zoom level to focus on Bilbao
+  const [mapLoaded, setMapLoaded] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (map.current) return; // initialize map only once
+    // Don't reinitialize if map already exists
+    if (map.current) return;
     
-    mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN
-    
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/light-v11',
-      center: [lng, lat],
-      zoom: zoom
-    });
-
-    // Add navigation controls
-    map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
-
-    map.current.on('load', () => {
-      // Sample data points across Spain (cities with activity intensity)
-      const heatmapData = {
-        'type': 'FeatureCollection',
-        'features': [
-          // Northern Spain
-          createFeature(-8.4115, 43.3623, 80, 'A Coruña'),
-          createFeature(-2.9253, 43.2627, 95, 'Bilbao'),
-          createFeature(-5.6773, 43.5293, 65, 'Gijón'),
-          createFeature(-3.8079, 43.4609, 70, 'Santander'),
-          
-          // Central Spain
-          createFeature(-3.7038, 40.4168, 100, 'Madrid'),
-          createFeature(-4.7245, 41.6523, 60, 'Valladolid'),
-          createFeature(-5.6635, 40.9701, 55, 'Salamanca'),
-          createFeature(-3.6969, 42.3439, 50, 'Burgos'),
-          
-          // Eastern Spain
-          createFeature(2.1734, 41.3851, 90, 'Barcelona'),
-          createFeature(-0.3763, 39.4699, 85, 'Valencia'),
-          createFeature(-0.4815, 38.3452, 75, 'Alicante'),
-          createFeature(1.2445, 41.1179, 65, 'Tarragona'),
-          
-          // Southern Spain
-          createFeature(-5.9845, 37.3891, 80, 'Sevilla'),
-          createFeature(-3.5986, 37.1773, 70, 'Granada'),
-          createFeature(-4.4213, 36.7213, 75, 'Málaga'),
-          createFeature(-6.2929, 36.5297, 60, 'Cádiz'),
-          
-          // Islands
-          createFeature(2.6502, 39.5696, 85, 'Palma de Mallorca'),
-          createFeature(-15.4366, 28.1235, 70, 'Las Palmas'),
-          createFeature(-16.2546, 28.4682, 65, 'Santa Cruz de Tenerife')
+    try {
+      // Ensure the container is available
+      if (!mapContainer.current) {
+        console.error("Map container not found");
+        setError("Map container not found");
+        return;
+      }
+      
+      // Create map instance focused on Bilbao
+      map.current = new mapboxgl.Map({
+        container: mapContainer.current,
+        style: 'mapbox://styles/mapbox/light-v11',
+        center: [lng, lat],
+        zoom: zoom,
+        // Set max bounds to limit panning (roughly Bilbao metropolitan area)
+        maxBounds: [
+          [-3.0553, 43.1627], // Southwest coordinates
+          [-2.7953, 43.3627]  // Northeast coordinates
         ]
-      };
-
-      // Add source for heatmap
-      map.current.addSource('activity-data', {
-        'type': 'geojson',
-        'data': heatmapData
       });
 
-      // Add heatmap layer
-      map.current.addLayer({
-        'id': 'activity-heat',
-        'type': 'heatmap',
-        'source': 'activity-data',
-        'maxzoom': 15,
-        'paint': {
-          // Increase the heatmap weight based on intensity
-          'heatmap-weight': [
-            'interpolate',
-            ['linear'],
-            ['get', 'intensity'],
-            0, 0,
-            100, 1
-          ],
-          // Increase the heatmap color weight by zoom level
-          'heatmap-intensity': [
-            'interpolate',
-            ['linear'],
-            ['zoom'],
-            0, 1,
-            9, 3
-          ],
-          // Color ramp for heatmap from blue to red
-          'heatmap-color': [
-            'interpolate',
-            ['linear'],
-            ['heatmap-density'],
-            0, 'rgba(0, 0, 255, 0)',
-            0.2, 'rgba(0, 0, 255, 0.5)',
-            0.4, 'rgba(0, 255, 255, 0.7)',
-            0.6, 'rgba(0, 255, 0, 0.7)',
-            0.8, 'rgba(255, 255, 0, 0.8)',
-            1, 'rgba(255, 0, 0, 0.9)'
-          ],
-          // Adjust the heatmap radius by zoom level
-          'heatmap-radius': [
-            'interpolate',
-            ['linear'],
-            ['zoom'],
-            0, 10,
-            9, 30
-          ],
-          // Transition from heatmap to circle layer by zoom level
-          'heatmap-opacity': [
-            'interpolate',
-            ['linear'],
-            ['zoom'],
-            6, 0.7,
-            9, 0.5
+      // Add navigation controls
+      map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+
+      // Set up map events
+      map.current.on('load', () => {
+        console.log("Map loaded successfully");
+        setMapLoaded(true);
+        
+        // Data points focused on Bilbao and nearby areas
+        const heatmapData = {
+          'type': 'FeatureCollection',
+          'features': [
+            // Bilbao City Center and neighborhoods
+            createFeature(-2.9253, 43.2627, 95, 'Bilbao Centro'),
+            createFeature(-2.9338, 43.2569, 85, 'Abando'),
+            createFeature(-2.9154, 43.2710, 80, 'Deusto'),
+            createFeature(-2.9108, 43.2599, 75, 'Indautxu'),
+            createFeature(-2.9369, 43.2543, 70, 'Basurto'),
+            createFeature(-2.9204, 43.2766, 65, 'San Ignacio'),
+            createFeature(-2.9081, 43.2697, 85, 'Universidad de Deusto'),
+            createFeature(-2.9463, 43.2711, 60, 'Zorrotza'),
+            createFeature(-2.9023, 43.2595, 75, 'Campo Volantín'),
+            createFeature(-2.9300, 43.2539, 90, 'Plaza Moyua'),
+            
+            // Nearby towns in Greater Bilbao
+            createFeature(-2.9929, 43.2883, 55, 'Barakaldo'),
+            createFeature(-3.0132, 43.3232, 50, 'Portugalete'),
+            createFeature(-2.9841, 43.3376, 45, 'Santurtzi'),
+            createFeature(-2.9881, 43.3182, 60, 'Sestao'),
+            createFeature(-2.8646, 43.2930, 55, 'Getxo'),
+            createFeature(-2.8548, 43.3283, 40, 'Sopela'),
+            createFeature(-2.8845, 43.2717, 65, 'Leioa'),
+            createFeature(-2.8671, 43.3177, 45, 'Berango'),
+            createFeature(-2.8954, 43.2366, 50, 'Galdakao')
           ]
-        }
-      });
+        };
 
-      // Add circle layer for points
-      map.current.addLayer({
-        'id': 'activity-points',
-        'type': 'circle',
-        'source': 'activity-data',
-        'minzoom': 7,
-        'paint': {
-          // Size circle radius by intensity and zoom level
-          'circle-radius': [
-            'interpolate',
-            ['linear'],
-            ['zoom'],
-            7, [
+        // Add source for heatmap
+        map.current.addSource('activity-data', {
+          'type': 'geojson',
+          'data': heatmapData
+        });
+
+        // Add heatmap layer
+        map.current.addLayer({
+          'id': 'activity-heat',
+          'type': 'heatmap',
+          'source': 'activity-data',
+          'maxzoom': 15,
+          'paint': {
+            // Increase the heatmap weight based on intensity
+            'heatmap-weight': [
               'interpolate',
               ['linear'],
               ['get', 'intensity'],
-              0, 1,
-              100, 4
+              0, 0,
+              100, 1
             ],
-            16, [
+            // Increase the heatmap color weight by zoom level
+            'heatmap-intensity': [
+              'interpolate',
+              ['linear'],
+              ['zoom'],
+              0, 1,
+              9, 3
+            ],
+            // Color ramp for heatmap from blue to red
+            'heatmap-color': [
+              'interpolate',
+              ['linear'],
+              ['heatmap-density'],
+              0, 'rgba(0, 0, 255, 0)',
+              0.2, 'rgba(0, 0, 255, 0.5)',
+              0.4, 'rgba(0, 255, 255, 0.7)',
+              0.6, 'rgba(0, 255, 0, 0.7)',
+              0.8, 'rgba(255, 255, 0, 0.8)',
+              1, 'rgba(255, 0, 0, 0.9)'
+            ],
+            // Adjust the heatmap radius by zoom level
+            'heatmap-radius': [
+              'interpolate',
+              ['linear'],
+              ['zoom'],
+              0, 10,
+              9, 30
+            ],
+            // Transition from heatmap to circle layer by zoom level
+            'heatmap-opacity': [
+              'interpolate',
+              ['linear'],
+              ['zoom'],
+              8, 0.7,
+              11, 0.5
+            ]
+          }
+        });
+
+        // Add circle layer for points
+        map.current.addLayer({
+          'id': 'activity-points',
+          'type': 'circle',
+          'source': 'activity-data',
+          'minzoom': 9,
+          'paint': {
+            // Size circle radius by intensity and zoom level
+            'circle-radius': [
+              'interpolate',
+              ['linear'],
+              ['zoom'],
+              9, [
+                'interpolate',
+                ['linear'],
+                ['get', 'intensity'],
+                0, 1,
+                100, 4
+              ],
+              16, [
+                'interpolate',
+                ['linear'],
+                ['get', 'intensity'],
+                0, 5,
+                100, 15
+              ]
+            ],
+            // Color circle by intensity
+            'circle-color': [
               'interpolate',
               ['linear'],
               ['get', 'intensity'],
-              0, 5,
-              100, 15
+              0, '#add8e6',
+              50, '#ffff00',
+              100, '#ff0000'
+            ],
+            'circle-stroke-color': 'white',
+            'circle-stroke-width': 1,
+            'circle-opacity': [
+              'interpolate',
+              ['linear'],
+              ['zoom'],
+              9, 0,
+              10, 0.7
             ]
-          ],
-          // Color circle by intensity
-          'circle-color': [
-            'interpolate',
-            ['linear'],
-            ['get', 'intensity'],
-            0, '#add8e6',
-            50, '#ffff00',
-            100, '#ff0000'
-          ],
-          'circle-stroke-color': 'white',
-          'circle-stroke-width': 1,
-          'circle-opacity': [
-            'interpolate',
-            ['linear'],
-            ['zoom'],
-            7, 0,
-            8, 0.7
-          ]
-        }
+          }
+        });
+
+        // Add popup on hover
+        const popup = new mapboxgl.Popup({
+          closeButton: false,
+          closeOnClick: false
+        });
+
+        map.current.on('mouseenter', 'activity-points', (e) => {
+          map.current.getCanvas().style.cursor = 'pointer';
+          
+          const coordinates = e.features[0].geometry.coordinates.slice();
+          const { name, intensity } = e.features[0].properties;
+          
+          const popupContent = `
+            <div style="padding: 5px;">
+              <h3 style="margin: 0 0 5px; font-size: 14px;">${name}</h3>
+              <p style="margin: 0; font-size: 12px;">Intensidad: <strong>${intensity}</strong></p>
+            </div>
+          `;
+
+          popup
+            .setLngLat(coordinates)
+            .setHTML(popupContent)
+            .addTo(map.current);
+        });
+
+        map.current.on('mouseleave', 'activity-points', () => {
+          map.current.getCanvas().style.cursor = '';
+          popup.remove();
+        });
       });
 
-      // Add popup on hover
-      const popup = new mapboxgl.Popup({
-        closeButton: false,
-        closeOnClick: false
+      // Handle map errors
+      map.current.on('error', (e) => {
+        console.error("Mapbox error:", e);
+        setError(`Mapbox error: ${e.error.message || 'Unknown error'}`);
       });
 
-      map.current.on('mouseenter', 'activity-points', (e) => {
-        map.current.getCanvas().style.cursor = 'pointer';
-        
-        const coordinates = e.features[0].geometry.coordinates.slice();
-        const { name, intensity } = e.features[0].properties;
-        
-        const popupContent = `
-          <div class="popup-content">
-            <h3>${name}</h3>
-            <p>Intensidad: <strong>${intensity}</strong></p>
-          </div>
-        `;
-
-        popup
-          .setLngLat(coordinates)
-          .setHTML(popupContent)
-          .addTo(map.current);
+      // Update state on map movement
+      map.current.on('move', () => {
+        setLng(map.current.getCenter().lng.toFixed(4));
+        setLat(map.current.getCenter().lat.toFixed(4));
+        setZoom(map.current.getZoom().toFixed(2));
       });
-
-      map.current.on('mouseleave', 'activity-points', () => {
-        map.current.getCanvas().style.cursor = '';
-        popup.remove();
-      });
-    });
-
-    // Update state on map movement
-    map.current.on('move', () => {
-      setLng(map.current.getCenter().lng.toFixed(4));
-      setLat(map.current.getCenter().lat.toFixed(4));
-      setZoom(map.current.getZoom().toFixed(2));
-    });
+      
+    } catch (err) {
+      console.error("Error initializing map:", err);
+      setError(err.message);
+    }
+    
+    // Force map resize when component mounts
+    setTimeout(() => {
+      if (map.current) {
+        map.current.resize();
+      }
+    }, 100);
+    
+    // Cleanup function
+    return () => {
+      if (map.current) {
+        map.current.remove();
+        map.current = null;
+      }
+    };
   }, []);
 
   // Helper function to create GeoJSON feature
@@ -222,80 +313,42 @@ const MapboxHeatmap = () => {
     };
   }
 
+  if (error) {
+    return (
+      <div style={{ padding: '20px', color: 'red', backgroundColor: '#ffeeee', border: '1px solid red', borderRadius: '4px' }}>
+        <h3>Error loading map</h3>
+        <p>{error}</p>
+        <p>Check console for more details.</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="map-container">
-      <div className="sidebar">
+    <div style={{ width: '100%', height: '500px', position: 'relative' }}>
+      <div style={sidebarStyle}>
         Longitude: {lng} | Latitude: {lat} | Zoom: {zoom}
       </div>
-      <div ref={mapContainer} className="map" style={{ height: '500px', width: '100%' }} />
-      <div className="legend">
-        <h4>Intensidad de Actividad</h4>
-        <div className="legend-item">
-          <span className="color-box" style={{ backgroundColor: '#add8e6' }}></span>
-          <span>Baja</span>
+      <div 
+        ref={mapContainer} 
+        style={{ width: '100%', height: '100%', position: 'relative' }} 
+      />
+      {mapLoaded && (
+        <div style={legendStyle}>
+          <h4 style={{ margin: '0 0 10px' }}>Intensidad de Actividad</h4>
+          <div style={legendItemStyle}>
+            <span style={colorBoxStyle('#add8e6')}></span>
+            <span>Baja</span>
+          </div>
+          <div style={legendItemStyle}>
+            <span style={colorBoxStyle('#ffff00')}></span>
+            <span>Media</span>
+          </div>
+          <div style={legendItemStyle}>
+            <span style={colorBoxStyle('#ff0000')}></span>
+            <span>Alta</span>
+          </div>
         </div>
-        <div className="legend-item">
-          <span className="color-box" style={{ backgroundColor: '#ffff00' }}></span>
-          <span>Media</span>
-        </div>
-        <div className="legend-item">
-          <span className="color-box" style={{ backgroundColor: '#ff0000' }}></span>
-          <span>Alta</span>
-        </div>
-      </div>
-      <style jsx>{`
-        .map-container {
-          position: relative;
-          font-family: Arial, sans-serif;
-        }
-        .sidebar {
-          background-color: rgba(35, 55, 75, 0.9);
-          color: #fff;
-          padding: 6px 12px;
-          font-family: monospace;
-          z-index: 1;
-          position: absolute;
-          top: 0;
-          left: 0;
-          margin: 12px;
-          border-radius: 4px;
-        }
-        .legend {
-          background-color: white;
-          border-radius: 4px;
-          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-          padding: 10px;
-          position: absolute;
-          bottom: 20px;
-          right: 20px;
-          z-index: 1;
-        }
-        .legend h4 {
-          margin: 0 0 10px;
-        }
-        .legend-item {
-          display: flex;
-          align-items: center;
-          margin-bottom: 5px;
-        }
-        .color-box {
-          width: 15px;
-          height: 15px;
-          margin-right: 5px;
-          border: 1px solid #ccc;
-        }
-        .popup-content {
-          padding: 5px;
-        }
-        .popup-content h3 {
-          margin: 0 0 5px;
-          font-size: 14px;
-        }
-        .popup-content p {
-          margin: 0;
-          font-size: 12px;
-        }
-      `}</style>
+      )}
     </div>
   );
 };
