@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Bell, Calendar, ChevronDown, LayoutDashboard, Map, Award, Building, Users, LogOut, Menu } from 'lucide-react';
 import StatCard from './StatCard';
-
-
+import PopularChallengesChart from './ChallengeBarChart';
+import MapboxHeatmap from './MapBoxHeatMap';
 const DashboardContent = () => {
     return (
       <div className="p-6 space-y-6">
@@ -53,14 +53,14 @@ const DashboardContent = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="bg-white rounded-xl p-6 shadow-sm">
             <h3 className="font-semibold mb-4">Retos más populares</h3>
-            <div className="h-64 flex items-center justify-center bg-gray-100 rounded-lg">
-              [Gráfico de barras aquí]
+            <div className="h-96 flex items-center justify-center">
+              <PopularChallengesChart />
             </div>
           </div>
           <div className="bg-white rounded-xl p-6 shadow-sm">
             <h3 className="font-semibold mb-4">Mapa de calor de actividad</h3>
-            <div className="h-64 flex items-center justify-center bg-gray-100 rounded-lg">
-              [Mapa de calor aquí]
+            <div className="h-96 flex items-center justify-center">
+              <MapboxHeatmap />
             </div>
           </div>
         </div>
