@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../database/supabase';
+import Auth from '../screens/Auth';
 
 const SessionContext = createContext();
 
@@ -24,9 +25,16 @@ export const SessionProvider = ({ children }) => {
     return () => authListener.subscription.unsubscribe();
   }, []);
 
+
+  const getSession = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    setSession(session);
+    return session;
+  };
+
   return (
     <SessionContext.Provider value={{ session, setSession }}>
-      {children}
+      {session && session.user ? children : <Auth />}
     </SessionContext.Provider>
   );
 };
