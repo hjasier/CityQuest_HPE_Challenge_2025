@@ -1,60 +1,107 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Plus, Edit, Trash2, Filter, Settings, ChevronDown, Clock, Users } from 'lucide-react';
+import { createClient } from '@supabase/supabase-js';
 
-// Datos de ejemplo para los retos
-const initialChallenges = [
-  {
-    id: 1,
-    title: 'Visita los 3 museos principales',
-    description: 'Completa visitas a Museo de Historia, Museo de Arte Contemporáneo y Galería Municipal',
-    points: 150,
-    difficulty: 'Medio',
-    duration: '4 horas',
-    status: 'Activo',
-    completions: 243,
-    abandonment: 18,
-    category: 'Cultural'
-  },
-  {
-    id: 2,
-    title: 'Ruta gastronómica local',
-    description: 'Visita al menos 4 restaurantes locales de la ruta gastronómica oficial',
-    points: 100,
-    difficulty: 'Fácil',
-    duration: '3 horas',
-    status: 'Activo',
-    completions: 412,
-    abandonment: 26,
-    category: 'Gastronomía'
-  },
-  {
-    id: 3,
-    title: 'Descubre los monumentos históricos',
-    description: 'Encuentra y fotografía los 5 monumentos históricos señalados en el mapa',
-    points: 75,
-    difficulty: 'Fácil',
-    duration: '2 horas',
-    status: 'Inactivo',
-    completions: 156,
-    abandonment: 34,
-    category: 'Histórico'
-  },
-  {
-    id: 4,
-    title: 'Tour fotográfico de street art',
-    description: 'Encuentra los 8 murales de artistas reconocidos distribuidos por la zona artística',
-    points: 200,
-    difficulty: 'Difícil',
-    duration: '5 horas',
-    status: 'Activo',
-    completions: 87,
-    abandonment: 42,
-    category: 'Arte'
-  }
-];
+// Initialize Supabase client
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 const ChallengesContent = () => {
-  const [challenges, setChallenges] = useState(initialChallenges);
+  const [challenges, setChallenges] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [challengeTypes, setChallengeTypes] = useState([]);
+  
+  // Fetch challenge types
+  useEffect(() => {
+    const fetchChallengeTypes = async () => {
+      const { data, error } = await supabase
+        .from('ChallengeType')
+        .select('*');
+      
+      if (error) {
+        console.error('Error fetching challenge types:', error);
+        return;
+      }
+      
+      setChallengeTypes(data);
+    };
+    
+    fetchChallengeTypes();
+  }, []);
+  
+  // Fetch challenges
+  useEffect(() => {
+    const fetchChallenges = async () => {
+      setLoading(true);
+      
+      // First try to get all challenge data without the inner join requirement
+      const { data, error } = await supabase
+        .from('Challenge')
+        .select(`
+          *,
+          ChallengeType:type (type),
+          Location:location (name, address)
+        `);
+      
+      if (error) {
+        console.error('Error fetching challenges:', error);
+        setLoading(false);
+        return;
+      }
+      
+      console.log('Raw challenge data from Supabase:', data);
+      
+      if (!data || data.length === 0) {
+        console.warn('No challenges found in database');
+        setLoading(false);
+        return;
+      }
+      
+      // Map data to match component's expected structure
+      const formattedChallenges = data.map(challenge => ({
+        id: challenge.id,
+        title: challenge.name || 'Sin título',
+        description: challenge.description || 'Sin descripción',
+        points: challenge.reward || 0,
+        difficulty: calculateDifficulty(challenge.priority || 5),
+        duration: challenge.cooldown_time ? `${challenge.cooldown_time} horas` : 'Sin límite',
+        status: challenge.active ? 'Activo' : 'Inactivo',
+        completions: 0, // You might want to fetch this from AcceptedChallenge
+        abandonment: 0, // This would need a separate query
+        category: challenge.ChallengeType?.type || 'Sin categoría',
+        coverUrl: challenge.cover_url || '',
+        type: challenge.type,
+        location: challenge.location,
+        repeatable: challenge.repeatable || false,
+        expiration_date: challenge.expiration_date
+      }));
+      
+      console.log('Formatted challenges:', formattedChallenges);
+      setChallenges(formattedChallenges);
+      setLoading(false);
+    };
+    
+    fetchChallenges();
+  }, []);
+
+  // Helper function to convert priority to difficulty
+  const calculateDifficulty = (priority) => {
+    if (priority <= 3) return 'Fácil';
+    if (priority <= 7) return 'Medio';
+    return 'Difícil';
+  };
+
+  // Helper function to convert difficulty to priority
+  const calculatePriority = (difficulty) => {
+    switch(difficulty) {
+      case 'Fácil': return 3;
+      case 'Medio': return 6;
+      case 'Difícil': return 9;
+      default: return 5;
+    }
+  };
+
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [currentChallenge, setCurrentChallenge] = useState(null);
@@ -73,10 +120,10 @@ const ChallengesContent = () => {
     return matchesSearch && matchesStatus;
   });
 
-  // Abrir modal para añadir nuevo reto
+  // Add new challenge
   const handleAddNew = () => {
     setCurrentChallenge({
-      id: challenges.length + 1,
+      id: null, // Let Supabase generate the ID
       title: '',
       description: '',
       points: 50,
@@ -85,7 +132,10 @@ const ChallengesContent = () => {
       status: 'Activo',
       completions: 0,
       abandonment: 0,
-      category: 'Cultural'
+      category: challengeTypes.length > 0 ? challengeTypes[0].type : '',
+      coverUrl: '',
+      repeatable: false,
+      expiration_date: new Date(Date.now() + 30*24*60*60*1000).toISOString() // 30 days from now
     });
     setShowModal(true);
   };
@@ -96,25 +146,74 @@ const ChallengesContent = () => {
     setShowModal(true);
   };
 
-  // Eliminar reto
-  const handleDelete = (id) => {
-    if (window.confirm('¿Estás seguro de que deseas eliminar este reto?')) {
-      setChallenges(challenges.filter(challenge => challenge.id !== id));
-    }
-  };
+  // Save changes (new challenge or edit)
+  const handleSave = async () => {
+    const challengeData = {
+      name: currentChallenge.title,
+      description: currentChallenge.description,
+      reward: currentChallenge.points,
+      priority: calculatePriority(currentChallenge.difficulty),
+      active: currentChallenge.status === 'Activo',
+      type: challengeTypes.find(t => t.type === currentChallenge.category)?.id,
+      cover_url: currentChallenge.coverUrl || 'https://placeholder.com/150',
+      repeatable: currentChallenge.repeatable,
+      cooldown_time: parseInt(currentChallenge.duration) || null,
+      expiration_date: currentChallenge.expiration_date
+    };
 
-  // Guardar cambios (nuevo reto o edición)
-  const handleSave = () => {
-    if (challenges.some(c => c.id === currentChallenge.id)) {
-      // Actualizar reto existente
+    if (currentChallenge.id) {
+      // Update existing challenge
+      const { error } = await supabase
+        .from('Challenge')
+        .update(challengeData)
+        .eq('id', currentChallenge.id);
+      
+      if (error) {
+        console.error('Error updating challenge:', error);
+        return;
+      }
+
       setChallenges(challenges.map(c => 
-        c.id === currentChallenge.id ? currentChallenge : c
+        c.id === currentChallenge.id ? {...c, ...currentChallenge} : c
       ));
     } else {
-      // Añadir nuevo reto
-      setChallenges([...challenges, currentChallenge]);
+      // Add new challenge
+      const { data, error } = await supabase
+        .from('Challenge')
+        .insert(challengeData)
+        .select();
+      
+      if (error) {
+        console.error('Error adding challenge:', error);
+        return;
+      }
+
+      const newChallenge = {
+        ...currentChallenge,
+        id: data[0].id
+      };
+      
+      setChallenges([...challenges, newChallenge]);
     }
+    
     setShowModal(false);
+  };
+
+  // Delete challenge
+  const handleDelete = async (id) => {
+    if (window.confirm('¿Estás seguro de que deseas eliminar este reto?')) {
+      const { error } = await supabase
+        .from('Challenge')
+        .delete()
+        .eq('id', id);
+      
+      if (error) {
+        console.error('Error deleting challenge:', error);
+        return;
+      }
+      
+      setChallenges(challenges.filter(challenge => challenge.id !== id));
+    }
   };
 
   return (
@@ -162,7 +261,11 @@ const ChallengesContent = () => {
 
       {/* Challenges List */}
       <div className="flex-grow overflow-auto bg-white rounded-lg">
-        {filteredChallenges.length > 0 ? (
+        {loading ? (
+          <div className="flex items-center justify-center h-32">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          </div>
+        ) : (
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
@@ -218,10 +321,6 @@ const ChallengesContent = () => {
               ))}
             </tbody>
           </table>
-        ) : (
-          <div className="flex flex-col items-center justify-center p-8 text-gray-500">
-            <p>No se encontraron retos con los filtros actuales</p>
-          </div>
         )}
       </div>
 
@@ -330,6 +429,40 @@ const ChallengesContent = () => {
                 className="w-full px-3 py-2 border rounded-lg"
                 onChange={(e) => setCurrentChallenge({...currentChallenge, image: e.target.files[0]})}
             />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">URL de Imagen</label>
+              <input
+                type="text"
+                className="w-full px-3 py-2 border rounded-lg"
+                placeholder="https://example.com/image.jpg"
+                value={currentChallenge.coverUrl || ''}
+                onChange={(e) => setCurrentChallenge({...currentChallenge, coverUrl: e.target.value})}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Fecha de expiración</label>
+              <input
+                type="date"
+                className="w-full px-3 py-2 border rounded-lg"
+                value={currentChallenge.expiration_date ? new Date(currentChallenge.expiration_date).toISOString().split('T')[0] : ''}
+                onChange={(e) => setCurrentChallenge({...currentChallenge, expiration_date: new Date(e.target.value).toISOString()})}
+              />
+            </div>
+
+            <div className="flex items-center mt-2">
+              <input
+                type="checkbox"
+                id="repeatable"
+                checked={currentChallenge.repeatable || false}
+                onChange={(e) => setCurrentChallenge({...currentChallenge, repeatable: e.target.checked})}
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+              />
+              <label htmlFor="repeatable" className="ml-2 block text-sm text-gray-900">
+                Reto repetible
+              </label>
             </div>
 
             <div className="flex justify-end space-x-2">
