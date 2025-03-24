@@ -5,54 +5,6 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 // Set Mapbox token directly at the top level
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 
-// Simplified container styles
-const mapContainerStyle = {
-  position: 'relative',
-  fontFamily: 'Arial, sans-serif',
-  height: '100%', 
-  width: '100%',
-  borderRadius: '8px',
-  overflow: 'hidden'
-};
-
-const sidebarStyle = {
-  backgroundColor: 'rgba(35, 55, 75, 0.9)',
-  color: '#fff',
-  padding: '6px 12px',
-  fontFamily: 'monospace',
-  zIndex: 1,
-  position: 'absolute',
-  top: 0,
-  left: 0,
-  margin: '12px',
-  borderRadius: '4px',
-};
-
-const legendStyle = {
-  backgroundColor: 'white',
-  borderRadius: '4px',
-  boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)',
-  padding: '10px',
-  position: 'absolute',
-  bottom: '20px',
-  right: '20px',
-  zIndex: 1,
-};
-
-const legendItemStyle = {
-  display: 'flex',
-  alignItems: 'center',
-  marginBottom: '5px',
-};
-
-const colorBoxStyle = (color) => ({
-  width: '15px',
-  height: '15px',
-  marginRight: '5px',
-  border: '1px solid #ccc',
-  backgroundColor: color,
-});
-
 const MapboxHeatmap = () => {
   const mapContainer = useRef(null);
   const map = useRef(null);
@@ -246,9 +198,9 @@ const MapboxHeatmap = () => {
           const { name, intensity } = e.features[0].properties;
           
           const popupContent = `
-            <div style="padding: 5px;">
-              <h3 style="margin: 0 0 5px; font-size: 14px;">${name}</h3>
-              <p style="margin: 0; font-size: 12px;">Intensidad: <strong>${intensity}</strong></p>
+            <div class="p-1.5">
+              <h3 class="m-0 mb-1 text-sm font-medium">${name}</h3>
+              <p class="m-0 text-xs">Intensidad: <strong>${intensity}</strong></p>
             </div>
           `;
 
@@ -315,8 +267,8 @@ const MapboxHeatmap = () => {
 
   if (error) {
     return (
-      <div style={{ padding: '20px', color: 'red', backgroundColor: '#ffeeee', border: '1px solid red', borderRadius: '4px' }}>
-        <h3>Error loading map</h3>
+      <div className="p-5 text-red-600 bg-red-50 border border-red-500 rounded-md">
+        <h3 className="font-medium">Error loading map</h3>
         <p>{error}</p>
         <p>Check console for more details.</p>
       </div>
@@ -324,27 +276,27 @@ const MapboxHeatmap = () => {
   }
 
   return (
-    <div style={{ width: '100%', height: '500px', position: 'relative' }}>
-      <div style={sidebarStyle}>
-        Longitude: {lng} | Latitude: {lat} | Zoom: {zoom}
+    <div className="w-full h-full relative">
+      <div className=" text-white py-1.5 px-3 font-mono z-10 absolute top-0 left-0 m-3 rounded">
+       
       </div>
       <div 
         ref={mapContainer} 
-        style={{ width: '100%', height: '100%', position: 'relative' }} 
+        className="w-full h-full" 
       />
       {mapLoaded && (
-        <div style={legendStyle}>
-          <h4 style={{ margin: '0 0 10px' }}>Intensidad de Actividad</h4>
-          <div style={legendItemStyle}>
-            <span style={colorBoxStyle('#add8e6')}></span>
+        <div className="bg-white rounded shadow p-2.5 absolute bottom-5 right-5 z-10">
+          <h4 className="m-0 mb-2.5 font-medium">Intensidad de Actividad</h4>
+          <div className="flex items-center mb-1.5">
+            <span className="w-[15px] h-[15px] mr-1.5 border border-gray-300" style={{ backgroundColor: '#add8e6' }}></span>
             <span>Baja</span>
           </div>
-          <div style={legendItemStyle}>
-            <span style={colorBoxStyle('#ffff00')}></span>
+          <div className="flex items-center mb-1.5">
+            <span className="w-[15px] h-[15px] mr-1.5 border border-gray-300" style={{ backgroundColor: '#ffff00' }}></span>
             <span>Media</span>
           </div>
-          <div style={legendItemStyle}>
-            <span style={colorBoxStyle('#ff0000')}></span>
+          <div className="flex items-center">
+            <span className="w-[15px] h-[15px] mr-1.5 border border-gray-300" style={{ backgroundColor: '#ff0000' }}></span>
             <span>Alta</span>
           </div>
         </div>

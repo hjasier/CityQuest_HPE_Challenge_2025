@@ -1,67 +1,126 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, Edit, Trash2, Filter, MapPin, Settings, ChevronDown, Clock, Users } from 'lucide-react';
-
-// Datos de ejemplo para los retos
-const initialChallenges = [
-  {
-    id: 1,
-    title: 'Visita los 3 museos principales',
-    description: 'Completa visitas a Museo de Historia, Museo de Arte Contemporáneo y Galería Municipal',
-    area: 'Centro Histórico',
-    difficulty: 'Medio',
-    duration: '4 horas',
-    status: 'Activo',
-    completions: 243,
-    abandonment: 18,
-    category: 'Cultural'
-  },
-  {
-    id: 2,
-    title: 'Ruta gastronómica local',
-    description: 'Visita al menos 4 restaurantes locales de la ruta gastronómica oficial',
-    area: 'Casco Antiguo',
-    difficulty: 'Fácil',
-    duration: '3 horas',
-    status: 'Activo',
-    completions: 412,
-    abandonment: 26,
-    category: 'Gastronomía'
-  },
-  {
-    id: 3,
-    title: 'Descubre los monumentos históricos',
-    description: 'Encuentra y fotografía los 5 monumentos históricos señalados en el mapa',
-    area: 'Centro',
-    difficulty: 'Fácil',
-    duration: '2 horas',
-    status: 'Inactivo',
-    completions: 156,
-    abandonment: 34,
-    category: 'Histórico'
-  },
-  {
-    id: 4,
-    title: 'Tour fotográfico de street art',
-    description: 'Encuentra los 8 murales de artistas reconocidos distribuidos por la zona artística',
-    area: 'Barrio Cultural',
-    difficulty: 'Difícil',
-    duration: '5 horas',
-    status: 'Activo',
-    completions: 87,
-    abandonment: 42,
-    category: 'Arte'
-  }
-];
+import { Search, Plus, Edit, Trash2, Filter, Calendar, Clock, Users, Image, Tag, Check, X, Award } from 'lucide-react';
+import { supabase } from '../hooks/supabaseClient';
 
 const ChallengesContent = () => {
-  const [challenges, setChallenges] = useState(initialChallenges);
+  const [challenges, setChallenges] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [challengeTypes, setChallengeTypes] = useState([]);
+  const [locations, setLocations] = useState([]);
+  
+  // Fetch locations
+  useEffect(() => {
+    const fetchLocations = async () => {
+      const { data, error } = await supabase
+        .from('Location')
+        .select('id, name, address, point');
+      
+      if (error) {
+        console.error('Error fetching locations:', error);
+        return;
+      }
+      
+      console.log('Locations data:', data);
+      setLocations(data || []);
+    };
+    
+    fetchLocations();
+  }, []);
+  
+  // Fetch challenge types
+  useEffect(() => {
+    const fetchChallengeTypes = async () => {
+      const { data, error } = await supabase
+        .from('ChallengeType')
+        .select('*');
+      
+      if (error) {
+        console.error('Error fetching challenge types:', error);
+        return;
+      }
+      
+      setChallengeTypes(data);
+    };
+    
+    fetchChallengeTypes();
+  }, []);
+  
+  // Fetch challenges
+  useEffect(() => {
+    const fetchChallenges = async () => {
+      setLoading(true);
+      
+      const { data, error } = await supabase
+        .from('Challenge')
+        .select(`
+          *,
+          ChallengeType:type (type),
+          Location:location (name, address)
+        `);
+      
+      if (error) {
+        console.error('Error fetching challenges:', error);
+        setLoading(false);
+        return;
+      }
+      
+      console.log('Raw challenge data from Supabase:', data);
+      
+      if (!data || data.length === 0) {
+        console.warn('No challenges found in database');
+        setLoading(false);
+        return;
+      }
+      
+      // Map data to match component's expected structure
+      const formattedChallenges = data.map(challenge => ({
+        id: challenge.id,
+        title: challenge.name || 'Sin título',
+        description: challenge.description || 'Sin descripción',
+        points: challenge.reward || 0,
+        difficulty: calculateDifficulty(challenge.priority || 5),
+        duration: challenge.cooldown_time ? `${challenge.cooldown_time} horas` : 'Sin límite',
+        status: challenge.active ? 'Activo' : 'Inactivo',
+        completions: 0, // You might want to fetch this from AcceptedChallenge
+        abandonment: 0, // This would need a separate query
+        category: challenge.ChallengeType?.type || 'Sin categoría',
+        coverUrl: challenge.cover_url || '',
+        type: challenge.type,
+        location: challenge.location,
+        repeatable: challenge.repeatable || false,
+        expiration_date: challenge.expiration_date
+      }));
+      
+      console.log('Formatted challenges:', formattedChallenges);
+      setChallenges(formattedChallenges);
+      setLoading(false);
+    };
+    
+    fetchChallenges();
+  }, []);
+
+  // Helper function to convert priority to difficulty
+  const calculateDifficulty = (priority) => {
+    if (priority <= 3) return 'Fácil';
+    if (priority <= 7) return 'Medio';
+    return 'Difícil';
+  };
+
+  // Helper function to convert difficulty to priority
+  const calculatePriority = (difficulty) => {
+    switch(difficulty) {
+      case 'Fácil': return 3;
+      case 'Medio': return 6;
+      case 'Difícil': return 9;
+      default: return 5;
+    }
+  };
+
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [currentChallenge, setCurrentChallenge] = useState(null);
   const [filterStatus, setFilterStatus] = useState('Todos');
-  const [filterArea, setFilterArea] = useState('Todas');
 
-  const areas = ['Todas', 'Centro Histórico', 'Casco Antiguo', 'Centro', 'Barrio Cultural'];
   const statuses = ['Todos', 'Activo', 'Inactivo'];
   const difficulties = ['Fácil', 'Medio', 'Difícil'];
   const categories = ['Cultural', 'Gastronomía', 'Histórico', 'Arte', 'Naturaleza', 'Aventura'];
@@ -71,24 +130,27 @@ const ChallengesContent = () => {
     const matchesSearch = challenge.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           challenge.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = filterStatus === 'Todos' || challenge.status === filterStatus;
-    const matchesArea = filterArea === 'Todas' || challenge.area === filterArea;
     
-    return matchesSearch && matchesStatus && matchesArea;
+    return matchesSearch && matchesStatus;
   });
 
-  // Abrir modal para añadir nuevo reto
+  // Add new challenge - update to include location
   const handleAddNew = () => {
     setCurrentChallenge({
-      id: challenges.length + 1,
+      id: null, // Let Supabase generate the ID
       title: '',
       description: '',
-      area: 'Centro',
+      points: 50,
       difficulty: 'Fácil',
       duration: '1 hora',
       status: 'Activo',
       completions: 0,
       abandonment: 0,
-      category: 'Cultural'
+      category: challengeTypes.length > 0 ? challengeTypes[0].type : '',
+      coverUrl: '',
+      repeatable: false,
+      location: null, // Initialize location as null
+      expiration_date: new Date(Date.now() + 30*24*60*60*1000).toISOString() // 30 days from now
     });
     setShowModal(true);
   };
@@ -99,25 +161,75 @@ const ChallengesContent = () => {
     setShowModal(true);
   };
 
-  // Eliminar reto
-  const handleDelete = (id) => {
-    if (window.confirm('¿Estás seguro de que deseas eliminar este reto?')) {
-      setChallenges(challenges.filter(challenge => challenge.id !== id));
-    }
-  };
+  // Save changes - update to include location
+  const handleSave = async () => {
+    const challengeData = {
+      name: currentChallenge.title,
+      description: currentChallenge.description,
+      reward: currentChallenge.points,
+      priority: calculatePriority(currentChallenge.difficulty),
+      active: currentChallenge.status === 'Activo',
+      type: challengeTypes.find(t => t.type === currentChallenge.category)?.id,
+      cover_url: currentChallenge.coverUrl || 'https://placeholder.com/150',
+      repeatable: currentChallenge.repeatable,
+      cooldown_time: parseInt(currentChallenge.duration) || null,
+      expiration_date: currentChallenge.expiration_date,
+      location: currentChallenge.location
+    };
 
-  // Guardar cambios (nuevo reto o edición)
-  const handleSave = () => {
-    if (challenges.some(c => c.id === currentChallenge.id)) {
-      // Actualizar reto existente
+    if (currentChallenge.id) {
+      // Update existing challenge
+      const { error } = await supabase
+        .from('Challenge')
+        .update(challengeData)
+        .eq('id', currentChallenge.id);
+      
+      if (error) {
+        console.error('Error updating challenge:', error);
+        return;
+      }
+
       setChallenges(challenges.map(c => 
-        c.id === currentChallenge.id ? currentChallenge : c
+        c.id === currentChallenge.id ? {...c, ...currentChallenge} : c
       ));
     } else {
-      // Añadir nuevo reto
-      setChallenges([...challenges, currentChallenge]);
+      // Add new challenge
+      const { data, error } = await supabase
+        .from('Challenge')
+        .insert(challengeData)
+        .select();
+      
+      if (error) {
+        console.error('Error adding challenge:', error);
+        return;
+      }
+
+      const newChallenge = {
+        ...currentChallenge,
+        id: data[0].id
+      };
+      
+      setChallenges([...challenges, newChallenge]);
     }
+    
     setShowModal(false);
+  };
+
+  // Delete challenge
+  const handleDelete = async (id) => {
+    if (window.confirm('¿Estás seguro de que deseas eliminar este reto?')) {
+      const { error } = await supabase
+        .from('Challenge')
+        .delete()
+        .eq('id', id);
+      
+      if (error) {
+        console.error('Error deleting challenge:', error);
+        return;
+      }
+      
+      setChallenges(challenges.filter(challenge => challenge.id !== id));
+    }
   };
 
   return (
@@ -161,31 +273,20 @@ const ChallengesContent = () => {
             </select>
           </div>
         </div>
-
-        <div className="relative min-w-40">
-          <div className="flex items-center gap-2 px-3 py-2 bg-white rounded-lg border cursor-pointer">
-            <MapPin size={18} className="text-gray-400" />
-            <select 
-              className="border-none outline-none w-full bg-transparent cursor-pointer"
-              value={filterArea}
-              onChange={(e) => setFilterArea(e.target.value)}
-            >
-              {areas.map(area => (
-                <option key={area} value={area}>{area}</option>
-              ))}
-            </select>
-          </div>
-        </div>
       </div>
 
       {/* Challenges List */}
       <div className="flex-grow overflow-auto bg-white rounded-lg">
-        {filteredChallenges.length > 0 ? (
+        {loading ? (
+          <div className="flex items-center justify-center h-full">
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+          </div>
+        ) : filteredChallenges.length > 0 ? (
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reto</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Zona</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Puntos</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dificultad</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duración</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
@@ -202,7 +303,7 @@ const ChallengesContent = () => {
                       <div className="text-sm text-gray-500">{challenge.category}</div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{challenge.area}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">{challenge.points} trotamundis</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{challenge.difficulty}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{challenge.duration}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -243,132 +344,196 @@ const ChallengesContent = () => {
         )}
       </div>
 
-      {/* Modal for Add/Edit Challenge */}
-    {showModal && (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-lg w-full max-w-2xl max-h-screen overflow-y-auto p-6">
-        <h2 className="text-xl font-bold mb-4">
-            {currentChallenge.completions === 0 ? 'Añadir Nuevo Reto' : 'Editar Reto'}
-        </h2>
-        
-        <div className="space-y-4">
-            <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Título</label>
-            <input
-                type="text"
-                className="w-full px-3 py-2 border rounded-lg"
-                value={currentChallenge.title}
-                onChange={(e) => setCurrentChallenge({...currentChallenge, title: e.target.value})}
-            />
-            </div>
-
-            <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
-            <textarea
-                className="w-full px-3 py-2 border rounded-lg"
-                rows="3"
-                value={currentChallenge.description}
-                onChange={(e) => setCurrentChallenge({...currentChallenge, description: e.target.value})}
-            ></textarea>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-            <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Duración</label>
-                <div className="flex items-center border rounded-lg px-3 py-2">
-                <Clock size={18} className="text-gray-400 mr-2" />
+      {/* Modal for Add/Edit Challenge - Simplified to match other components */}
+      {showModal && (
+        <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg w-full max-w-2xl max-h-screen overflow-y-auto p-6">
+            <h2 className="text-xl font-bold mb-4">
+              {currentChallenge.id ? 'Editar Reto' : 'Añadir Nuevo Reto'}
+            </h2>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Título</label>
                 <input
+                  type="text"
+                  className="w-full px-3 py-2 border rounded-lg"
+                  placeholder="Ingresa un título atractivo"
+                  value={currentChallenge.title}
+                  onChange={(e) => setCurrentChallenge({...currentChallenge, title: e.target.value})}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
+                <textarea
+                  className="w-full px-3 py-2 border rounded-lg"
+                  rows="3"
+                  placeholder="Describe el reto de manera clara y motivadora"
+                  value={currentChallenge.description}
+                  onChange={(e) => setCurrentChallenge({...currentChallenge, description: e.target.value})}
+                ></textarea>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Puntos</label>
+                  <div className="flex items-center border rounded-lg px-3 py-2">
+                    <Award size={18} className="text-gray-400 mr-2" />
+                    <input
+                      type="number"
+                      className="w-full outline-none"
+                      min="0"
+                      step="5"
+                      placeholder="50"
+                      value={currentChallenge.points}
+                      onChange={(e) => setCurrentChallenge({...currentChallenge, points: parseInt(e.target.value)})}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Duración</label>
+                  <div className="flex items-center border rounded-lg px-3 py-2">
+                    <Clock size={18} className="text-gray-400 mr-2" />
+                    <input
+                      type="text"
+                      className="w-full outline-none"
+                      placeholder="2 horas"
+                      value={currentChallenge.duration}
+                      onChange={(e) => setCurrentChallenge({...currentChallenge, duration: e.target.value})}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+                  <select
+                    className="w-full px-3 py-2 border rounded-lg"
+                    value={currentChallenge.status}
+                    onChange={(e) => setCurrentChallenge({...currentChallenge, status: e.target.value})}
+                  >
+                    <option value="Activo">Activo</option>
+                    <option value="Inactivo">Inactivo</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Dificultad</label>
+                  <select
+                    className="w-full px-3 py-2 border rounded-lg"
+                    value={currentChallenge.difficulty}
+                    onChange={(e) => setCurrentChallenge({...currentChallenge, difficulty: e.target.value})}
+                  >
+                    {difficulties.map(difficulty => (
+                      <option key={difficulty} value={difficulty}>{difficulty}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
+                <select
+                  className="w-full px-3 py-2 border rounded-lg"
+                  value={currentChallenge.category}
+                  onChange={(e) => setCurrentChallenge({...currentChallenge, category: e.target.value})}
+                >
+                  {categories.map(category => (
+                    <option key={category} value={category}>{category}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Ubicación</label>
+                <select
+                  className="w-full px-3 py-2 border rounded-lg"
+                  value={currentChallenge.location || ''}
+                  onChange={(e) => setCurrentChallenge({
+                    ...currentChallenge, 
+                    location: e.target.value ? parseInt(e.target.value) : null
+                  })}
+                >
+                  <option value="">Sin ubicación específica</option>
+                  {locations.map(location => (
+                    <option key={location.id} value={location.id}>{location.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">URL de Imagen</label>
+                <div className="flex items-center border rounded-lg px-3 py-2">
+                  <Image size={18} className="text-gray-400 mr-2" />
+                  <input
                     type="text"
                     className="w-full outline-none"
-                    placeholder="Ej: 2 horas"
-                    value={currentChallenge.duration}
-                    onChange={(e) => setCurrentChallenge({...currentChallenge, duration: e.target.value})}
-                />
+                    placeholder="https://example.com/image.jpg"
+                    value={currentChallenge.coverUrl || ''}
+                    onChange={(e) => setCurrentChallenge({...currentChallenge, coverUrl: e.target.value})}
+                  />
                 </div>
-            </div>
+              </div>
 
-            <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Estado</label>
-                <select
-                className="w-full px-3 py-2 border rounded-lg"
-                value={currentChallenge.status}
-                onChange={(e) => setCurrentChallenge({...currentChallenge, status: e.target.value})}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Fecha de expiración</label>
+                <div className="flex items-center border rounded-lg px-3 py-2">
+                  <Calendar size={18} className="text-gray-400 mr-2" />
+                  <input
+                    type="date"
+                    className="w-full outline-none"
+                    value={currentChallenge.expiration_date ? new Date(currentChallenge.expiration_date).toISOString().split('T')[0] : ''}
+                    onChange={(e) => setCurrentChallenge({...currentChallenge, expiration_date: new Date(e.target.value).toISOString()})}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Imagen</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="w-full px-3 py-2 border rounded-lg"
+                  onChange={(e) => setCurrentChallenge({...currentChallenge, image: e.target.files[0]})}
+                />
+              </div>
+
+              <div className="flex items-center mt-3">
+                <input
+                  type="checkbox"
+                  id="repeatable"
+                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  checked={currentChallenge.repeatable || false}
+                  onChange={(e) => setCurrentChallenge({...currentChallenge, repeatable: e.target.checked})}
+                />
+                <label htmlFor="repeatable" className="ml-2 text-sm font-medium text-gray-700">
+                  Reto repetible
+                </label>
+              </div>
+
+              <div className="flex justify-end space-x-2 pt-4">
+                <button
+                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg"
+                  onClick={() => setShowModal(false)}
                 >
-                <option value="Activo">Activo</option>
-                <option value="Inactivo">Inactivo</option>
-                </select>
+                  Cancelar
+                </button>
+                <button
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg"
+                  onClick={handleSave}
+                >
+                  Guardar
+                </button>
+              </div>
             </div>
-            </div>
-
-            <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
-            <select
-                className="w-full px-3 py-2 border rounded-lg"
-                value={currentChallenge.category}
-                onChange={(e) => setCurrentChallenge({...currentChallenge, category: e.target.value})}
-            >
-                {categories.map(category => (
-                <option key={category} value={category}>{category}</option>
-                ))}
-            </select>
-            </div>
-
-            <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Zona</label>
-            <select
-                className="w-full px-3 py-2 border rounded-lg"
-                value={currentChallenge.area}
-                onChange={(e) => setCurrentChallenge({...currentChallenge, area: e.target.value})}
-            >
-                {areas.slice(1).map(area => (
-                <option key={area} value={area}>{area}</option>
-                ))}
-            </select>
-            </div>
-
-            <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Dificultad</label>
-            <select
-                className="w-full px-3 py-2 border rounded-lg"
-                value={currentChallenge.difficulty}
-                onChange={(e) => setCurrentChallenge({...currentChallenge, difficulty: e.target.value})}
-            >
-                {difficulties.map(difficulty => (
-                <option key={difficulty} value={difficulty}>{difficulty}</option>
-                ))}
-            </select>
-            </div>
-
-            <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Imagen</label>
-            <input
-                type="file"
-                accept="image/*"
-                className="w-full px-3 py-2 border rounded-lg"
-                onChange={(e) => setCurrentChallenge({...currentChallenge, image: e.target.files[0]})}
-            />
-            </div>
-
-            <div className="flex justify-end space-x-2">
-            <button
-                className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg"
-                onClick={() => setShowModal(false)}
-            >
-                Cancelar
-            </button>
-            <button
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg"
-                onClick={handleSave}
-            >
-                Guardar
-            </button>
-            </div>
+          </div>
         </div>
-        </div>
+      )}
     </div>
-    )}
-    </div>
+  );
+};
 
-    )};
-
-export default ChallengesContent;   
+export default ChallengesContent;

@@ -3,7 +3,9 @@ import { Bell, Calendar, ChevronDown, LayoutDashboard, Map, Award, Building, Use
 import StatCard from './StatCard';
 import PopularChallengesChart from './ChallengeBarChart';
 import MapboxHeatmap from './MapBoxHeatMap';
-const DashboardContent = () => {
+import HotelSlopesChart from './IndiceVerde';
+
+const DashboardContent = () => {removeEventListener
     return (
       <div className="p-6 space-y-6">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -61,6 +63,12 @@ const DashboardContent = () => {
             <h3 className="font-semibold mb-4">Mapa de calor de actividad</h3>
             <div className="h-96 flex items-center justify-center">
               <MapboxHeatmap />
+            </div>
+          </div>
+          <div className="bg-white rounded-xl p-6 shadow-sm">
+            <h3 className="font-semibold mb-4">Variacion de contaminación de los hoteles</h3>
+            <div className="h-dvh flex items-center justify-center">
+              <HotelSlopesChart/>
             </div>
           </div>
         </div>

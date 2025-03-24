@@ -16,7 +16,6 @@ const AdminDashboard = () => {
         case 'challenges': return 'Gestión de Retos';
         case 'locations': return 'Locales Participantes';
         case 'rewards': return 'Gestión de Premios';
-        case 'maps': return 'Mapas de Actividad';
         default: return 'Dashboard';
       }
     };

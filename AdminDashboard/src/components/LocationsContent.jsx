@@ -2,11 +2,32 @@ import { useState, useEffect, useRef } from 'react';
 import { Plus, Search, Filter, Edit, Trash2, MapPin, Phone, Clock, ListFilter, Map as MapIcon, Check, X, Bell } from 'lucide-react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import { supabase } from '../hooks/supabaseClient';
 
 // Set your Mapbox token
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 
 const LocationsContent = () => {
+  // Helper function to convert between numeric status codes and display text
+  const getStatusText = (statusCode) => {
+    switch(statusCode) {
+      case 1: return 'Solicitado';
+      case 2: return 'Activo';
+      case 3: return 'Inactivo';
+      default: return 'Desconocido';
+    }
+  };
+  
+  const getStatusCode = (statusText) => {
+    switch(statusText) {
+      case 'Solicitado': return 1;
+      case 'Activo': return 2;
+      case 'Inactivo': return 3;
+      case 'Todos': return 'Todos';
+      default: return null;
+    }
+  };
+
   // Existing states 
   const [locations, setLocations] = useState([]);
   const [filteredLocations, setFilteredLocations] = useState([]);
@@ -22,7 +43,7 @@ const LocationsContent = () => {
     phone: '',
     email: '',
     schedule: '',
-    status: 'Activo',
+    status: 2, // Default to "Active" (2) instead of "Activo"
     description: '',
     image: null
   });
@@ -40,23 +61,95 @@ const LocationsContent = () => {
   const [viewMode, setViewMode] = useState('table'); // 'table' or 'map'
   const [selectedMarker, setSelectedMarker] = useState(null);
 
-  // Mock data including petitions
+  // Fetch locations from Supabase
   useEffect(() => {
-    const mockLocations = [
-      { id: 1, name: 'Café Central', address: 'Calle Mayor 23', area: 'Centro', phone: '+34 911 234 567', email: 'info@cafecentral.com', schedule: 'L-V: 8:00-20:00, S-D: 9:00-21:00', status: 'Activo', visits: 450, longitude: -3.701, latitude: 40.418 },
-      { id: 2, name: 'Librería Moderna', address: 'Av. de la Constitución 45', area: 'Norte', phone: '+34 912 345 678', email: 'contacto@libreriamoderna.es', schedule: 'L-V: 10:00-20:00, S: 10:00-14:00', status: 'Activo', visits: 325, longitude: -3.695, latitude: 40.425 },
-      { id: 3, name: 'Restaurante El Mirador', address: 'Plaza España 12', area: 'Sur', phone: '+34 913 456 789', email: 'reservas@elmirador.com', schedule: 'L-D: 13:00-23:30', status: 'Inactivo', visits: 780, longitude: -3.712, latitude: 40.410 },
-    ];
+    const fetchLocations = async () => {
+      const { data, error } = await supabase
+        .from('Location')
+        .select(`
+          id, 
+          name, 
+          description, 
+          image_url,
+          point,
+          location_type,
+          sustainability_score,
+          status,
+          address,
+          email,
+          phone_number,
+          opening_hours,
+          LocationType(name)
+        `)
+        .not('status', 'eq', 1); // Exclude requested locations
+      
+      if (error) {
+        console.error('Error fetching locations:', error);
+        return;
+      }
+      
+      // Transform data to match component structure
+      const formattedLocations = data.map(loc => ({
+        id: loc.id,
+        name: loc.name,
+        address: loc.address || '',
+        area: loc.LocationType?.name || 'Sin categoría', // Using LocationType as "area"
+        phone: loc.phone_number || '',
+        email: loc.email || '',
+        schedule: loc.opening_hours || '',
+        status: loc.status, // Keep as numeric code
+        statusText: getStatusText(loc.status), // Add display text
+        description: loc.description || '',
+        image: loc.image_url || null,
+        visits: loc.sustainability_score || 0, // Using sustainability_score as "visits" 
+        // Extract coordinates from PostGIS point type
+        longitude: loc.geography ? JSON.parse(loc.geography).coordinates[0] : -3.70379,
+        latitude: loc.geography ? JSON.parse(loc.geography).coordinates[1] : 40.41678
+      }));
+      
+      setLocations(formattedLocations);
+      setFilteredLocations(formattedLocations);
+    };
     
-    const mockPetitions = [
-      { id: 101, name: 'Cafetería La Esquina', address: 'Calle Alcalá 123', area: 'Este', phone: '+34 914 567 890', email: 'info@laesquina.com', schedule: 'L-D: 7:00-22:00', description: 'Cafetería tradicional con amplia variedad de desayunos y meriendas', longitude: -3.698, latitude: 40.422, requestDate: '2024-03-12' },
-      { id: 102, name: 'Tienda de Ropa Vintage', address: 'Calle Gran Vía 45', area: 'Centro', phone: '+34 915 678 901', email: 'contacto@vintageshop.es', schedule: 'L-S: 10:00-20:00', description: 'Tienda especializada en ropa y accesorios vintage de los años 70 y 80', longitude: -3.704, latitude: 40.420, requestDate: '2024-03-14' },
-    ];
+    fetchLocations();
+  }, []);
+
+  // Fetch pending location requests
+  useEffect(() => {
+    const fetchPetitions = async () => {
+      const { data, error } = await supabase
+        .from('Location')
+        .select('*')
+        .eq('status', 1) // Status 1 means "requested"
+        .not('solicited_at', 'is', null);
+      
+      if (error) {
+        console.error('Error fetching location petitions:', error);
+        return;
+      }
+      
+      // Transform petition data
+      const formattedPetitions = data.map(loc => ({
+        id: loc.id,
+        name: loc.name,
+        address: loc.address || '',
+        area: loc.area || 'Centro',
+        phone: loc.phone_number || '',
+        email: loc.email || '',
+        schedule: loc.opening_hours || '',
+        description: loc.description || '',
+        location_type: loc.location_type,
+        status: loc.status,
+        longitude: loc.geography ? JSON.parse(loc.geography).coordinates[0] : -3.70379,
+        latitude: loc.geography ? JSON.parse(loc.geography).coordinates[1] : 40.41678,
+        requestDate: loc.solicited_at ? new Date(loc.solicited_at).toLocaleDateString() : 'Desconocido'
+      }));
+      
+      setPetitions(formattedPetitions);
+      setFilteredPetitions(formattedPetitions);
+    };
     
-    setLocations(mockLocations);
-    setFilteredLocations(mockLocations);
-    setPetitions(mockPetitions);
-    setFilteredPetitions(mockPetitions);
+    fetchPetitions();
   }, []);
 
   // Initialize map when the component mounts and viewMode changes to 'map'
@@ -121,7 +214,7 @@ const LocationsContent = () => {
       el.style.width = '32px';
       el.style.height = '32px';
       el.style.borderRadius = '50%';
-      el.style.backgroundColor = location.status === 'Activo' ? '#3b82f6' : '#6b7280';
+      el.style.backgroundColor = location.status === 2 ? '#3b82f6' : '#6b7280';
       el.style.display = 'flex';
       el.style.alignItems = 'center';
       el.style.justifyContent = 'center';
@@ -170,9 +263,12 @@ const LocationsContent = () => {
 
   // Rest of your existing code (filter, add, edit, delete handlers)
   
-  // Existing code for areas and statuses
-  const areas = ['Todas las zonas', 'Centro', 'Norte', 'Sur', 'Este', 'Oeste'];
-  const statuses = ['Todos', 'Activo', 'Inactivo'];
+  // Replace text status with objects that contain both code and text
+  const statuses = [
+    { code: 'Todos', text: 'Todos' },
+    { code: 2, text: 'Activo' },
+    { code: 3, text: 'Inactivo' }
+  ];
 
   // Existing filter effect
   useEffect(() => {
@@ -190,7 +286,9 @@ const LocationsContent = () => {
     }
     
     if (filterStatus !== 'Todos') {
-      filtered = filtered.filter(location => location.status === filterStatus);
+      // Convert filterStatus to code if needed
+      const statusCode = typeof filterStatus === 'number' ? filterStatus : getStatusCode(filterStatus);
+      filtered = filtered.filter(location => location.status === statusCode);
     }
     
     setFilteredLocations(filtered);
@@ -206,11 +304,12 @@ const LocationsContent = () => {
       phone: '',
       email: '',
       schedule: '',
-      status: 'Activo',
+      status: 2, // Active status (2)
       description: '',
       image: null,
       longitude: -3.70379,
-      latitude: 40.41678
+      latitude: 40.41678,
+      visits: 0
     });
     setShowModal(true);
   };
@@ -220,38 +319,102 @@ const LocationsContent = () => {
     setShowModal(true);
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm('¿Estás seguro de que quieres eliminar este local?')) {
+      const { error } = await supabase
+        .from('Location')
+        .delete()
+        .eq('id', id);
+      
+      if (error) {
+        console.error('Error deleting location:', error);
+        return;
+      }
+      
       setLocations(locations.filter(location => location.id !== id));
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    // Prepare location data for Supabase
+    const locationData = {
+      name: currentLocation.name,
+      address: currentLocation.address,
+      description: currentLocation.description,
+      email: currentLocation.email,
+      phone_number: currentLocation.phone,
+      opening_hours: currentLocation.schedule,
+      status: currentLocation.status,
+      // Create PostGIS point from longitude/latitude
+      point: `POINT(${currentLocation.longitude} ${currentLocation.latitude})`,
+      // Assuming sustainability_score represents visits in this UI
+      sustainability_score: currentLocation.visits || 0
+    };
+
     if (currentLocation.id) {
       // Update existing location
-      setLocations(locations.map(location => 
-        location.id === currentLocation.id ? currentLocation : location
+      const { error } = await supabase
+        .from('Location')
+        .update(locationData)
+        .eq('id', currentLocation.id);
+      
+      if (error) {
+        console.error('Error updating location:', error);
+        return;
+      }
+      
+      // Update local state
+      setLocations(locations.map(loc => 
+        loc.id === currentLocation.id ? {...loc, ...currentLocation} : loc
       ));
     } else {
       // Add new location
-      setLocations([...locations, {
+      const { data, error } = await supabase
+        .from('Location')
+        .insert(locationData)
+        .select();
+      
+      if (error) {
+        console.error('Error adding location:', error);
+        return;
+      }
+      
+      // Update with the returned data (to get the new ID)
+      const newLocation = {
         ...currentLocation,
-        id: Date.now(),
-        visits: 0
-      }]);
+        id: data[0].id
+      };
+      
+      setLocations([...locations, newLocation]);
     }
+    
     setShowModal(false);
   };
 
   // New handlers for petitions
-  const handleAcceptPetition = (petition) => {
-    // Add the accepted petition to locations
+  const handleAcceptPetition = async (petition) => {
+    // Update the location status to Active (2)
+    const { error } = await supabase
+      .from('Location')
+      .update({ 
+        status: 2, // Active status (2)
+        solicited_at: null // Clear the solicited flag
+      })
+      .eq('id', petition.id);
+    
+    if (error) {
+      console.error('Error accepting location petition:', error);
+      return;
+    }
+    
+    // Add to active locations
     const newLocation = {
       ...petition,
-      id: Date.now(),
-      status: 'Activo',
+      status: 2, // Active status (2)
+      statusText: 'Activo',
       visits: 0
     };
+    
     setLocations([...locations, newLocation]);
     
     // Remove from petitions
@@ -263,7 +426,18 @@ const LocationsContent = () => {
     }
   };
 
-  const handleRejectPetition = (petitionId) => {
+  const handleRejectPetition = async (petitionId) => {
+    // Delete the rejected location
+    const { error } = await supabase
+      .from('Location')
+      .delete()
+      .eq('id', petitionId);
+    
+    if (error) {
+      console.error('Error rejecting location petition:', error);
+      return;
+    }
+    
     // Remove from petitions
     setPetitions(petitions.filter(p => p.id !== petitionId));
     
@@ -276,6 +450,29 @@ const LocationsContent = () => {
   const handleViewPetitionDetails = (petition) => {
     setSelectedPetition(petition);
   };
+
+  const [locationTypes, setLocationTypes] = useState([]);
+
+  // Fetch location types
+  useEffect(() => {
+    const fetchLocationTypes = async () => {
+      const { data, error } = await supabase
+        .from('LocationType')
+        .select('id, name');
+      
+      if (error) {
+        console.error('Error fetching location types:', error);
+        return;
+      }
+      
+      setLocationTypes(data || []);
+    };
+    
+    fetchLocationTypes();
+  }, []);
+
+  // Then replace the hardcoded areas array
+  const areas = ['Todas las zonas', ...locationTypes.map(type => type.name)];
 
   return (
     <div className="flex flex-col h-full p-6">
@@ -466,10 +663,10 @@ const LocationsContent = () => {
             <select 
               className="border-none outline-none w-full bg-transparent cursor-pointer"
               value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
+              onChange={(e) => setFilterStatus(e.target.value === 'Todos' ? 'Todos' : Number(e.target.value))}
             >
               {statuses.map(status => (
-                <option key={status} value={status}>{status}</option>
+                <option key={status.code} value={status.code}>{status.text}</option>
               ))}
             </select>
           </div>
@@ -527,9 +724,9 @@ const LocationsContent = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        location.status === 'Activo' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                        location.status === 2 ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
                       }`}>
-                        {location.status}
+                        {getStatusText(location.status)}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -649,10 +846,10 @@ const LocationsContent = () => {
                   <select
                     className="w-full px-3 py-2 border rounded-lg"
                     value={currentLocation.status}
-                    onChange={(e) => setCurrentLocation({...currentLocation, status: e.target.value})}
+                    onChange={(e) => setCurrentLocation({...currentLocation, status: Number(e.target.value)})}
                   >
-                    <option value="Activo">Activo</option>
-                    <option value="Inactivo">Inactivo</option>
+                    <option value={2}>Activo</option>
+                    <option value={3}>Inactivo</option>
                   </select>
                 </div>
               </div>
@@ -700,6 +897,24 @@ const LocationsContent = () => {
                   className="w-full px-3 py-2 border rounded-lg"
                   onChange={(e) => setCurrentLocation({...currentLocation, image: e.target.files[0]})}
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Tipo de Local</label>
+                <select
+                  className="w-full px-3 py-2 border rounded-lg"
+                  value={currentLocation.location_type || ''}
+                  onChange={(e) => setCurrentLocation({
+                    ...currentLocation, 
+                    location_type: e.target.value ? parseInt(e.target.value) : null,
+                    area: locationTypes.find(t => t.id === parseInt(e.target.value))?.name || 'Sin categoría'
+                  })}
+                >
+                  <option value="">Seleccionar tipo</option>
+                  {locationTypes.map(type => (
+                    <option key={type.id} value={type.id}>{type.name}</option>
+                  ))}
+                </select>
               </div>
 
               <div className="flex justify-end space-x-2">

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { MapPin, Clock, Phone, Mail, Camera, ArrowRight, ArrowLeft } from 'lucide-react';
-import axios from 'axios';
+import { MapPin, Clock, Phone, Mail, Camera, ArrowRight, ArrowLeft, Upload } from 'lucide-react';
+import { supabase } from '../hooks/supabaseClient';
 
 const UserDashboard = () => {
   const [formData, setFormData] = useState({
@@ -14,7 +14,8 @@ const UserDashboard = () => {
     phone_number: '',
     opening_hours: '',
     locationType: 1,
-    capabilities: []
+    capabilities: [],
+    sustainability_score: 50 // Default value
   });
   // Ensure these are initialized as arrays to prevent the map error
   const [locationTypes, setLocationTypes] = useState([]);
@@ -23,32 +24,32 @@ const UserDashboard = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [error, setError] = useState(null);
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
-  // Fetch location types and capabilities from API
+  // Fetch location types and capabilities from Supabase
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Replace with your actual API endpoints
-        const [typesResponse, capabilitiesResponse] = await Promise.all([
-          axios.get('/api/location-types'),
-          axios.get('/api/capabilities')
-        ]);
-        
-        // Make sure we're handling the response correctly
-        // Check if response data is an array or if it has a data property that's an array
-        const typesData = Array.isArray(typesResponse.data) 
-          ? typesResponse.data 
-          : (typesResponse.data?.data || []);
+        // Fetch location types from Supabase
+        const { data: locationTypesData, error: locationTypesError } = await supabase
+          .from('LocationType')
+          .select('*');
           
-        const capsData = Array.isArray(capabilitiesResponse.data) 
-          ? capabilitiesResponse.data 
-          : (capabilitiesResponse.data?.data || []);
+        if (locationTypesError) throw locationTypesError;
+        setLocationTypes(locationTypesData || []);
         
-        setLocationTypes(typesData);
-        setCapabilities(capsData);
+        // Fetch capabilities from Supabase
+        const { data: capabilitiesData, error: capabilitiesError } = await supabase
+          .from('LocationCapability')
+          .select('*');
+          
+        if (capabilitiesError) throw capabilitiesError;
+        setCapabilities(capabilitiesData || []);
       } catch (error) {
-        console.error('Error fetching form data:', error);
-        // Fallback to sample data if API fails
+        console.error('Error fetching data:', error);
+        // Fallback to static data if the fetch fails
         setLocationTypes([
           { id: 1, name: 'Restaurant', description: 'Dining establishments' },
           { id: 2, name: 'Hotel', description: 'Accommodations' },
@@ -69,8 +70,6 @@ const UserDashboard = () => {
     
     fetchData();
   }, []);
-
-
 
   const handleInputChange = (field, value) => {
     setFormData({
@@ -93,35 +92,117 @@ const UserDashboard = () => {
     }
   };
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    setImageFile(file);
+    
+    // Create a preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreview(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const uploadImageToSupabase = async () => {
+    if (!imageFile) return null;
+    
+    try {
+      setUploadProgress(0);
+      
+      // Create a unique file name
+      const fileExt = imageFile.name.split('.').pop();
+      const fileName = `${Date.now()}.${fileExt}`;
+      const filePath = `location-images/${fileName}`;
+      
+      // Upload the file to Supabase Storage
+      const { data, error } = await supabase.storage
+        .from('locations')
+        .upload(filePath, imageFile, {
+          cacheControl: '3600',
+          upsert: false,
+          onUploadProgress: (progress) => {
+            setUploadProgress(Math.round((progress.loaded / progress.total) * 100));
+          }
+        });
+      
+      if (error) throw error;
+      
+      // Get the public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('locations')
+        .getPublicUrl(filePath);
+      
+      return publicUrl;
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      throw error;
+    }
+  };
+
   const handleSubmit = async () => {
     setIsSubmitting(true);
     setError(null);
     
     try {
-      // Prepare the data according to your database schema
+      // Upload image if one is selected
+      let imageUrl = formData.image_url;
+      if (imageFile) {
+        imageUrl = await uploadImageToSupabase();
+      }
+      
+      // Prepare location data
       const locationData = {
         name: formData.name,
         description: formData.description,
-        image_url: formData.image_url,
+        image_url: imageUrl,
         address: formData.address,
-        latitude: parseFloat(formData.latitude) || null,
-        longitude: parseFloat(formData.longitude) || null,
+        // Create PostGIS point if both latitude and longitude are provided
+        point: formData.latitude && formData.longitude ? 
+          `POINT(${formData.longitude} ${formData.latitude})` : null,
         email: formData.email,
         phone_number: formData.phone_number,
         opening_hours: formData.opening_hours,
-        status: 'pending', // Initial status for admin review
+        status: '1', // As requested in the requirements
         solicited_at: new Date().toISOString(),
-        locationType: formData.locationType,
-        capabilities: formData.capabilities
+        location_type: formData.locationType,
+        sustainability_score: formData.sustainability_score
       };
       
-      // Send the data to your API
-      const response = await axios.post('/api/locations', locationData);
+      // Insert location into Supabase and get the ID
+      const { data: locationInsertData, error: locationError } = await supabase
+        .from('Location')
+        .insert(locationData)
+        .select('id')
+        .single();
       
-      console.log('Location submitted successfully:', response.data);
+      if (locationError) throw locationError;
+      
+      const locationId = locationInsertData.id;
+      
+      // If we have capabilities, insert them into the junction table
+      if (formData.capabilities.length > 0) {
+        // Create an array of objects for the capabilities
+        const capabilityLinks = formData.capabilities.map(capabilityId => ({
+          location_id: locationId,
+          capability_id: capabilityId
+        }));
+        
+        // Insert all capabilities
+        const { error: capabilitiesError } = await supabase
+          .from('LocationCapabilities')
+          .insert(capabilityLinks);
+        
+        if (capabilitiesError) throw capabilitiesError;
+      }
+      
+      // Success!
       setSubmitSuccess(true);
+      setIsSubmitting(false);
       
-      // Reset form after submission
+      // Reset form data for new submission
       setFormData({
         name: '',
         description: '',
@@ -132,14 +213,20 @@ const UserDashboard = () => {
         email: '',
         phone_number: '',
         opening_hours: '',
-        locationType: '',
-        capabilities: []
+        locationType: 1,
+        capabilities: [],
+        sustainability_score: 50
       });
+      setImageFile(null);
+      setImagePreview(null);
+      setUploadProgress(0);
+      
+      // Reset to step 1
       setStep(1);
+      
     } catch (error) {
-      console.error('Error submitting location:', error);
-      setError(error.response?.data?.message || 'Failed to submit location. Please try again.');
-    } finally {
+      console.error('Error submitting form:', error);
+      setError('There was an error submitting your location. Please try again.');
       setIsSubmitting(false);
     }
   };
@@ -197,23 +284,49 @@ const UserDashboard = () => {
       
       <div className="mb-4">
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Image URL
+          Image
         </label>
-        <div className="flex">
+        <div className="mb-2">
           <input
-            type="text"
-            className="flex-1 p-3 border border-gray-300 rounded-l-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-            value={formData.image_url}
-            onChange={(e) => handleInputChange('image_url', e.target.value)}
-            placeholder="https://example.com/image.jpg"
+            type="file"
+            id="location-image"
+            accept="image/*"
+            className="hidden"
+            onChange={handleImageChange}
           />
-          <button 
-            type="button"
-            className="bg-indigo-50 text-indigo-700 px-4 py-2 border border-indigo-200 rounded-r-md flex items-center"
+          <label 
+            htmlFor="location-image"
+            className="flex items-center justify-center w-full border-2 border-dashed border-gray-300 rounded-md py-8 px-4 cursor-pointer hover:bg-gray-50"
           >
-            <Camera size={16} className="mr-2" />
-            Upload
-          </button>
+            {imagePreview ? (
+              <div className="text-center">
+                <img src={imagePreview} alt="Preview" className="max-h-40 max-w-full mx-auto mb-2" />
+                <p className="text-sm text-gray-500">Click to change image</p>
+              </div>
+            ) : (
+              <div className="text-center">
+                <Camera size={36} className="mx-auto text-gray-400 mb-2" />
+                <p className="text-sm text-gray-600 font-medium">Upload an image</p>
+                <p className="text-xs text-gray-500">JPG, PNG or GIF, max 5MB</p>
+              </div>
+            )}
+          </label>
+        </div>
+        
+        <div className="flex items-center">
+          <div className="flex-1">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Or provide an image URL
+            </label>
+            <input
+              type="text"
+              className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              value={formData.image_url}
+              onChange={(e) => handleInputChange('image_url', e.target.value)}
+              placeholder="https://example.com/image.jpg"
+              disabled={imageFile !== null}
+            />
+          </div>
         </div>
       </div>
 
@@ -397,6 +510,32 @@ const UserDashboard = () => {
   const renderSustainabilityStep = () => (
     <div className="bg-white rounded-lg shadow-sm p-6 mb-4">
       <h2 className="text-xl font-bold mb-4 text-gray-800">Sustainability & Capabilities</h2>
+      
+      <div className="mb-6">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Sustainability Score <span className="text-red-500">*</span>
+        </label>
+        <div className="flex items-center">
+          <span className="text-sm text-gray-500">Low</span>
+          <input
+            type="range"
+            min="0"
+            max="100"
+            step="5"
+            className="mx-4 flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+            value={formData.sustainability_score}
+            onChange={(e) => handleInputChange('sustainability_score', parseInt(e.target.value))}
+          />
+          <span className="text-sm text-gray-500">High</span>
+          <span className="ml-4 w-10 text-center font-medium text-indigo-700">{formData.sustainability_score}</span>
+        </div>
+        <div className="mt-2 mb-4 bg-gray-100 rounded-lg p-3">
+          <p className="text-sm text-gray-600">
+            Rate your location's overall sustainability practices. Higher scores indicate stronger commitment to environmental initiatives.
+          </p>
+        </div>
+      </div>
+      
       <p className="text-sm text-gray-500 mb-4">Select all capabilities that apply to your location</p>
       
       <div className="flex flex-wrap gap-2 mb-6">
@@ -438,7 +577,11 @@ const UserDashboard = () => {
           onClick={handleSubmit}
           disabled={isSubmitting}
         >
-          {isSubmitting ? 'Submitting...' : 'Submit Location'}
+          {isSubmitting ? (
+            <>
+              {uploadProgress > 0 && imageFile ? `Uploading (${uploadProgress}%)...` : 'Submitting...'}
+            </>
+          ) : 'Submit Location'}
         </button>
       </div>
     </div>

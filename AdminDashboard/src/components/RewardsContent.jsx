@@ -1,78 +1,52 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, Edit, Trash2, Filter, Award, Calendar, Tag, Check, X, Gift } from 'lucide-react';
-
-// Sample challenges for linking rewards
-const sampleChallenges = [
-  { id: 1, title: 'Visita los 3 museos principales', category: 'Cultural' },
-  { id: 2, title: 'Ruta gastronómica local', category: 'Gastronomía' },
-  { id: 3, title: 'Descubre los monumentos históricos', category: 'Histórico' },
-  { id: 4, title: 'Tour fotográfico de street art', category: 'Arte' },
-];
-
-// Initial rewards data
-const initialRewards = [
-  {
-    id: 1,
-    name: 'Descuento 20% Café Central',
-    description: 'Descuento del 20% en consumiciones en Café Central',
-    challengeId: 2,
-    type: 'Descuento',
-    value: '20%',
-    expiryDays: 30,
-    status: 'Activo',
-    redemptions: 124,
-    image: null
-  },
-  {
-    id: 2,
-    name: 'Entrada gratuita al Museo de Arte',
-    description: 'Una entrada gratuita al Museo de Arte Contemporáneo',
-    challengeId: 1,
-    type: 'Gratuidad',
-    value: 'Entrada individual',
-    expiryDays: 60,
-    status: 'Activo',
-    redemptions: 87,
-    image: null
-  },
-  {
-    id: 3,
-    name: 'Puntos premium x2',
-    description: 'Duplica tus puntos en la siguiente visita a cualquier local participante',
-    challengeId: 4,
-    type: 'Puntos',
-    value: 'Puntos x2',
-    expiryDays: 15,
-    status: 'Inactivo',
-    redemptions: 45,
-    image: null
-  },
-  {
-    id: 4,
-    name: 'Menú degustación gratis',
-    description: 'Menú degustación gratuito para 2 personas en Restaurante El Mirador',
-    challengeId: 2,
-    type: 'Gratuidad',
-    value: 'Menú para 2',
-    expiryDays: 45,
-    status: 'Activo',
-    redemptions: 18,
-    image: null
-  }
-];
+import { Search, Plus, Edit, Trash2, Filter, Award, Check, X, Coins } from 'lucide-react';
+import { supabase } from '../hooks/supabaseClient';
 
 const RewardsContent = () => {
-  const [rewards, setRewards] = useState(initialRewards);
-  const [filteredRewards, setFilteredRewards] = useState(initialRewards);
+  const [rewards, setRewards] = useState([]);
+  const [filteredRewards, setFilteredRewards] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [currentReward, setCurrentReward] = useState(null);
   const [filterStatus, setFilterStatus] = useState('Todos');
-  const [filterType, setFilterType] = useState('Todos');
-  const [challenges, setChallenges] = useState(sampleChallenges);
+  const [loading, setLoading] = useState(true);
 
-  const rewardTypes = ['Todos', 'Descuento', 'Gratuidad', 'Puntos', 'Producto'];
   const statuses = ['Todos', 'Activo', 'Inactivo'];
+
+  // Fetch rewards from Supabase
+  useEffect(() => {
+    const fetchRewards = async () => {
+      setLoading(true);
+      
+      const { data, error } = await supabase
+        .from('Prize')
+        .select('*');
+      
+      if (error) {
+        console.error('Error fetching rewards:', error);
+        setLoading(false);
+        return;
+      }
+      
+      // Transform the database data to match our component's expected format
+      const formattedRewards = data.map(prize => ({
+        id: prize.id,
+        name: prize.name || prize.description.substring(0, 30) + '...', // Use description as name if not provided
+        description: prize.description,
+        pointsCost: prize.price,
+        status: prize.status || 'Activo', // Default status if not in database
+        redemptions: prize.redemptions || 0, // Default redemptions if not in database
+        couponCode: prize.coupon_code,
+        image: prize.image_url || null // Default image if not in database
+      }));
+      
+      setRewards(formattedRewards);
+      setFilteredRewards(formattedRewards);
+      setLoading(false);
+    };
+    
+    fetchRewards();
+  }, []);
 
   // Filter rewards based on search and filters
   useEffect(() => {
@@ -89,29 +63,16 @@ const RewardsContent = () => {
       filtered = filtered.filter(reward => reward.status === filterStatus);
     }
     
-    if (filterType !== 'Todos') {
-      filtered = filtered.filter(reward => reward.type === filterType);
-    }
-    
     setFilteredRewards(filtered);
-  }, [searchTerm, filterStatus, filterType, rewards]);
-
-  // Get challenge title by ID
-  const getChallengeTitle = (challengeId) => {
-    const challenge = challenges.find(c => c.id === challengeId);
-    return challenge ? challenge.title : 'Sin reto asignado';
-  };
+  }, [searchTerm, filterStatus, rewards]);
 
   // Open modal to add new reward
   const handleAddNew = () => {
     setCurrentReward({
-      id: rewards.length + 1,
+      id: null, // Let Supabase generate the ID
       name: '',
       description: '',
-      challengeId: '',
-      type: 'Descuento',
-      value: '',
-      expiryDays: 30,
+      pointsCost: 100,
       status: 'Activo',
       redemptions: 0,
       image: null
@@ -126,23 +87,82 @@ const RewardsContent = () => {
   };
 
   // Delete reward
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm('¿Estás seguro de que deseas eliminar este premio?')) {
+      const { error } = await supabase
+        .from('Prize')
+        .delete()
+        .eq('id', id);
+      
+      if (error) {
+        console.error('Error deleting reward:', error);
+        return;
+      }
+      
       setRewards(rewards.filter(reward => reward.id !== id));
     }
   };
 
   // Save changes (new reward or edit)
-  const handleSave = () => {
-    if (rewards.some(r => r.id === currentReward.id)) {
+  const handleSave = async () => {
+    // Prepare data for Supabase
+    const prizeData = {
+      price: currentReward.pointsCost,
+      description: currentReward.description,
+      name: currentReward.name,
+      status: currentReward.status,
+      redemptions: currentReward.redemptions
+      // Note: coupon_code is generated automatically by the database
+    };
+
+    if (currentReward.id) {
       // Update existing reward
-      setRewards(rewards.map(r => 
-        r.id === currentReward.id ? currentReward : r
-      ));
+      const { data, error } = await supabase
+        .from('Prize')
+        .update(prizeData)
+        .eq('id', currentReward.id)
+        .select();
+      
+      if (error) {
+        console.error('Error updating reward:', error);
+        return;
+      }
+      
+      // Update local state
+      if (data && data[0]) {
+        const updatedReward = {
+          ...currentReward,
+          couponCode: data[0].coupon_code
+        };
+        
+        setRewards(rewards.map(r => 
+          r.id === currentReward.id ? updatedReward : r
+        ));
+      }
     } else {
       // Add new reward
-      setRewards([...rewards, currentReward]);
+      const { data, error } = await supabase
+        .from('Prize')
+        .insert(prizeData)
+        .select();
+      
+      if (error) {
+        console.error('Error adding reward:', error);
+        return;
+      }
+      
+      // Add to local state with DB-generated ID and coupon code
+      if (data && data[0]) {
+        const newReward = {
+          ...currentReward,
+          id: data[0].id,
+          couponCode: data[0].coupon_code
+        };
+        
+        setRewards([...rewards, newReward]);
+      }
     }
+    
     setShowModal(false);
   };
 
@@ -187,36 +207,23 @@ const RewardsContent = () => {
             </select>
           </div>
         </div>
-
-        <div className="relative min-w-40">
-          <div className="flex items-center gap-2 px-3 py-2 bg-white rounded-lg border cursor-pointer">
-            <Gift size={18} className="text-gray-400" />
-            <select 
-              className="border-none outline-none w-full bg-transparent cursor-pointer"
-              value={filterType}
-              onChange={(e) => setFilterType(e.target.value)}
-            >
-              {rewardTypes.map(type => (
-                <option key={type} value={type}>{type}</option>
-              ))}
-            </select>
-          </div>
-        </div>
       </div>
 
       {/* Rewards List */}
       <div className="flex-grow overflow-auto bg-white rounded-lg">
-        {filteredRewards.length > 0 ? (
+        {loading ? (
+          <div className="flex items-center justify-center h-full">
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+          </div>
+        ) : filteredRewards.length > 0 ? (
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Premio</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reto</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valor</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Expiración</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Costo en Puntos</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Canjes</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Código</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
               </tr>
             </thead>
@@ -229,13 +236,8 @@ const RewardsContent = () => {
                       <div className="text-sm text-gray-500 truncate max-w-xs">{reward.description}</div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {getChallengeTitle(reward.challengeId)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{reward.type}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{reward.value}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {reward.expiryDays} días
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">
+                    {reward.pointsCost} trotamundis
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
@@ -246,6 +248,9 @@ const RewardsContent = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {reward.redemptions} canjes
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <span className="text-xs font-mono">{reward.couponCode?.substring(0, 8)}...</span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex gap-3">
@@ -277,7 +282,7 @@ const RewardsContent = () => {
         <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg w-full max-w-2xl max-h-screen overflow-y-auto p-6">
             <h2 className="text-xl font-bold mb-4">
-              {currentReward.redemptions === 0 ? 'Añadir Nuevo Premio' : 'Editar Premio'}
+              {currentReward.id ? 'Editar Premio' : 'Añadir Nuevo Premio'}
             </h2>
             
             <div className="space-y-4">
@@ -302,77 +307,33 @@ const RewardsContent = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Reto asociado</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Costo en Puntos</label>
+                <div className="flex items-center border rounded-lg px-3 py-2">
+                  <Coins size={18} className="text-gray-400 mr-2" />
+                  <input
+                    type="number"
+                    min="0"
+                    step="5"
+                    className="w-full outline-none"
+                    value={currentReward.pointsCost}
+                    onChange={(e) => setCurrentReward({
+                      ...currentReward, 
+                      pointsCost: parseInt(e.target.value) || 0
+                    })}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Estado</label>
                 <select
                   className="w-full px-3 py-2 border rounded-lg"
-                  value={currentReward.challengeId}
-                  onChange={(e) => setCurrentReward({...currentReward, challengeId: parseInt(e.target.value)})}
+                  value={currentReward.status}
+                  onChange={(e) => setCurrentReward({...currentReward, status: e.target.value})}
                 >
-                  <option value="">Seleccionar un reto</option>
-                  {challenges.map(challenge => (
-                    <option key={challenge.id} value={challenge.id}>{challenge.title}</option>
-                  ))}
+                  <option value="Activo">Activo</option>
+                  <option value="Inactivo">Inactivo</option>
                 </select>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Tipo de premio</label>
-                  <select
-                    className="w-full px-3 py-2 border rounded-lg"
-                    value={currentReward.type}
-                    onChange={(e) => setCurrentReward({...currentReward, type: e.target.value})}
-                  >
-                    {rewardTypes.slice(1).map(type => (
-                      <option key={type} value={type}>{type}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Estado</label>
-                  <select
-                    className="w-full px-3 py-2 border rounded-lg"
-                    value={currentReward.status}
-                    onChange={(e) => setCurrentReward({...currentReward, status: e.target.value})}
-                  >
-                    <option value="Activo">Activo</option>
-                    <option value="Inactivo">Inactivo</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Valor</label>
-                  <div className="flex items-center border rounded-lg px-3 py-2">
-                    <Tag size={18} className="text-gray-400 mr-2" />
-                    <input
-                      type="text"
-                      className="w-full outline-none"
-                      placeholder="Ej: 20%, 10€, Entrada gratis..."
-                      value={currentReward.value}
-                      onChange={(e) => setCurrentReward({...currentReward, value: e.target.value})}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Días de expiración</label>
-                  <div className="flex items-center border rounded-lg px-3 py-2">
-                    <Calendar size={18} className="text-gray-400 mr-2" />
-                    <input
-                      type="number"
-                      min="1"
-                      className="w-full outline-none"
-                      value={currentReward.expiryDays}
-                      onChange={(e) => setCurrentReward({
-                        ...currentReward, 
-                        expiryDays: parseInt(e.target.value) || 0
-                      })}
-                    />
-                  </div>
-                </div>
               </div>
 
               <div>
