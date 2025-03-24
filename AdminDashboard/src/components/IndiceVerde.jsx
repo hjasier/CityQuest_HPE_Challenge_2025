@@ -1,5 +1,6 @@
 import React from 'react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer, Cell } from 'recharts';
+
 const hotels = [
     { id: 0, nombre_hotel: "Alletra Diamond Grand Hotel", slope: 4.9741565569961354e-06, intercept: 0.3300868795792876, confidence: 57.44633078928691 },
     { id: 1, nombre_hotel: "ProLiant Towers", slope: -3.7212748847703678e-06, intercept: 0.3356806810758965, confidence: 55.09942755031653 },
@@ -28,30 +29,27 @@ const hotels = [
     { id: 24, nombre_hotel: "Apollo Towers", slope: -8.004879723027574e-07, intercept: 0.33612646199950796, confidence: 56.48266403172748 }
   ].sort((a, b) => a.slope - b.slope); // Sort slopes from min to max
 
-  const HotelSlopesChart = () => {
+const HotelSlopesChart = () => {
   // Normalize slopes for color mapping
   const minSlope = Math.min(...hotels.map(hotel => hotel.slope));
   const maxSlope = Math.max(...hotels.map(hotel => hotel.slope));
 
   // Custom color function for bars
-const getBarColor = (slope) => {
-    // Normalize slope to [-1, 1] range
-    const normalizedSlope = (slope - minSlope) / (maxSlope - minSlope) * 2 - 1;
-    
-    // Red for negative slopes, green for positive slopes
-    if (normalizedSlope < 0) {
-      // Deeper red for more negative slopes
-      const redIntensity = Math.abs(normalizedSlope);
-      return `rgb(${Math.round(255 * redIntensity)}, 0, 0)`;
+  const getBarColor = (slope) => {
+    // Simple direct approach for clearer colors
+    if (slope < 0) {
+      // Red with intensity based on the magnitude
+      const intensity = Math.abs(slope) / Math.abs(minSlope);
+      return `rgb(${Math.round(255 * intensity)}, 0, 0)`;
     } else {
-      // Deeper green for more positive slopes
-      const greenIntensity = normalizedSlope;
-      return `rgb(0, ${Math.round(255 * greenIntensity)}, 0)`;
+      // Green with intensity based on the magnitude
+      const intensity = slope / maxSlope;
+      return `rgb(0, ${Math.round(255 * intensity)}, 0)`;
     }
   };
 
   return (
-    <div className="w-full h-[800px]">
+    <div className="w-full h-full">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart 
           data={hotels} 
@@ -82,8 +80,12 @@ const getBarColor = (slope) => {
               position: 'left',
               formatter: (value) => value.toExponential(2)
             }}
-            fill="#8884d8"
-          />
+          >
+            {/* Use Cell components to apply individual colors to each bar */}
+            {hotels.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={getBarColor(entry.slope)} />
+            ))}
+          </Bar>
         </BarChart>
       </ResponsiveContainer>
     </div>

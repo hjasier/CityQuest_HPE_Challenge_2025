@@ -67,7 +67,7 @@ const DashboardContent = () => {removeEventListener
           </div>
           <div className="bg-white rounded-xl p-6 shadow-sm">
             <h3 className="font-semibold mb-4">Variacion de contaminación de los hoteles</h3>
-            <div className="h-96 flex items-center justify-center">
+            <div className="h-dvh flex items-center justify-center">
               <HotelSlopesChart/>
             </div>
           </div>
