@@ -1,16 +1,32 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, Edit, Trash2, Filter, Settings, ChevronDown, Clock, Users } from 'lucide-react';
-import { createClient } from '@supabase/supabase-js';
+import { Search, Plus, Edit, Trash2, Filter, Settings, ChevronDown, Clock, Users, MapPin } from 'lucide-react';
+import { supabase } from '../hooks/supabaseClient';
 
-// Initialize Supabase client
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-const supabase = createClient(supabaseUrl, supabaseKey);
-
+// completions and abandonment are hardcoded to 0 for now
 const ChallengesContent = () => {
   const [challenges, setChallenges] = useState([]);
   const [loading, setLoading] = useState(true);
   const [challengeTypes, setChallengeTypes] = useState([]);
+  const [locations, setLocations] = useState([]); // Add this state for locations
+  
+  // Fetch locations
+  useEffect(() => {
+    const fetchLocations = async () => {
+      const { data, error } = await supabase
+        .from('Location')
+        .select('id, name, address, point');
+      
+      if (error) {
+        console.error('Error fetching locations:', error);
+        return;
+      }
+      
+      console.log('Locations data:', data);
+      setLocations(data || []);
+    };
+    
+    fetchLocations();
+  }, []);
   
   // Fetch challenge types
   useEffect(() => {
@@ -120,7 +136,7 @@ const ChallengesContent = () => {
     return matchesSearch && matchesStatus;
   });
 
-  // Add new challenge
+  // Add new challenge - update to include location
   const handleAddNew = () => {
     setCurrentChallenge({
       id: null, // Let Supabase generate the ID
@@ -135,6 +151,7 @@ const ChallengesContent = () => {
       category: challengeTypes.length > 0 ? challengeTypes[0].type : '',
       coverUrl: '',
       repeatable: false,
+      location: null, // Initialize location as null
       expiration_date: new Date(Date.now() + 30*24*60*60*1000).toISOString() // 30 days from now
     });
     setShowModal(true);
@@ -146,7 +163,7 @@ const ChallengesContent = () => {
     setShowModal(true);
   };
 
-  // Save changes (new challenge or edit)
+  // Save changes - update to include location
   const handleSave = async () => {
     const challengeData = {
       name: currentChallenge.title,
@@ -158,7 +175,8 @@ const ChallengesContent = () => {
       cover_url: currentChallenge.coverUrl || 'https://placeholder.com/150',
       repeatable: currentChallenge.repeatable,
       cooldown_time: parseInt(currentChallenge.duration) || null,
-      expiration_date: currentChallenge.expiration_date
+      expiration_date: currentChallenge.expiration_date,
+      location: currentChallenge.location // Add this line to include location ID
     };
 
     if (currentChallenge.id) {
@@ -465,26 +483,49 @@ const ChallengesContent = () => {
               </label>
             </div>
 
-            <div className="flex justify-end space-x-2">
-            <button
-                className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg"
-                onClick={() => setShowModal(false)}
-            >
-                Cancelar
-            </button>
-            <button
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg"
-                onClick={handleSave}
-            >
-                Guardar
-            </button>
+            {/* Add this new location field */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Ubicación</label>
+                  <div className="flex items-center border rounded-lg px-3 py-2">
+                    <MapPin size={18} className="text-gray-400 mr-2" />
+                    <select
+                      className="w-full outline-none bg-transparent"
+                      value={currentChallenge.location || ''}
+                      onChange={(e) => setCurrentChallenge({
+                        ...currentChallenge, 
+                        location: e.target.value ? parseInt(e.target.value) : null
+                      })}
+                    >
+                      <option value="">Sin ubicación específica</option>
+                      {locations.map(location => (
+                        <option key={location.id} value={location.id}>
+                          {location.name} {location.address ? `- ${location.address}` : ''}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+    
+                <div className="flex justify-end space-x-2">
+                  <button
+                    className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg"
+                    onClick={() => setShowModal(false)}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg"
+                    onClick={handleSave}
+                  >
+                    Guardar
+                  </button>
+                </div>
+              </div>
             </div>
-        </div>
-        </div>
-    </div>
-    )}
-    </div>
-
-    )};
+          </div>
+        )}
+      </div>
+    );
+    };
 
 export default ChallengesContent;
