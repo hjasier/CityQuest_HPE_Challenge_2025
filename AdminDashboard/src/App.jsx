@@ -14,7 +14,9 @@ function App() {
 
         {/* Rutas protegidas */}
         <Route path="/" element={
-            <AdminDashboard />
+            <ProtectedRoute>
+              <AdminDashboard />
+            </ProtectedRoute>
         } />
 
         <Route path="/form" element={
