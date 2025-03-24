@@ -1,11 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Plus, Edit, Trash2, Filter, Settings, ChevronDown, Clock, Users } from 'lucide-react';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '../hooks/supabaseClient';
 
-// Initialize Supabase client
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-const supabase = createClient(supabaseUrl, supabaseKey);
 
 const ChallengesContent = () => {
   const [challenges, setChallenges] = useState([]);
