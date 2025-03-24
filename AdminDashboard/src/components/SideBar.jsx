@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Bell, Calendar, ChevronDown, LayoutDashboard, Map, Award, Building, Users, LogOut, Menu } from 'lucide-react';
+import { Navigate, useNavigate } from 'react-router-dom';
 
 
 
@@ -10,6 +11,15 @@ const Sidebar = ({ activeItem, setActiveItem }) => {
       { id: 'locations', icon: <Building size={20} />, label: 'Locales' },
       { id: 'rewards', icon: <Award size={20} />, label: 'Premios' },
     ];
+    const navigate = useNavigate();
+
+    const handleLogOut = () => {
+      console.log('Logging out...');
+      localStorage.removeItem('isAuthenticated');
+      
+      window.location.reload();
+    };
+    
   
     return (
       <div className="w-64 bg-gray-900 text-white h-screen py-6 px-4 flex flex-col">
@@ -42,7 +52,7 @@ const Sidebar = ({ activeItem, setActiveItem }) => {
         </nav>
         
         <div className="mt-auto">
-          <button className="w-full flex items-center gap-3 py-3 px-4 rounded-lg text-gray-400 hover:bg-gray-800">
+          <button onClick={handleLogOut} className="w-full flex items-center gap-3 py-3 px-4 rounded-lg text-gray-400 hover:bg-gray-800">
             <LogOut size={20} />
             <span>Cerrar sesión</span>
           </button>

@@ -277,8 +277,8 @@ const MapboxHeatmap = () => {
 
   return (
     <div className="w-full h-full relative">
-      <div className="bg-[rgba(35,55,75,0.9)] text-white py-1.5 px-3 font-mono z-10 absolute top-0 left-0 m-3 rounded">
-        Longitude: {lng} | Latitude: {lat} | Zoom: {zoom}
+      <div className=" text-white py-1.5 px-3 font-mono z-10 absolute top-0 left-0 m-3 rounded">
+       
       </div>
       <div 
         ref={mapContainer} 

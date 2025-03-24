@@ -5,7 +5,7 @@ import { Bell, Calendar, ChevronDown, LayoutDashboard, Map, Award, Building, Use
 
 const Header = ({ title }) => {
     return (
-      <header className="bg-white border-b border-gray-200 h-16 pt-10 flex items-center justify-between px-6">
+      <header className="bg-white border-b border-gray-200 h-16 pt-10 pb-10 flex items-center justify-between px-6">
         <div className="flex items-center gap-2">
           <button className="md:hidden">
             <Menu size={24} />
