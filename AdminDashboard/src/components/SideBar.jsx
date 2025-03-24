@@ -9,7 +9,6 @@ const Sidebar = ({ activeItem, setActiveItem }) => {
       { id: 'challenges', icon: <Award size={20} />, label: 'Retos' },
       { id: 'locations', icon: <Building size={20} />, label: 'Locales' },
       { id: 'rewards', icon: <Award size={20} />, label: 'Premios' },
-      { id: 'maps', icon: <Map size={20} />, label: 'Mapas' },
     ];
   
     return (

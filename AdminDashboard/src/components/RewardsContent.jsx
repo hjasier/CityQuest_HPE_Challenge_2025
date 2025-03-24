@@ -1,21 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, Edit, Trash2, Filter, Award, Calendar, Tag, Check, X, Gift } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, Filter, Award, Calendar, Tag, Check, X, Gift, Coins } from 'lucide-react';
 
-// Sample challenges for linking rewards
-const sampleChallenges = [
-  { id: 1, title: 'Visita los 3 museos principales', category: 'Cultural' },
-  { id: 2, title: 'Ruta gastronómica local', category: 'Gastronomía' },
-  { id: 3, title: 'Descubre los monumentos históricos', category: 'Histórico' },
-  { id: 4, title: 'Tour fotográfico de street art', category: 'Arte' },
-];
-
-// Initial rewards data
+// Initial rewards data with points cost instead of challenge-based
 const initialRewards = [
   {
     id: 1,
     name: 'Descuento 20% Café Central',
     description: 'Descuento del 20% en consumiciones en Café Central',
-    challengeId: 2,
+    pointsCost: 150,
     type: 'Descuento',
     value: '20%',
     expiryDays: 30,
@@ -27,7 +19,7 @@ const initialRewards = [
     id: 2,
     name: 'Entrada gratuita al Museo de Arte',
     description: 'Una entrada gratuita al Museo de Arte Contemporáneo',
-    challengeId: 1,
+    pointsCost: 200,
     type: 'Gratuidad',
     value: 'Entrada individual',
     expiryDays: 60,
@@ -39,7 +31,7 @@ const initialRewards = [
     id: 3,
     name: 'Puntos premium x2',
     description: 'Duplica tus puntos en la siguiente visita a cualquier local participante',
-    challengeId: 4,
+    pointsCost: 300,
     type: 'Puntos',
     value: 'Puntos x2',
     expiryDays: 15,
@@ -51,7 +43,7 @@ const initialRewards = [
     id: 4,
     name: 'Menú degustación gratis',
     description: 'Menú degustación gratuito para 2 personas en Restaurante El Mirador',
-    challengeId: 2,
+    pointsCost: 500,
     type: 'Gratuidad',
     value: 'Menú para 2',
     expiryDays: 45,
@@ -69,7 +61,6 @@ const RewardsContent = () => {
   const [currentReward, setCurrentReward] = useState(null);
   const [filterStatus, setFilterStatus] = useState('Todos');
   const [filterType, setFilterType] = useState('Todos');
-  const [challenges, setChallenges] = useState(sampleChallenges);
 
   const rewardTypes = ['Todos', 'Descuento', 'Gratuidad', 'Puntos', 'Producto'];
   const statuses = ['Todos', 'Activo', 'Inactivo'];
@@ -96,19 +87,13 @@ const RewardsContent = () => {
     setFilteredRewards(filtered);
   }, [searchTerm, filterStatus, filterType, rewards]);
 
-  // Get challenge title by ID
-  const getChallengeTitle = (challengeId) => {
-    const challenge = challenges.find(c => c.id === challengeId);
-    return challenge ? challenge.title : 'Sin reto asignado';
-  };
-
   // Open modal to add new reward
   const handleAddNew = () => {
     setCurrentReward({
       id: rewards.length + 1,
       name: '',
       description: '',
-      challengeId: '',
+      pointsCost: 100,
       type: 'Descuento',
       value: '',
       expiryDays: 30,
@@ -211,7 +196,7 @@ const RewardsContent = () => {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Premio</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reto</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Costo en Puntos</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valor</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Expiración</th>
@@ -229,8 +214,8 @@ const RewardsContent = () => {
                       <div className="text-sm text-gray-500 truncate max-w-xs">{reward.description}</div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {getChallengeTitle(reward.challengeId)}
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">
+                    {reward.pointsCost} trotamundis
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{reward.type}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{reward.value}</td>
@@ -302,17 +287,21 @@ const RewardsContent = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Reto asociado</label>
-                <select
-                  className="w-full px-3 py-2 border rounded-lg"
-                  value={currentReward.challengeId}
-                  onChange={(e) => setCurrentReward({...currentReward, challengeId: parseInt(e.target.value)})}
-                >
-                  <option value="">Seleccionar un reto</option>
-                  {challenges.map(challenge => (
-                    <option key={challenge.id} value={challenge.id}>{challenge.title}</option>
-                  ))}
-                </select>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Costo en Puntos</label>
+                <div className="flex items-center border rounded-lg px-3 py-2">
+                  <Coins size={18} className="text-gray-400 mr-2" />
+                  <input
+                    type="number"
+                    min="0"
+                    step="5"
+                    className="w-full outline-none"
+                    value={currentReward.pointsCost}
+                    onChange={(e) => setCurrentReward({
+                      ...currentReward, 
+                      pointsCost: parseInt(e.target.value) || 0
+                    })}
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">

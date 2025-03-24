@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, Edit, Trash2, Filter, MapPin, Settings, ChevronDown, Clock, Users } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, Filter, Settings, ChevronDown, Clock, Users } from 'lucide-react';
 
 // Datos de ejemplo para los retos
 const initialChallenges = [
@@ -7,7 +7,7 @@ const initialChallenges = [
     id: 1,
     title: 'Visita los 3 museos principales',
     description: 'Completa visitas a Museo de Historia, Museo de Arte Contemporáneo y Galería Municipal',
-    area: 'Centro Histórico',
+    points: 150,
     difficulty: 'Medio',
     duration: '4 horas',
     status: 'Activo',
@@ -19,7 +19,7 @@ const initialChallenges = [
     id: 2,
     title: 'Ruta gastronómica local',
     description: 'Visita al menos 4 restaurantes locales de la ruta gastronómica oficial',
-    area: 'Casco Antiguo',
+    points: 100,
     difficulty: 'Fácil',
     duration: '3 horas',
     status: 'Activo',
@@ -31,7 +31,7 @@ const initialChallenges = [
     id: 3,
     title: 'Descubre los monumentos históricos',
     description: 'Encuentra y fotografía los 5 monumentos históricos señalados en el mapa',
-    area: 'Centro',
+    points: 75,
     difficulty: 'Fácil',
     duration: '2 horas',
     status: 'Inactivo',
@@ -43,7 +43,7 @@ const initialChallenges = [
     id: 4,
     title: 'Tour fotográfico de street art',
     description: 'Encuentra los 8 murales de artistas reconocidos distribuidos por la zona artística',
-    area: 'Barrio Cultural',
+    points: 200,
     difficulty: 'Difícil',
     duration: '5 horas',
     status: 'Activo',
@@ -59,9 +59,7 @@ const ChallengesContent = () => {
   const [showModal, setShowModal] = useState(false);
   const [currentChallenge, setCurrentChallenge] = useState(null);
   const [filterStatus, setFilterStatus] = useState('Todos');
-  const [filterArea, setFilterArea] = useState('Todas');
 
-  const areas = ['Todas', 'Centro Histórico', 'Casco Antiguo', 'Centro', 'Barrio Cultural'];
   const statuses = ['Todos', 'Activo', 'Inactivo'];
   const difficulties = ['Fácil', 'Medio', 'Difícil'];
   const categories = ['Cultural', 'Gastronomía', 'Histórico', 'Arte', 'Naturaleza', 'Aventura'];
@@ -71,9 +69,8 @@ const ChallengesContent = () => {
     const matchesSearch = challenge.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           challenge.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = filterStatus === 'Todos' || challenge.status === filterStatus;
-    const matchesArea = filterArea === 'Todas' || challenge.area === filterArea;
     
-    return matchesSearch && matchesStatus && matchesArea;
+    return matchesSearch && matchesStatus;
   });
 
   // Abrir modal para añadir nuevo reto
@@ -82,7 +79,7 @@ const ChallengesContent = () => {
       id: challenges.length + 1,
       title: '',
       description: '',
-      area: 'Centro',
+      points: 50,
       difficulty: 'Fácil',
       duration: '1 hora',
       status: 'Activo',
@@ -161,21 +158,6 @@ const ChallengesContent = () => {
             </select>
           </div>
         </div>
-
-        <div className="relative min-w-40">
-          <div className="flex items-center gap-2 px-3 py-2 bg-white rounded-lg border cursor-pointer">
-            <MapPin size={18} className="text-gray-400" />
-            <select 
-              className="border-none outline-none w-full bg-transparent cursor-pointer"
-              value={filterArea}
-              onChange={(e) => setFilterArea(e.target.value)}
-            >
-              {areas.map(area => (
-                <option key={area} value={area}>{area}</option>
-              ))}
-            </select>
-          </div>
-        </div>
       </div>
 
       {/* Challenges List */}
@@ -185,7 +167,7 @@ const ChallengesContent = () => {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reto</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Zona</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Puntos</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dificultad</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duración</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
@@ -202,7 +184,7 @@ const ChallengesContent = () => {
                       <div className="text-sm text-gray-500">{challenge.category}</div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{challenge.area}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">{challenge.points} trotamundis</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{challenge.difficulty}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{challenge.duration}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -274,6 +256,18 @@ const ChallengesContent = () => {
 
             <div className="grid grid-cols-2 gap-4">
             <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Puntos</label>
+                <input
+                    type="number"
+                    className="w-full px-3 py-2 border rounded-lg"
+                    min="0"
+                    step="5"
+                    value={currentChallenge.points}
+                    onChange={(e) => setCurrentChallenge({...currentChallenge, points: parseInt(e.target.value)})}
+                />
+            </div>
+
+            <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Duración</label>
                 <div className="flex items-center border rounded-lg px-3 py-2">
                 <Clock size={18} className="text-gray-400 mr-2" />
@@ -286,7 +280,9 @@ const ChallengesContent = () => {
                 />
                 </div>
             </div>
+            </div>
 
+            <div className="grid grid-cols-2 gap-4">
             <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Estado</label>
                 <select
@@ -296,6 +292,19 @@ const ChallengesContent = () => {
                 >
                 <option value="Activo">Activo</option>
                 <option value="Inactivo">Inactivo</option>
+                </select>
+            </div>
+
+            <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Dificultad</label>
+                <select
+                    className="w-full px-3 py-2 border rounded-lg"
+                    value={currentChallenge.difficulty}
+                    onChange={(e) => setCurrentChallenge({...currentChallenge, difficulty: e.target.value})}
+                >
+                    {difficulties.map(difficulty => (
+                    <option key={difficulty} value={difficulty}>{difficulty}</option>
+                    ))}
                 </select>
             </div>
             </div>
@@ -309,32 +318,6 @@ const ChallengesContent = () => {
             >
                 {categories.map(category => (
                 <option key={category} value={category}>{category}</option>
-                ))}
-            </select>
-            </div>
-
-            <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Zona</label>
-            <select
-                className="w-full px-3 py-2 border rounded-lg"
-                value={currentChallenge.area}
-                onChange={(e) => setCurrentChallenge({...currentChallenge, area: e.target.value})}
-            >
-                {areas.slice(1).map(area => (
-                <option key={area} value={area}>{area}</option>
-                ))}
-            </select>
-            </div>
-
-            <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Dificultad</label>
-            <select
-                className="w-full px-3 py-2 border rounded-lg"
-                value={currentChallenge.difficulty}
-                onChange={(e) => setCurrentChallenge({...currentChallenge, difficulty: e.target.value})}
-            >
-                {difficulties.map(difficulty => (
-                <option key={difficulty} value={difficulty}>{difficulty}</option>
                 ))}
             </select>
             </div>
@@ -371,4 +354,4 @@ const ChallengesContent = () => {
 
     )};
 
-export default ChallengesContent;   
+export default ChallengesContent;
