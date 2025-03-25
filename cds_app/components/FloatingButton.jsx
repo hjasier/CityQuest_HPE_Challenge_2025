@@ -48,7 +48,7 @@ const FloatingButton = ({handleResetButton,handleSetUserSpeakingMode,handleSetAI
 
   return (
     <View 
-      className={`w-[60px] h-[60px] rounded-full ${isRecording ? 'bg-red-500' : 'bg-primary'} justify-center items-center shadow-md overflow-hidden`}
+      className={`w-[60px] h-[60px] rounded-full ${isRecording ? 'bg-red-500' : 'bg-primary'} justify-center items-center shadow-2xl shadow-black overflow-hidden`}
     >
       {isRecording ? (
         // Mic animation for recording

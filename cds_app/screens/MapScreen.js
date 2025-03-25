@@ -11,7 +11,6 @@ const MapScreen = () => {
     <View className="flex-1 relative">
       {/* Mapa en el fondo */}
       <MapMapBox />
-
       <BottomSheetComponent />
     </View>
   );

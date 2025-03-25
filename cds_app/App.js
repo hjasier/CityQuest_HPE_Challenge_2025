@@ -3,7 +3,6 @@ import { View, ActivityIndicator } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { supabase } from './database/supabase';
-import Auth from './components/Auth';
 import StackNavigator from './navigation/StackNavigator';
 import { SessionProvider, useSession } from './hooks/SessionProvider';
 import * as NavigationBar from 'expo-navigation-bar';
