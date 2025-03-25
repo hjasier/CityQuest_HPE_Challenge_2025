@@ -4,6 +4,7 @@ import StatCard from './StatCard';
 import PopularChallengesChart from './ChallengeBarChart';
 import MapboxHeatmap from './MapBoxHeatMap';
 import HotelSlopesChart from './IndiceVerde';
+import HotelOccupancyChart from './HotelOccupacyDashboard';
 
 const DashboardContent = () => {removeEventListener
     return (
@@ -69,6 +70,12 @@ const DashboardContent = () => {removeEventListener
             <h3 className="font-semibold mb-4">Variacion de contaminación de los hoteles</h3>
             <div className="h-dvh flex items-center justify-center">
               <HotelSlopesChart/>
+            </div>
+          </div>
+          <div className="bg-white rounded-xl p-6 shadow-sm">
+            <h3 className="font-semibold mb-4">Ocupación Hotelera</h3>
+            <div className="h-dvh flex items-center justify-center">
+              <HotelOccupancyChart />
             </div>
           </div>
         </div>

@@ -4,6 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "convert-hotel-data": "node scripts/convertOccupancyData.js",
+    "prebuild": "npm run convert-hotel-data",
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
@@ -31,6 +33,7 @@
     "eslint-plugin-react-hooks": "^5.1.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^15.15.0",
+    "papaparse": "^5.5.2",
     "vite": "^6.2.0"
   }
 }
