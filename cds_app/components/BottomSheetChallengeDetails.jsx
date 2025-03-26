@@ -1,10 +1,56 @@
 import { View, Text, StyleSheet } from 'react-native'
-import React, { useRef, useMemo, useState } from 'react'
+import React, { useRef, useMemo, useState, useEffect } from 'react'
 import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet'
 import ChallengeDetails from './ChallengeDetails'
 import { ScrollView } from 'react-native-gesture-handler'
+import { useRoute } from '@react-navigation/native'
+import { supabase } from '../lib/supabase' // Import your Supabase client
 
 const BottomSheetChallengeDetails = ({ bottomSheetRef }) => {
+
+  const route = useRoute();
+  const challengeId = route.params?.challengeId;
+  
+  // State for the challenge data
+  const [challenge, setChallenge] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fetch challenge data
+  useEffect(() => {
+    const fetchChallengeData = async () => {
+      try {
+        setLoading(true);
+        
+        // Query the challenge from your database
+        const { data, error } = await supabase
+          .from('Challenge')
+          .select(`
+            *,
+            Location:location (name),
+            ChallengeType:type (name)
+          `)
+          .eq('id', challengeId)
+          .single();
+          
+        if (error) {
+          throw error;
+        }
+        
+        setChallenge(data);
+      } catch (err) {
+        console.error('Error fetching challenge:', err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    if (challengeId) {
+      fetchChallengeData();
+    }
+  }, [challengeId]);
+  
   // Ref for the bottom sheet
   const sheetRef = useRef(bottomSheetRef || null);
   
@@ -26,11 +72,6 @@ const BottomSheetChallengeDetails = ({ bottomSheetRef }) => {
 
   // Handle the scroll event to detect when user tries to scroll past the top
   const handleScroll = (event) => {
-    const { contentOffset } = event.nativeEvent;
-    const scrollY = contentOffset.y; // Posición vertical del scroll
-    console.log("Posición del scroll:", scrollY);
-
-
     const contentOffsetY = event.nativeEvent.contentOffset.y;
 
     // If the user is at the top and tries to scroll up when the sheet is fully open
@@ -39,6 +80,48 @@ const BottomSheetChallengeDetails = ({ bottomSheetRef }) => {
       sheetRef.current?.snapToIndex(1); // Snap to the 85% position
     }
   };
+
+  // Helper function to determine difficulty text
+  const getDifficultyText = (priority) => {
+    if (!priority) return 'Normal';
+    if (priority <= 1) return 'Fácil';
+    if (priority <= 2) return 'Medio';
+    return 'Difícil';
+  };
+
+  // Loading state UI
+  if (loading) {
+    return (
+      <BottomSheet
+        ref={sheetRef}
+        snapPoints={snapPoints}
+        initialSnapIndex={0}
+        handleIndicatorStyle={styles.indicator}
+        backgroundStyle={styles.bottomSheetBackground}
+      >
+        <BottomSheetView style={styles.contentContainer}>
+          <Text className="text-center p-10">Cargando reto...</Text>
+        </BottomSheetView>
+      </BottomSheet>
+    );
+  }
+
+  // Error state UI
+  if (error) {
+    return (
+      <BottomSheet
+        ref={sheetRef}
+        snapPoints={snapPoints}
+        initialSnapIndex={0}
+        handleIndicatorStyle={styles.indicator}
+        backgroundStyle={styles.bottomSheetBackground}
+      >
+        <BottomSheetView style={styles.contentContainer}>
+          <Text className="text-center p-10 text-red-500">Error: {error}</Text>
+        </BottomSheetView>
+      </BottomSheet>
+    );
+  }
 
   return (
     <BottomSheet
@@ -56,34 +139,40 @@ const BottomSheetChallengeDetails = ({ bottomSheetRef }) => {
           scrollEnabled={isFullyOpened}
           onScroll={handleScroll}  // Detect the scroll event
           scrollEventThrottle={16}  // To optimize performance
-          showsVerticalScrollIndicator={false} // Oculta la barra vertical
-          showsHorizontalScrollIndicator={false} // (Opcional) Oculta la barra horizontal
+          showsVerticalScrollIndicator={false}
+          showsHorizontalScrollIndicator={false}
         >
-          {/* Card Title */}
-          <Text className="text-2xl font-bold mb-2">
-            Prueba Comida Local en el Área de Deusto
-          </Text>
-          
-          {/* Difficulty and Rating */}
-          <View className="flex-row items-center mb-1">
-            <Text className="text-gray-700 mr-2">Fácil</Text>
-            <View className="flex-row items-center">
-              <Text className="text-green-500 font-bold">★</Text>
-              <Text className="ml-1">4.3</Text>
-            </View>
-          </View>
-          
-          {/* Location */}
-          <Text className="text-gray-600 mb-4">
-            Deusto, Bilbao, Vizcaya
-          </Text>
-          
-          <View className="h-0.5 bg-gray-100 mb-4" />
-          
-          {/* Challenge Details Component */}
-          <ChallengeDetails />
-
-          
+          {challenge && (
+            <>
+              {/* Card Title */}
+              <Text className="text-2xl font-bold mb-2">
+                {challenge.name}
+              </Text>
+              
+              {/* Difficulty and Rating */}
+              <View className="flex-row items-center mb-1">
+                <Text className="text-gray-700 mr-2">
+                  {getDifficultyText(challenge.priority)}
+                </Text>
+                <View className="flex-row items-center">
+                  <Text className="text-green-500 font-bold">★</Text>
+                  <Text className="ml-1">{challenge.reward}</Text>
+                </View>
+              </View>
+              
+              {/* Location */}
+              <Text className="text-gray-600 mb-4">
+                {challenge.Location?.name || 'Ubicación no disponible'}
+              </Text>
+              
+              <View className="h-0.5 bg-gray-100 mb-4" />
+              
+              {/* Challenge Details Component */}
+              <ChallengeDetails 
+                challenge={challenge} 
+              />
+            </>
+          )}
         </ScrollView>
       </BottomSheetView>
     </BottomSheet>
@@ -109,6 +198,7 @@ const styles = StyleSheet.create({
     paddingTop: 10,
   },
   indicator: {
+    display: 'none',
     backgroundColor: '#DDDDDD',
     width: 40,
     height: 4,
