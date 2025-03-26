@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "cds_app",
+    "name": "CityQuest",
     "slug": "cds_app",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -78,7 +78,16 @@
     "extra": {
       "eas": {
         "build": {
-          "releaseChannel": "preview"
+          "releaseChannel": "preview",
+          "development": {
+            "distribution": "internal",  // Esto es para un build interno, no público
+            "debug": true,              // Activar debug (útil para desarrollo)
+            "developmentClient": true   // Esto es clave para habilitar builds de desarrollo para pruebas
+          },
+          "production": {
+            "distribution": "store",    // Para build de producción
+            "debug": false
+          }
         },
         "projectId": "c9b1853d-e8da-4873-a670-fe5a3b40fbdb"
       }

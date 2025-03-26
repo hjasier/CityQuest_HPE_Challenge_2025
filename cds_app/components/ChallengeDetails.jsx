@@ -4,9 +4,10 @@ import MapView from 'react-native-maps';
 import React, { useState, useEffect } from 'react';
 import * as Location from 'expo-location';
 import ChallengeReviews from './ChallengeReviews';
+import MapboxGL from '@rnmapbox/maps';
 
 
-const ChallengeDetails = () => {
+const ChallengeDetails = ({challenge}) => {
   const [location, setLocation] = useState(null);
 
 
@@ -28,30 +29,38 @@ const ChallengeDetails = () => {
     })();
   }, []);
 
-    
+
   return (
     <View className="flex-1">
       {/* Challenge Description */}
       <Text className="text-gray-800 leading-5 mb-5">
-        Come cualquier tipo de alimento en un bar local dentro de la zona, el ticket de compra tendrá el QR que tendrás que escanear para completar el reto.
+        {challenge.description}
       </Text>
       
       {/* Challenge Points */}
       <View className="flex-row items-center mb-6">
         <Text className="font-medium">Puntos: </Text>
-        <Text className="font-bold">500k</Text>
+        <Text className="font-bold">{challenge.reward}k</Text>
       </View>
       
       {/* Map View */}
       <View className="w-full h-48 rounded-lg overflow-hidden mb-6">
-      {/* <MapView 
-        style={styles.map}
-        region={location} 
-        showsUserLocation={true}
-        followsUserLocation={true}
-        scrollEnabled={false}  // Evita que el usuario deslice el mapa
-        zoomEnabled={true}  // Permite hacer zoom
-      /> */}
+        <MapboxGL.MapView
+          style={{flex:1}}
+          zoomEnabled
+          scaleBarEnabled={false}
+          styleURL='mapbox://styles/asiier/cm86e6z8s007t01safl5m10hl/draft'
+        >
+        <MapboxGL.Camera animationDuration={0} 
+        centerCoordinate={[challenge.Location?.longitude, challenge.Location?.latitude]} 
+        zoomLevel={14} />
+        <MapboxGL.PointAnnotation
+          id="pointAnnotation"
+          coordinate={[challenge.Location?.longitude, challenge.Location?.latitude]}
+        >
+          <MapPin stroke="#2AF" fill="#000" />
+        </MapboxGL.PointAnnotation>
+        </MapboxGL.MapView>
       </View>
 
       {/* Reviews */}
