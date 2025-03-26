@@ -41,7 +41,6 @@ CREATE TABLE "Location" (
     image_url TEXT,
     location_type INT REFERENCES "LocationType",
     sustainability_score INT,
-    -- esto pa q
     status TEXT,
     address TEXT,
     solicited_at TIMESTAMP,
@@ -139,7 +138,7 @@ OR REPLACE FUNCTION update_modified_column()
 RETURNS TRIGGER AS $$ 
 BEGIN 
   NEW.updated_at = now();
-  RETURN NEW;
+RETURN NEW;
 END;
 $$ language 'plpgsql';
 
