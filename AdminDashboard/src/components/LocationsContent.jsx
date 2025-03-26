@@ -88,6 +88,8 @@ const LocationsContent = () => {
         return;
       }
       
+      console.log('Raw location data:', data); // Add this debug line
+      
       // Transform data to match component structure
       const formattedLocations = data.map(loc => ({
         id: loc.id,
@@ -100,7 +102,7 @@ const LocationsContent = () => {
         status: loc.status, // Keep as numeric code
         statusText: getStatusText(loc.status), // Add display text
         description: loc.description || '',
-        image: loc.image_url || null,
+        image: loc.image_url || null, // This should be correct
         visits: loc.sustainability_score || 0, // Using sustainability_score as "visits" 
         // Extract coordinates from PostGIS point type
         longitude: loc.geography ? JSON.parse(loc.geography).coordinates[0] : -3.70379,
@@ -336,59 +338,94 @@ const LocationsContent = () => {
   };
 
   const handleSave = async () => {
-    // Prepare location data for Supabase
-    const locationData = {
-      name: currentLocation.name,
-      address: currentLocation.address,
-      description: currentLocation.description,
-      email: currentLocation.email,
-      phone_number: currentLocation.phone,
-      opening_hours: currentLocation.schedule,
-      status: currentLocation.status,
-      // Create PostGIS point from longitude/latitude
-      point: `POINT(${currentLocation.longitude} ${currentLocation.latitude})`,
-      // Assuming sustainability_score represents visits in this UI
-      sustainability_score: currentLocation.visits || 0
-    };
-
-    if (currentLocation.id) {
-      // Update existing location
-      const { error } = await supabase
-        .from('Location')
-        .update(locationData)
-        .eq('id', currentLocation.id);
-      
-      if (error) {
-        console.error('Error updating location:', error);
-        return;
-      }
-      
-      // Update local state
-      setLocations(locations.map(loc => 
-        loc.id === currentLocation.id ? {...loc, ...currentLocation} : loc
-      ));
-    } else {
-      // Add new location
-      const { data, error } = await supabase
-        .from('Location')
-        .insert(locationData)
-        .select();
-      
-      if (error) {
-        console.error('Error adding location:', error);
-        return;
-      }
-      
-      // Update with the returned data (to get the new ID)
-      const newLocation = {
-        ...currentLocation,
-        id: data[0].id
+    try {
+      // Define locationData without image initially
+      let locationData = {
+        name: currentLocation.name,
+        address: currentLocation.address,
+        description: currentLocation.description,
+        email: currentLocation.email,
+        phone_number: currentLocation.phone,
+        opening_hours: currentLocation.schedule,
+        status: currentLocation.status,
+        point: `POINT(${currentLocation.longitude} ${currentLocation.latitude})`,
+        sustainability_score: currentLocation.visits || 0
       };
+
+      // Handle image upload if a new file is selected
+      if (currentLocation.image && currentLocation.image instanceof File) {
+        // Create unique file name
+        const fileExt = currentLocation.image.name.split('.').pop();
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+        // Update the path to include location-images subfolder
+        const filePath = `location-images/${fileName}`;
+        
+        // Upload to Supabase storage
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('locations')
+          .upload(filePath, currentLocation.image);
+        
+        if (uploadError) {
+          console.error('Error uploading image:', uploadError);
+          throw uploadError;
+        }
+        
+        // Get the public URL
+        const { data: publicURLData } = supabase.storage
+          .from('locations')
+          .getPublicUrl(filePath);
+        
+        // Add image URL to location data
+        locationData.image_url = publicURLData.publicUrl;
+      }
+
+      if (currentLocation.id) {
+        // Update existing location
+        const { error } = await supabase
+          .from('Location')
+          .update(locationData)
+          .eq('id', currentLocation.id);
+        
+        if (error) {
+          console.error('Error updating location:', error);
+          return;
+        }
+        
+        // Update local state
+        setLocations(locations.map(loc => 
+          loc.id === currentLocation.id ? {
+            ...loc, 
+            ...currentLocation,
+            image: locationData.image_url || loc.image
+          } : loc
+        ));
+      } else {
+        // Add new location
+        const { data, error } = await supabase
+          .from('Location')
+          .insert(locationData)
+          .select();
+        
+        if (error) {
+          console.error('Error adding location:', error);
+          return;
+        }
+        
+        // Update with the returned data (to get the new ID)
+        const newLocation = {
+          ...currentLocation,
+          id: data[0].id,
+          image: locationData.image_url || null
+        };
+        
+        setLocations([...locations, newLocation]);
+      }
       
-      setLocations([...locations, newLocation]);
+      setShowModal(false);
+    } catch (error) {
+      console.error('Error saving location:', error);
+      alert('There was an error saving the location. Please try again.');
     }
-    
-    setShowModal(false);
   };
 
   // New handlers for petitions
@@ -709,9 +746,25 @@ const LocationsContent = () => {
                 {filteredLocations.map((location) => (
                   <tr key={location.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex flex-col">
-                        <div className="font-medium text-gray-900">{location.name}</div>
-                        <div className="text-sm text-gray-500">{location.schedule}</div>
+                      <div className="flex items-center">
+                        {/* Add image thumbnail */}
+                        {location.image && (
+                          <div className="flex-shrink-0 h-10 w-10 mr-3">
+                            <img 
+                              className="h-10 w-10 rounded-full object-cover" 
+                              src={location.image} 
+                              alt={location.name}
+                              onError={(e) => {
+                                e.target.onerror = null;
+                                e.target.src = 'https://via.placeholder.com/40?text=No+Image';
+                              }}
+                            />
+                          </div>
+                        )}
+                        <div className="flex flex-col">
+                          <div className="font-medium text-gray-900">{location.name}</div>
+                          <div className="text-sm text-gray-500">{location.schedule}</div>
+                        </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{location.address}</td>
@@ -891,6 +944,18 @@ const LocationsContent = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Imagen</label>
+                
+                {/* Show current image if it exists */}
+                {(currentLocation.image_url || (typeof currentLocation.image === 'string' && currentLocation.image)) && (
+                  <div className="mb-2">
+                    <img 
+                      src={typeof currentLocation.image === 'string' ? currentLocation.image : currentLocation.image_url} 
+                      alt={currentLocation.name}
+                      className="h-32 w-auto object-cover rounded-md mb-2" 
+                    />
+                  </div>
+                )}
+                
                 <input
                   type="file"
                   accept="image/*"
