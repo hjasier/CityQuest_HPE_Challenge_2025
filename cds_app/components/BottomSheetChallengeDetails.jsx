@@ -4,52 +4,18 @@ import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet'
 import ChallengeDetails from './ChallengeDetails'
 import { ScrollView } from 'react-native-gesture-handler'
 import { useRoute } from '@react-navigation/native'
-import { supabase } from '../lib/supabase' // Import your Supabase client
+import { supabase } from '../database/supabase' // Import your Supabase client
 
 const BottomSheetChallengeDetails = ({ bottomSheetRef }) => {
 
   const route = useRoute();
-  const challengeId = route.params?.challengeId;
-  
-  // State for the challenge data
-  const [challenge, setChallenge] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const challenge = route.params.challenge;
+
+
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Fetch challenge data
-  useEffect(() => {
-    const fetchChallengeData = async () => {
-      try {
-        setLoading(true);
-        
-        // Query the challenge from your database
-        const { data, error } = await supabase
-          .from('Challenge')
-          .select(`
-            *,
-            Location:location (name),
-            ChallengeType:type (name)
-          `)
-          .eq('id', challengeId)
-          .single();
-          
-        if (error) {
-          throw error;
-        }
-        
-        setChallenge(data);
-      } catch (err) {
-        console.error('Error fetching challenge:', err);
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    if (challengeId) {
-      fetchChallengeData();
-    }
-  }, [challengeId]);
+
   
   // Ref for the bottom sheet
   const sheetRef = useRef(bottomSheetRef || null);

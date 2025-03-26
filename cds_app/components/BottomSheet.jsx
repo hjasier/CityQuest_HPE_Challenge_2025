@@ -26,7 +26,7 @@ const BottomSheetComponent = ({ bottomSheetRef }) => {
 
 const styles = StyleSheet.create({
   bottomSheet: {
-    backgroundColor: 'rgba(255, 255, 255, 0.85)',
+    backgroundColor: 'rgba(255, 255, 255, 0.75)',
     flex: 1,
   },
   bottomSheetContent: {

@@ -52,8 +52,8 @@ const VoiceAssistantChat = ({isConnected}) => {
   return (
     <View className="flex-1 bg-white">
       {/* Header */}
-      <View className="bg-blue-500 p-4 rounded-b-2xl shadow-md">
-        <Text className="text-white text-xl font-bold text-center">Laki</Text>
+      <View className="bg-primary p-4 pt-10 rounded-b-2xl shadow-md">
+        <Text className="text-white text-xl font-bold text-center">Magellan AI</Text>
         <TouchableOpacity onPress={openCamera}>
           <Text className="text-blue-100 text-center text-sm">Habla para interactuar</Text>
         </TouchableOpacity>

@@ -30,7 +30,7 @@ const useVoiceAssistant = () => {
         const token = await response.text();
         setToken(token);
       } catch (error) {
-        console.error("Error fetching token:", error);
+        //console.error("Error fetching token:", error);
       }
     };
 

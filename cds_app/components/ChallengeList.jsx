@@ -3,36 +3,12 @@ import { FlatList, SafeAreaView, View, Text, ActivityIndicator } from 'react-nat
 import ChallengeCard from './ChallengeCard'; 
 import { observer } from '@legendapp/state/react';
 import { Challenge$ } from '../database/SupaLegend'; // Import the observable
-import { supabase } from '../database/supabase';
 import { ScrollView } from 'react-native-gesture-handler';
+import { useChallenges } from '../hooks/useChallenges';
 
 const ChallengeList = observer(() => {
-  const [challenges, setChallenges] = useState(null);
-  //const challenges = Challenge$.get(); 
+  const { challenges, loading, error, refetch } = useChallenges();
 
-  async function fetchChallenges() {
-    let { data: Challenge, error } = await supabase
-    .from('Challenge')
-    .select('*')
-    setChallenges(Challenge)
-  }
-
-  useEffect(() => {
-    fetchChallenges()
-  }
-  , [])
-
-
-  const channels = supabase.channel('custom-all-channel')
-  .on(
-    'postgres_changes',
-    { event: '*', schema: 'public', table: 'Challenge' },
-    (payload) => {
-      console.log('Change received!', payload)
-      fetchChallenges()
-    }
-  )
-  .subscribe()
   
   if (!challenges) {
     return (
@@ -44,16 +20,14 @@ const ChallengeList = observer(() => {
 
   return (
       <View>
-        <View className="items-center">
+        <View className="items-center mb-10">
           <Text className="text-lg">{Object.values(challenges).length} Retos Disponibles</Text>
         </View>
-        <ScrollView className="pb-64">
         <FlatList
           data={Object.values(challenges)} // Convert the state object into an array
           renderItem={({ item }) => <ChallengeCard challenge={item} />}
           keyExtractor={(item) => item.id}
         />
-     </ScrollView>
       </View>
   );
 });

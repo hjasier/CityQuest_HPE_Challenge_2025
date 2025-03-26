@@ -19,7 +19,7 @@ const ChallengeCard = ({challenge}) => {
   return (
     <TouchableOpacity 
       className="mb-4 mx-2"
-      onPress={() => navigation.navigate("ChallengeDetailsScreen", { challengeId: challenge.id })}
+      onPress={() => navigation.navigate("ChallengeDetailsScreen", { challenge: challenge })}
       activeOpacity={0.9}
     >
       <View className="bg-white rounded-xl overflow-hidden shadow-lg">
@@ -27,7 +27,7 @@ const ChallengeCard = ({challenge}) => {
         <View className="relative">
           <ImageBackground 
             source={challenge.cover_url ? { uri: challenge.cover_url } : testImg}
-            className="h-40 w-full"
+            className="h-20 w-full"
             resizeMode="cover"
           >
             {/* Overlay instead of gradient */}

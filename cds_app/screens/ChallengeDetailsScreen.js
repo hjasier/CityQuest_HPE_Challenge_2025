@@ -3,11 +3,14 @@ import React from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { ArrowLeft } from 'react-native-feather'
 import BottomSheetChallengeDetails from '../components/BottomSheetChallengeDetails'
-import { useNavigation } from '@react-navigation/native'
+import { useNavigation, useRoute } from '@react-navigation/native'
 import FixedPanel from '../components/FixedPanel'
 import FixedHeaderChallengeDetails from '../components/FixedHeaderChallengeDetails'
 
 const ChallengeDetailsScreen = () => {
+
+  const route = useRoute();
+  const challenge = route.params.challenge;
 
   const navigation = useNavigation();
 
@@ -20,9 +23,7 @@ const ChallengeDetailsScreen = () => {
       {/* Food Image */}
       <View className="w-full h-72">
         <Image
-          source={{
-            uri: 'https://images.unsplash.com/photo-1592321675774-3de57f3ee0dc?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80'
-          }}
+          source={challenge.cover_url ? { uri: challenge.cover_url } : testImg}
           className="w-full h-full"
           resizeMode="cover"
         />
