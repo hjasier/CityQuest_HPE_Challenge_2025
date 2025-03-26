@@ -174,10 +174,16 @@ values
     (3, 1),
     (3, 2),
     -- Cafetería Zubialde, tortilla 
-    (4, 1);
-
--- Puente Zubizuri, accesible en silla de ruedas
-(5, 3);
+    (4, 1),
+    -- Puente Zubizuri, accesible en silla de ruedas
+    (5, 3),
+    -- Universidad de Deusto, accesible en silla de ruedas
+    (6, 3),
+    -- Plaza Federico Moyúa, accesible en silla de ruedas
+    (7, 3),
+    -- Parque de Doña Casilda Iturrizar, accesible en silla de ruedas y pet friendly
+    (8, 3),
+    (8, 4);
 
 INSERT INTO
     "Challenge"
