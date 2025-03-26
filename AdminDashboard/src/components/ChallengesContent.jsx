@@ -344,187 +344,236 @@ const ChallengesContent = () => {
         )}
       </div>
 
-      {/* Modal for Add/Edit Challenge - Simplified to match other components */}
+      {/* Modal for Add/Edit Challenge */}
       {showModal && (
-        <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg w-full max-w-2xl max-h-screen overflow-y-auto p-6">
-            <h2 className="text-xl font-bold mb-4">
-              {currentChallenge.id ? 'Editar Reto' : 'Añadir Nuevo Reto'}
-            </h2>
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-all duration-300 ease-in-out">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl border border-gray-100 dark:border-gray-700">
+            {/* Header */}
+            <div className="p-6 border-b border-gray-100 dark:border-gray-700 sticky top-0 bg-white dark:bg-gray-800 z-10">
+              <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
+                {currentChallenge.completions === 0 ? 'Añadir Nuevo Reto' : 'Editar Reto'}
+              </h2>
+              <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">
+                Completa los detalles para {currentChallenge.completions === 0 ? 'crear un nuevo reto' : 'actualizar este reto'}
+              </p>
+            </div>
             
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Título</label>
-                <input
-                  type="text"
-                  className="w-full px-3 py-2 border rounded-lg"
-                  placeholder="Ingresa un título atractivo"
-                  value={currentChallenge.title}
-                  onChange={(e) => setCurrentChallenge({...currentChallenge, title: e.target.value})}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
-                <textarea
-                  className="w-full px-3 py-2 border rounded-lg"
-                  rows="3"
-                  placeholder="Describe el reto de manera clara y motivadora"
-                  value={currentChallenge.description}
-                  onChange={(e) => setCurrentChallenge({...currentChallenge, description: e.target.value})}
-                ></textarea>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
+            {/* Form Content */}
+            <div className="p-6 space-y-6">
+              <div className="space-y-5">
+                {/* Title */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Puntos</label>
-                  <div className="flex items-center border rounded-lg px-3 py-2">
-                    <Award size={18} className="text-gray-400 mr-2" />
-                    <input
-                      type="number"
-                      className="w-full outline-none"
-                      min="0"
-                      step="5"
-                      placeholder="50"
-                      value={currentChallenge.points}
-                      onChange={(e) => setCurrentChallenge({...currentChallenge, points: parseInt(e.target.value)})}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Duración</label>
-                  <div className="flex items-center border rounded-lg px-3 py-2">
-                    <Clock size={18} className="text-gray-400 mr-2" />
-                    <input
-                      type="text"
-                      className="w-full outline-none"
-                      placeholder="2 horas"
-                      value={currentChallenge.duration}
-                      onChange={(e) => setCurrentChallenge({...currentChallenge, duration: e.target.value})}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Estado</label>
-                  <select
-                    className="w-full px-3 py-2 border rounded-lg"
-                    value={currentChallenge.status}
-                    onChange={(e) => setCurrentChallenge({...currentChallenge, status: e.target.value})}
-                  >
-                    <option value="Activo">Activo</option>
-                    <option value="Inactivo">Inactivo</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Dificultad</label>
-                  <select
-                    className="w-full px-3 py-2 border rounded-lg"
-                    value={currentChallenge.difficulty}
-                    onChange={(e) => setCurrentChallenge({...currentChallenge, difficulty: e.target.value})}
-                  >
-                    {difficulties.map(difficulty => (
-                      <option key={difficulty} value={difficulty}>{difficulty}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
-                <select
-                  className="w-full px-3 py-2 border rounded-lg"
-                  value={currentChallenge.category}
-                  onChange={(e) => setCurrentChallenge({...currentChallenge, category: e.target.value})}
-                >
-                  {categories.map(category => (
-                    <option key={category} value={category}>{category}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Ubicación</label>
-                <select
-                  className="w-full px-3 py-2 border rounded-lg"
-                  value={currentChallenge.location || ''}
-                  onChange={(e) => setCurrentChallenge({
-                    ...currentChallenge, 
-                    location: e.target.value ? parseInt(e.target.value) : null
-                  })}
-                >
-                  <option value="">Sin ubicación específica</option>
-                  {locations.map(location => (
-                    <option key={location.id} value={location.id}>{location.name}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">URL de Imagen</label>
-                <div className="flex items-center border rounded-lg px-3 py-2">
-                  <Image size={18} className="text-gray-400 mr-2" />
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Título</label>
                   <input
                     type="text"
-                    className="w-full outline-none"
-                    placeholder="https://example.com/image.jpg"
-                    value={currentChallenge.coverUrl || ''}
-                    onChange={(e) => setCurrentChallenge({...currentChallenge, coverUrl: e.target.value})}
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none"
+                    placeholder="Ingresa un título atractivo"
+                    value={currentChallenge.title}
+                    onChange={(e) => setCurrentChallenge({...currentChallenge, title: e.target.value})}
                   />
                 </div>
-              </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Fecha de expiración</label>
-                <div className="flex items-center border rounded-lg px-3 py-2">
-                  <Calendar size={18} className="text-gray-400 mr-2" />
-                  <input
-                    type="date"
-                    className="w-full outline-none"
-                    value={currentChallenge.expiration_date ? new Date(currentChallenge.expiration_date).toISOString().split('T')[0] : ''}
-                    onChange={(e) => setCurrentChallenge({...currentChallenge, expiration_date: new Date(e.target.value).toISOString()})}
-                  />
+                {/* Description */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Descripción</label>
+                  <textarea
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none resize-none"
+                    rows="3"
+                    placeholder="Describe el reto de manera clara y motivadora"
+                    value={currentChallenge.description}
+                    onChange={(e) => setCurrentChallenge({...currentChallenge, description: e.target.value})}
+                  ></textarea>
+                </div>
+
+                {/* Points and Duration */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Puntos</label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none"
+                        min="0"
+                        step="5"
+                        placeholder="50"
+                        value={currentChallenge.points}
+                        onChange={(e) => setCurrentChallenge({...currentChallenge, points: parseInt(e.target.value)})}
+                      />
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M16 8h-6.5a2.5 2.5 0 0 0 0 5h3a2.5 2.5 0 0 1 0 5H6"/><path d="M12 18v2"/><path d="M12 6v2"/></svg>
+                      </span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Duración</label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none"
+                        placeholder="2 horas"
+                        value={currentChallenge.duration}
+                        onChange={(e) => setCurrentChallenge({...currentChallenge, duration: e.target.value})}
+                      />
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Status and Difficulty */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Estado</label>
+                    <div className="relative">
+                      <select
+                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none appearance-none"
+                        value={currentChallenge.status}
+                        onChange={(e) => setCurrentChallenge({...currentChallenge, status: e.target.value})}
+                      >
+                        <option value="Activo">Activo</option>
+                        <option value="Inactivo">Inactivo</option>
+                      </select>
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m9 12 2 2 4-4"/></svg>
+                      </span>
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                      </span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Dificultad</label>
+                    <div className="relative">
+                      <select
+                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none appearance-none"
+                        value={currentChallenge.difficulty}
+                        onChange={(e) => setCurrentChallenge({...currentChallenge, difficulty: e.target.value})}
+                      >
+                        {difficulties.map(difficulty => (
+                          <option key={difficulty} value={difficulty}>{difficulty}</option>
+                        ))}
+                      </select>
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 3v12"/><path d="m16 7 2 2-2 2"/><path d="M8 7H4"/><path d="M12 21v-8a4 4 0 0 1 4-4h.5"/></svg>
+                      </span>
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Category */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Categoría</label>
+                  <div className="relative">
+                    <select
+                      className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none appearance-none"
+                      value={currentChallenge.category}
+                      onChange={(e) => setCurrentChallenge({...currentChallenge, category: e.target.value})}
+                    >
+                      {categories.map(category => (
+                        <option key={category} value={category}>{category}</option>
+                      ))}
+                    </select>
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>
+                    </span>
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                    </span>
+                  </div>
+                </div>
+
+                {/* Image Upload */}
+                <div className="bg-gray-50 dark:bg-gray-700/30 p-5 rounded-xl border border-dashed border-gray-300 dark:border-gray-600">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Imagen</label>
+                  <div className="flex items-center justify-center w-full">
+                    <label className="flex flex-col items-center justify-center w-full h-28 bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 border-dashed rounded-xl cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-600/50 transition-all">
+                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 mb-2"><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7"/><line x1="16" y1="5" x2="22" y2="5"/><line x1="19" y1="2" x2="19" y2="8"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          <span className="font-semibold">Haz clic para subir</span> o arrastra y suelta
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">SVG, PNG, JPG o GIF</p>
+                      </div>
+                      <input 
+                        type="file" 
+                        accept="image/*"
+                        className="hidden" 
+                        onChange={(e) => setCurrentChallenge({...currentChallenge, image: e.target.files[0]})}
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                {/* Image URL */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">URL de Imagen</label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none"
+                      placeholder="https://example.com/image.jpg"
+                      value={currentChallenge.coverUrl || ''}
+                      onChange={(e) => setCurrentChallenge({...currentChallenge, coverUrl: e.target.value})}
+                    />
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                    </span>
+                  </div>
+                </div>
+
+                {/* Expiration Date */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Fecha de expiración</label>
+                  <div className="relative">
+                    <input
+                      type="date"
+                      className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none"
+                      value={currentChallenge.expiration_date ? new Date(currentChallenge.expiration_date).toISOString().split('T')[0] : ''}
+                      onChange={(e) => setCurrentChallenge({...currentChallenge, expiration_date: new Date(e.target.value).toISOString()})}
+                    />
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M8 3v3"/><path d="M16 3v3"/><path d="M3 9h18"/></svg>
+                    </span>
+                  </div>
+                </div>
+
+                {/* Repeatable Toggle */}
+                <div className="flex items-center">
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input 
+                      type="checkbox" 
+                      id="repeatable" 
+                      className="sr-only peer"
+                      checked={currentChallenge.repeatable || false}
+                      onChange={(e) => setCurrentChallenge({...currentChallenge, repeatable: e.target.checked})}
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-500/20 dark:peer-focus:ring-blue-500/30 rounded-full peer dark:bg-gray-600 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-500"></div>
+                    <span className="ml-3 text-sm font-medium text-gray-700 dark:text-gray-300">Reto repetible</span>
+                  </label>
                 </div>
               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Imagen</label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="w-full px-3 py-2 border rounded-lg"
-                  onChange={(e) => setCurrentChallenge({...currentChallenge, image: e.target.files[0]})}
-                />
-              </div>
-
-              <div className="flex items-center mt-3">
-                <input
-                  type="checkbox"
-                  id="repeatable"
-                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                  checked={currentChallenge.repeatable || false}
-                  onChange={(e) => setCurrentChallenge({...currentChallenge, repeatable: e.target.checked})}
-                />
-                <label htmlFor="repeatable" className="ml-2 text-sm font-medium text-gray-700">
-                  Reto repetible
-                </label>
-              </div>
-
-              <div className="flex justify-end space-x-2 pt-4">
+            </div>
+            
+            {/* Footer */}
+            <div className="p-6 border-t border-gray-100 dark:border-gray-700 sticky bottom-0 bg-white dark:bg-gray-800 z-10">
+              <div className="flex flex-col sm:flex-row justify-end gap-3">
                 <button
-                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg"
+                  className="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-gray-300/30 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 dark:focus:ring-gray-500/30"
                   onClick={() => setShowModal(false)}
                 >
                   Cancelar
                 </button>
                 <button
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg"
+                  className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/30 flex items-center justify-center"
                   onClick={handleSave}
                 >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
                   Guardar
                 </button>
               </div>
