@@ -5,7 +5,7 @@ import React, { useState, useEffect } from 'react';
 import * as Location from 'expo-location';
 import ChallengeReviews from './ChallengeReviews';
 import MapboxGL from '@rnmapbox/maps';
-
+import WKB from "ol/format/WKB";
 
 const ChallengeDetails = ({challenge}) => {
   const [location, setLocation] = useState(null);
@@ -29,7 +29,33 @@ const ChallengeDetails = ({challenge}) => {
     })();
   }, []);
 
+  console.log(challenge.Location?.point)
+  console.log(challenge.Location?.latitude)
+  console.log(challenge.Location?.longitude)
 
+  // Convertir HEX a Uint8Array
+  const hexToUint8Array = (hex) => {
+    return new Uint8Array(
+      hex.match(/.{1,2}/g).map((byte) => parseInt(byte, 16))
+    );
+  };
+
+  // Parsear WKB
+  const parseWKB = (hex) => {
+    const wkb = new WKB();
+    const feature = wkb.readFeature(hexToUint8Array(hex));
+    if (feature) {
+      const [longitude, latitude] = feature.getGeometry().getCoordinates();
+      return { latitude, longitude };
+    }
+    return null;
+  };
+
+
+  const coordinates = parseWKB(challenge.Location?.point);
+
+
+    
   return (
     <View className="flex-1">
       {/* Challenge Description */}
@@ -52,11 +78,11 @@ const ChallengeDetails = ({challenge}) => {
           styleURL='mapbox://styles/asiier/cm86e6z8s007t01safl5m10hl/draft'
         >
         <MapboxGL.Camera animationDuration={0} 
-        centerCoordinate={[challenge.Location?.longitude, challenge.Location?.latitude]} 
+        centerCoordinate={[coordinates.longitude, coordinates.latitude]} 
         zoomLevel={14} />
         <MapboxGL.PointAnnotation
           id="pointAnnotation"
-          coordinate={[challenge.Location?.longitude, challenge.Location?.latitude]}
+          coordinate={[coordinates.longitude, coordinates.latitude]}
         >
           <MapPin stroke="#2AF" fill="#000" />
         </MapboxGL.PointAnnotation>

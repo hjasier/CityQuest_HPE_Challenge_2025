@@ -23,6 +23,14 @@ class AssistantFnc(llm.FunctionContext):
         return f"Calculando la ruta a {destination}..."
     
     
+    
+    
+    
+    
+    
+    
+    
+    
     @llm.ai_callable(description="Pedir información sobre un lugar o edificio")
     def ask_info(self, place: Annotated[str, llm.TypeInfo(description="Nombre del lugar o edificio")]):
         logging.info(f"Pidiendo información sobre {place}...")
