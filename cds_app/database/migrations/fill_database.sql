@@ -55,7 +55,7 @@ values
     (
         default,
         gis.ST_GeogFromText('POINT(-2.934015 43.268687)'),
-        'Museo de Bellas Artes de Bilbao',
+        'Museo Guggenheim',
         'Museo de titanio y cristal luminoso, diseñado por Frank Gehry, que alberga obras de arte del s. XX.',
         NULL,
         2,
@@ -63,6 +63,7 @@ values
         '2',
         'Abandoibarra Etorb., 2, Abando, 48009 Bilbao, Bizkaia',
         '2025-03-19 22:04:55.977464' :: TIMESTAMP,
+        'informacion@guggenheim-bilbao.eus',
         '944 35 90 80',
         'Martes a domingo: 10:00 - 19:00, Lunes: Cerrado'
     ),
@@ -145,7 +146,7 @@ values
     ),
     (
         default,
-        gis.ST_GeogFromText('POINT(43.26572324429727, -2.9405460472896454)'),
+        gis.ST_GeogFromText('POINT(-2.940546 43.265723)'),
         'Parque de Doña Casilda Iturrizar',
         'Parque urbano de 1907 con estanques, jardines, una pérgola y un parque infantil.',
         NULL,
