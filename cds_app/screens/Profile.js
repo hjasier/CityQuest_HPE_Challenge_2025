@@ -40,6 +40,11 @@ const Profile = () => {
     } 
     }
 
+    async function signOut() {
+    await supabase.auth.signOut()
+    }
+
+
   // Placeholder functions
   const handleLogout = () => {
     Alert.alert(
@@ -47,7 +52,7 @@ const Profile = () => {
       "Are you sure you want to log out?",
       [
         { text: "Cancel", style: "cancel" },
-        { text: "Yes", onPress: () => console.log("User logged out") }
+        { text: "Yes", onPress: () => signOut() }
       ]
     )
   }
@@ -57,13 +62,11 @@ const Profile = () => {
   }
   
   const handleCreateGroup = () => {
-    // Navigate to create group screen
-    console.log("Navigate to create group")
+    navigation.navigate("CreateCollaborativeGroup");
   }
   
   const handleJoinGroup = () => {
-    // Navigate to join group screen
-    console.log("Navigate to join group")
+    navigation.navigate("JoinGroupScreen");
   }
 
   return (

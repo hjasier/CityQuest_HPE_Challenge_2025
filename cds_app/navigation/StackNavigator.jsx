@@ -11,6 +11,9 @@ import Route from '../screens/Route';
 import AIButton from "../components/AIButton";
 import MapRouteComponent from '../components/MapRouteComponent';
 import Account from '../screens/Account';
+import CreateCollaborativeGroup from '../screens/CreateCollaborativeGroup';
+import JoinGroupScreen from '../screens/JoinGroupScreen';
+import MyGroupScreen from '../screens/MyGroupScreen';
 
 const Stack = createStackNavigator();
 
@@ -35,6 +38,9 @@ const StackNavigator = () => {
         <Stack.Screen name="Route" component={Route} options={{ headerShown: false }} />
         <Stack.Screen name="MapRouteComponent" component={MapRouteComponent} options={{ headerShown: false }} />
         <Stack.Screen name="Account" component={Account} options={{ headerShown: false }} />
+        <Stack.Screen name="CreateCollaborativeGroup" component={CreateCollaborativeGroup} options={{ headerShown: false }} />
+        <Stack.Screen name="JoinGroupScreen" component={JoinGroupScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="MyGroupScreen" component={MyGroupScreen} options={{ headerShown: false }} />
 
       </Stack.Navigator>
 
