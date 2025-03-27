@@ -3,13 +3,19 @@ import { View, TouchableOpacity, Text, Dimensions } from "react-native";
 import MapGoogle from "../components/MapGoogle";
 import MapMapBox from "../components/MapMapBox";
 import BottomSheetComponent from "../components/BottomSheet";
-import TestWebSock from "../components/TestWebSock";
+import { useCurrentChallenge } from "../hooks/useCurrentChallenge";
+import CurrentChallengeNav from "../components/CurrentChallengeNav";
 
 const MapScreen = () => {
+
+  const {currentChallenge } = useCurrentChallenge();
 
   return (
     <View className="flex-1 relative">
       {/* Mapa en el fondo */}
+      {currentChallenge && (
+        <CurrentChallengeNav />
+      )}
       <MapMapBox />
       <BottomSheetComponent />
     </View>

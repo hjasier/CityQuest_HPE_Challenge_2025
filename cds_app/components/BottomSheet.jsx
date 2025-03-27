@@ -14,8 +14,8 @@ const BottomSheetComponent = ({ bottomSheetRef }) => {
       ref={sheetRef}
       snapPoints={snapPoints}
       onClose={() => setIsOpen(false)}
-      backgroundStyle={styles.bottomSheet}  // Aplica el fondo rojo a todo el BottomSheet
-      handleStyle={styles.handle}  // Personaliza la barra superior
+      backgroundStyle={styles.bottomSheet}
+      handleStyle={styles.handle} 
     >
       <BottomSheetView style={styles.bottomSheetContent}>
         <ChallengesList />

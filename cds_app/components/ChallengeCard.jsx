@@ -36,13 +36,13 @@ const ChallengeCard = ({challenge}) => {
             {/* Challenge Type Badge */}
             <View className="absolute top-3 left-3 px-3 py-1 bg-yellow-400 rounded-full flex-row items-center">
               <Icon 
-                name={challenge.type === 1 ? "hamburger" : "walking"} 
+                name={challenge.type === 1 ? "hamburger" : "monument"} 
                 type="font-awesome-5" 
                 color="#333" 
                 size={14} 
               />
               <Text className="text-xs font-bold text-gray-800 ml-1">
-                {challenge.type === 1 ? "Food" : "Activity"}
+                {challenge.type === 1 ? "Local Food" : "Visita"}
               </Text>
             </View>
             
@@ -57,7 +57,7 @@ const ChallengeCard = ({challenge}) => {
             <View className="absolute bottom-3 right-3 flex-row items-center z-10">
               <Icon name="clock" type="font-awesome-5" color="white" size={12} />
               <Text className="text-xs text-white ml-1">
-                Expires: {formatExpirationDate(challenge.expiration_date)}
+                Expira: {formatExpirationDate(challenge.expiration_date)}
               </Text>
             </View>
           </ImageBackground>
@@ -72,7 +72,7 @@ const ChallengeCard = ({challenge}) => {
           </Text>
           
           {/* Action Buttons */}
-          <View className="flex-row justify-between mb-4">
+          {/* <View className="flex-row justify-between mb-4">
             <TouchableOpacity 
               className="bg-green-500 rounded-lg px-4 py-2 flex-row items-center"
               activeOpacity={0.8}
@@ -88,7 +88,7 @@ const ChallengeCard = ({challenge}) => {
               <Icon name="list" type="font-awesome-5" color="white" size={14} />
               <Text className="text-white font-semibold ml-2">Checkpoints</Text>
             </TouchableOpacity>
-          </View>
+          </View> */}
           
           {/* Stats Row */}
           <View className="flex-row justify-between px-2 pt-3 border-t border-gray-100">

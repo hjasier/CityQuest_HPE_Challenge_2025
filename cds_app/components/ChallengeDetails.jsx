@@ -5,7 +5,7 @@ import React, { useState, useEffect } from 'react';
 import * as Location from 'expo-location';
 import ChallengeReviews from './ChallengeReviews';
 import MapboxGL from '@rnmapbox/maps';
-import WKB from "ol/format/WKB";
+import { useWKBCoordinates } from '../hooks/useWKBCoordinates';
 
 const ChallengeDetails = ({challenge}) => {
   const [location, setLocation] = useState(null);
@@ -33,26 +33,8 @@ const ChallengeDetails = ({challenge}) => {
   console.log(challenge.Location?.latitude)
   console.log(challenge.Location?.longitude)
 
-  // Convertir HEX a Uint8Array
-  const hexToUint8Array = (hex) => {
-    return new Uint8Array(
-      hex.match(/.{1,2}/g).map((byte) => parseInt(byte, 16))
-    );
-  };
 
-  // Parsear WKB
-  const parseWKB = (hex) => {
-    const wkb = new WKB();
-    const feature = wkb.readFeature(hexToUint8Array(hex));
-    if (feature) {
-      const [longitude, latitude] = feature.getGeometry().getCoordinates();
-      return { latitude, longitude };
-    }
-    return null;
-  };
-
-
-  const coordinates = parseWKB(challenge.Location?.point);
+  const coordinates = useWKBCoordinates(challenge.Location?.point);
 
 
     

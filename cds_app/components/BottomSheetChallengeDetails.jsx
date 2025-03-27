@@ -52,7 +52,7 @@ const BottomSheetChallengeDetails = ({ bottomSheetRef }) => {
     if (!priority) return 'Normal';
     if (priority <= 1) return 'Fácil';
     if (priority <= 2) return 'Medio';
-    return 'Difícil';
+    return 'Fácil';
   };
 
   // Loading state UI

@@ -31,7 +31,9 @@ const ChallengeDetailsScreen = () => {
 
       {/* Bottom Sheet with Challenge Details */}
       <BottomSheetChallengeDetails />
-      <FixedPanel />
+
+      {/* Complete and route buttons nav */}
+      <FixedPanel challenge={challenge} />
     </View>
   )
 }
