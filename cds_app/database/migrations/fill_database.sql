@@ -158,6 +158,22 @@ values
         NULL,
         NULL,
         NULL
+    ),
+    -- Rutas
+    (
+        default,
+        gis.ST_GeogFromText('POINT(-2.943952 43.265817)'),
+        'Paseo por la ría',
+        'Paseo por la ría, desde el parque de Doña Casilda hasta Elorrieta',
+        NULL,
+        5,
+        NULL,
+        '2',
+        'Abando, 48009 Bilbao, Bizkaia',
+        NULL,
+        NULL,
+        NULL,
+        NULL
     );
 
 INSERT INTO
@@ -185,6 +201,34 @@ values
     -- Parque de Doña Casilda Iturrizar, accesible en silla de ruedas y pet friendly
     (8, 3),
     (8, 4);
+
+INSERT INTO
+    "TransportMedium"
+values
+    (default, "Foot", 10),
+    (default, "Bike", 10),
+    (default, "Car", 2),
+    (default, "Public transport", 7),
+    (default, "Boat", 4);
+
+INSERT INTO
+    "Route"
+values
+    (
+        default,
+        9,
+        gis.ST_GeogFromText(
+            'LINESTRING(-2.943952 43.265817, -2.944196 43.265896, -2.944147 43.266087, -2.944248 43.266350, -2.944827 43.266226, -2.945477 43.266492, -2.945778 43.266533, -2.946423 43.267486, -2.947039 43.267838, -2.947665 43.267930, -2.949428 43.267594, -2.949657 43.267053, -2.950046 43.266904, -2.951721 43.267226, -2.952550 43.267376, -2.953315 43.267580, -2.954115 43.267870, -2.955554 43.268371, -2.955933 43.268561, -2.956177 43.268642, -2.956300 43.268743, -2.956905 43.268938, -2.958382 43.269735, -2.959727 43.270731, -2.960776 43.271767, -2.961361 43.272537, -2.961787 43.273255, -2.962835 43.275214, -2.963873 43.277093, -2.964884 43.279037, -2.964403 43.279194, -2.966700 43.283479, -2.966922 43.283572)'
+        ),
+        3100
+    );
+
+INSERT INTO
+    "RouteTransportMedium"
+VALUES
+    -- Ruta 1, a pie, en bici
+    (1, 1),
+    (1, 2);
 
 INSERT INTO
     "Challenge"
