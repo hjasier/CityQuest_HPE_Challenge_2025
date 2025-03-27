@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity } from 'react-native'
+import { View, Text, TouchableOpacity, Vibration } from 'react-native'
 import React from 'react'
 import { useCurrentChallenge } from '../hooks/useCurrentChallenge';
 import { CheckCircle, Navigation2, X } from 'react-native-feather';
@@ -16,12 +16,14 @@ const CurrentChallengeNav = () => {
   console.log(currentRoute)
   
   const abandonChallenge = () => {
-    setCurrentChallenge(null);
-    setCurrentRoute(null);
-    setCurrentGeometryRoute(null);
-  }
+      setCurrentChallenge(null);
+      setCurrentRoute(null);
+      setCurrentGeometryRoute(null);
+      Vibration.vibrate();
+    }
 
     const completeChallenge = () => {
+      Vibration.vibrate();  
       if (currentChallenge?.completion_type === 'QR') {
         // Navigate to QR screen
         navigation.navigate("ChallengeScanQRScreen");

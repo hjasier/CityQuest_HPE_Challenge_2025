@@ -66,7 +66,7 @@ const Map = () => {
               { coordinates: currentRoute.startCoordinates }, 
               { coordinates: currentRoute.endCoordinates }
             ],
-            profile: currentRoute.profile || 'driving',
+            profile: currentRoute.profile || 'walking',
             geometries: 'geojson'
           }).send();
 
