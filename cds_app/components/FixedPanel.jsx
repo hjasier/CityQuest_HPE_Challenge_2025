@@ -25,7 +25,7 @@ const FixedPanel = ({challenge}) => {
       setCurrentRoute({
         startCoordinates: [location.coords.longitude, location.coords.latitude], // User's current coordinates
         endCoordinates: [coordinates.longitude, coordinates.latitude], // Challenge coordinates
-        profile: 'driving'
+        profile: 'walking'
       });
 
       setCurrentChallenge(challenge);

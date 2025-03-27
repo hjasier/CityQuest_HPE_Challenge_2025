@@ -10,6 +10,7 @@ import AIChatScreen from '../screens/AIChatScreen';
 import Route from '../screens/Route';
 import AIButton from "../components/AIButton";
 import MapRouteComponent from '../components/MapRouteComponent';
+import Account from '../screens/Account';
 
 const Stack = createStackNavigator();
 
@@ -33,6 +34,8 @@ const StackNavigator = () => {
         <Stack.Screen name="AIChatScreen" component={AIChatScreen} options={{ headerShown: false }} />
         <Stack.Screen name="Route" component={Route} options={{ headerShown: false }} />
         <Stack.Screen name="MapRouteComponent" component={MapRouteComponent} options={{ headerShown: false }} />
+        <Stack.Screen name="Account" component={Account} options={{ headerShown: false }} />
+
       </Stack.Navigator>
 
       {/* Botón de asistente de voz */}

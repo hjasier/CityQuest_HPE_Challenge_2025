@@ -6,10 +6,11 @@ import { Icon } from '@rneui/themed'
 import MapScreen from '../screens/MapScreen';
 import ChallengeDetailsScreen from '../screens/ChallengeDetailsScreen';
 import LeaderboardScreen from '../screens/LeaderboardScreen';
-import Account from '../components/Account';
+import Account from '../screens/Account';
 import CTabBar from '../components/CTabBar';
 import LeaderBoard2Screen from '../screens/LeaderBoard2Screen';
 import FeedScreen from '../screens/FeedScreen';
+import Profile from '../screens/Profile';
 
 
 
@@ -59,7 +60,7 @@ const TabNavigator = () => {
         else if (route.name === 'Leaderboard') {
           return <Icon name="trophy" type="font-awesome-5" color={focused ? "#36BFF9":"gray"} size={iconSize} />
         }
-        else if (route.name === 'TEST') {
+        else if (route.name === 'Profile') {
           return <Icon name="comment" type="font-awesome-5" color={focused ? "#36BFF9":"gray"} size={iconSize} />
         }
       }
@@ -69,7 +70,7 @@ const TabNavigator = () => {
       <Tab.Screen name="Explore" component={MapScreen} options={{headerShown:false}}/>
       <Tab.Screen name="Leaderboard" component={LeaderBoard2Screen} options={{headerShown:false}}/>
       <Tab.Screen name="Feed" component={FeedScreen} options={{headerShown:false}} />
-      <Tab.Screen name="TEST" component={Account} options={{headerShown:false}}/>
+      <Tab.Screen name="Profile" component={Profile} options={{headerShown:false}}/>
 
     </Tab.Navigator>
   )

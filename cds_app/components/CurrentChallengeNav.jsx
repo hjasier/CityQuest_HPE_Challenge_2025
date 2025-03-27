@@ -4,15 +4,21 @@ import { useCurrentChallenge } from '../hooks/useCurrentChallenge';
 import { CheckCircle, Navigation2, X } from 'react-native-feather';
 import { useNavigation } from '@react-navigation/native';
 import { useCurrentRoute } from '../hooks/useCurrentRoute';
+import { useCurrentGeometryRoute } from '../hooks/useCurrentGeometryRoute';
+import { set } from 'lodash';
 
 const CurrentChallengeNav = () => {
   const {currentChallenge , setCurrentChallenge } = useCurrentChallenge();
-  const { setCurrentRoute } = useCurrentRoute();
+  const { currentRoute, setCurrentRoute } = useCurrentRoute();
+  const { currentGeometryRoute , setCurrentGeometryRoute } = useCurrentGeometryRoute();
   const navigation = useNavigation();
+
+  console.log(currentRoute)
   
   const abandonChallenge = () => {
     setCurrentChallenge(null);
     setCurrentRoute(null);
+    setCurrentGeometryRoute(null);
   }
 
     const completeChallenge = () => {
@@ -35,7 +41,7 @@ const CurrentChallengeNav = () => {
           {currentChallenge?.name?.slice(0, 20) || 'Desafío actual'}
           {currentChallenge?.name?.length > 20 ? '...' : ''}
           </Text>
-          <Text className="text-sm font-medium text-blue-500">250 metros restantes</Text>
+          <Text className="text-sm font-medium text-blue-500">{Math.round(currentGeometryRoute?.distance || 0)} metros restantes</Text>
         </View>
       </View>
       

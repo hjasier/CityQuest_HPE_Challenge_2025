@@ -80,7 +80,7 @@ const CTabBar = ({ state, descriptors, navigation }) => {
       case 'Explore': return 'compass';
       case 'Feed': return 'rss';
       case 'Leaderboard': return 'crown';
-      case 'TEST': return 'user';
+      case 'Profile': return 'user';
       default: return 'circle';
     }
   };

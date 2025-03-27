@@ -10,8 +10,8 @@ import { useNavigation } from '@react-navigation/native';
 import { Vibration } from 'react-native';
 import { Icon } from '@rneui/base';
 import MapboxDirections from '@mapbox/mapbox-sdk/services/directions';
-import { useCurrentRouteStore } from '../hooks/useCurrentRoute';
-
+import { useCurrentRoute, useCurrentRouteStore } from '../hooks/useCurrentRoute';
+import { useCurrentGeometryRoute } from '../hooks/useCurrentGeometryRoute';
 
 MapboxGL.setAccessToken(MAPBOX_ACCESS_TOKEN);
 
@@ -27,7 +27,9 @@ const Map = () => {
   const navigation = useNavigation();
   
 
-  const currentRoute = useCurrentRouteStore(state => state.currentRoute);
+  const { currentRoute } = useCurrentRoute();
+  const { setCurrentGeometryRoute } = useCurrentGeometryRoute();
+  
 
   console.log('RUTA DISPONIBLE:', currentRoute? 'SI' : 'NO');
   
@@ -71,6 +73,7 @@ const Map = () => {
           // Extract the route from the response
           const newRoute = response.body.routes[0];
           setRouteGeometry(newRoute);
+          setCurrentGeometryRoute(newRoute);
 
           // Adjust camera to fit the route
           if (cameraRef.current) {
@@ -223,7 +226,7 @@ const Map = () => {
               );
             })}
   
-            {/* RENDERIZAR LA  RUTA SI EXISTE ROUTE EN HOOK */}
+            {/* RENDERIZAR LA RUTA SI EXISTE ROUTE EN HOOK */}
             {(currentRoute && routeGeometry) && (
               <MapboxGL.ShapeSource
                 id="routeSource"
@@ -232,12 +235,27 @@ const Map = () => {
                   geometry: routeGeometry.geometry
                 }}
               >
+                {/* Gradient Effect with Multiple Line Layers */}
                 <MapboxGL.LineLayer
-                  id="routeLine"
+                  id="routeLineBackground"
                   style={{
-                    lineColor: 'blue',
+                    lineColor: 'rgba(41, 128, 255, 0.2)', // Soft blue background
+                    lineWidth: 8,
+                    lineOpacity: 0.5,
+                    lineCap: 'round',
+                    lineJoin: 'round'
+                  }}
+                />
+                <MapboxGL.LineLayer
+                  id="routeLineForeground"
+                  style={{
+                    lineColor: 'rgba(41, 128, 255, 0.8)', // Brighter blue foreground
                     lineWidth: 4,
-                    lineOpacity: 0.7
+                    lineOpacity: 0.8,
+                    lineCap: 'round',
+                    lineJoin: 'round',
+                    // Add a dash pattern for a more organic feel
+                    lineDasharray: [2, 2]
                   }}
                 />
               </MapboxGL.ShapeSource>
