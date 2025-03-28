@@ -251,7 +251,9 @@ INSERT INTO
 VALUES
     -- Ruta 1, a pie, en bici
     (1, 1),
-    (1, 2);
+    (1, 2),
+    -- Ruta 2, a pie
+    (2, 1);
 
 INSERT INTO
     "CompletionType"
