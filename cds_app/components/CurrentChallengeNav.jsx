@@ -3,32 +3,22 @@ import React from 'react'
 import { useCurrentChallenge } from '../hooks/useCurrentChallenge';
 import { CheckCircle, Navigation2, X } from 'react-native-feather';
 import { useNavigation } from '@react-navigation/native';
-import { useCurrentRoute } from '../hooks/useCurrentRoute';
 import { useCurrentGeometryRoute } from '../hooks/useCurrentGeometryRoute';
 import { set } from 'lodash';
+import useChallengeCompletion from '../hooks/useChallengeCompletion';
 
 const CurrentChallengeNav = () => {
   const {currentChallenge , setCurrentChallenge } = useCurrentChallenge();
-  const { currentRoute, setCurrentRoute } = useCurrentRoute();
   const { currentGeometryRoute , setCurrentGeometryRoute } = useCurrentGeometryRoute();
+  const { abandonChallenge, navigateToChallengeCompletion } = useChallengeCompletion(navigation);
+
   const navigation = useNavigation();
 
-  console.log(currentRoute)
-  
-  const abandonChallenge = () => {
-      setCurrentChallenge(null);
-      setCurrentRoute(null);
-      setCurrentGeometryRoute(null);
-      Vibration.vibrate();
-    }
 
-    const completeChallenge = () => {
-      Vibration.vibrate();  
-      if (currentChallenge?.completion_type === 'QR') {
-        // Navigate to QR screen
-        navigation.navigate("ChallengeScanQRScreen");
-      }
-    }
+  const completeChallenge = () => {
+    Vibration.vibrate();  
+    navigateToChallengeCompletion(currentChallenge);
+  }
 
   return (
     <View className="w-full bg-white bg-opacity-20 px-4 py-3 pt-10 flex-row items-center justify-between shadow-sm border-b border-gray-200">

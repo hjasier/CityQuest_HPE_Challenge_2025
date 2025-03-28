@@ -16,7 +16,6 @@ const MyGroupScreen = () => {
   const [refreshing, setRefreshing] = useState(false)
   const [group, setGroup] = useState(null)
   const [members, setMembers] = useState([])
-  const [activities, setActivities] = useState([])
   const [isAdmin, setIsAdmin] = useState(false)
   const [totalPoints, setTotalPoints] = useState(0)
   const [groupRank, setGroupRank] = useState(null)
@@ -64,7 +63,6 @@ const MyGroupScreen = () => {
         setGroup(groupData)
         await Promise.all([
           fetchGroupMembers(groupData.id),
-          fetchGroupActivities(groupData.id),
           fetchGroupRank(groupData.id)
         ])
       } else {
@@ -93,7 +91,6 @@ const MyGroupScreen = () => {
         
         await Promise.all([
           fetchGroupMembers(groupIdFromRoute),
-          fetchGroupActivities(groupIdFromRoute),
           fetchGroupRank(groupIdFromRoute)
         ])
       }
@@ -138,27 +135,7 @@ const MyGroupScreen = () => {
     }
   }
 
-  const fetchGroupActivities = async (groupId) => {
-    try {
-      const { data, error } = await supabase
-        .from('GroupActivity')
-        .select(`
-          *,
-          User:created_by (id, username, avatar_url)
-        `)
-        .eq('group_id', groupId)
-        .order('created_at', { ascending: false })
-        .limit(10)
 
-      if (error) throw error
-
-      if (data) {
-        setActivities(data)
-      }
-    } catch (error) {
-      console.error('Error fetching group activities:', error)
-    }
-  }
 
   const fetchGroupRank = async (groupId) => {
     try {
@@ -395,7 +372,7 @@ const MyGroupScreen = () => {
           <Text className="text-2xl font-bold text-blue-600">{totalPoints}</Text>
           <View className="flex-row items-center mt-1">
             <Ionicons name="trending-up" size={14} color="#10b981" />
-            <Text className="text-green-600 text-xs ml-1">+45 this week</Text>
+            <Text className="text-green-600 text-xs ml-1">+45 hoy</Text>
           </View>
         </View>
         
@@ -485,43 +462,7 @@ const MyGroupScreen = () => {
         ))}
       </View>
       
-      {/* Recent activities */}
-      {activities.length > 0 && (
-        <View className="mx-4 mb-4 bg-white rounded-xl shadow-sm">
-          <View className="p-4 border-b border-gray-100">
-            <Text className="text-lg font-bold text-gray-800">Recent Activities</Text>
-          </View>
-          
-          {activities.map((activity) => (
-            <View key={activity.id} className="p-4 border-b border-gray-100">
-              <View className="flex-row justify-between">
-                <View className="flex-row items-center flex-1">
-                  <View className="bg-green-100 p-2 rounded-lg mr-3">
-                    <Ionicons name="leaf" size={16} color="#10b981" />
-                  </View>
-                  <View className="flex-1">
-                    <Text className="text-gray-800 font-medium">{activity.description}</Text>
-                    <Text className="text-gray-500 text-xs">
-                      {new Date(activity.created_at).toLocaleDateString()}
-                    </Text>
-                  </View>
-                </View>
-                <Text className="text-green-600 font-medium">+{activity.points_earned}</Text>
-              </View>
-              
-              <View className="mt-2 flex-row items-center">
-                <Image 
-                  source={{ uri: activity.User?.avatar_url || 'https://randomuser.me/api/portraits/men/32.jpg' }}
-                  className="h-5 w-5 rounded-full mr-2"
-                />
-                <Text className="text-xs text-gray-500">
-                  By {activity.User?.username || 'Unknown User'}
-                </Text>
-              </View>
-            </View>
-          ))}
-        </View>
-      )}
+
       
       {/* Leave group option */}
       <TouchableOpacity 

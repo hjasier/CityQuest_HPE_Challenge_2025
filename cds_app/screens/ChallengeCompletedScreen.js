@@ -6,7 +6,7 @@ import { useNavigation } from "@react-navigation/native";
 
 const ChallengeCompletedScreen = ({ route }) => {
 
-  const data = route.params.data;
+  const data = route.params?.data;
   const navigation = useNavigation();
 
   return (
@@ -26,7 +26,7 @@ const ChallengeCompletedScreen = ({ route }) => {
       {/* Sección de Código */}
 
       <View className="bg-gray-800 p-3 rounded-lg max-h-20 mt-2 items-center my-3">
-        <Text className="text-green-400 font-mono">{data}</Text>
+        <Text className="text-green-400 font-mono">{data? data : ''}</Text>
       </View>
 
       {/* Botón de Continuar */}

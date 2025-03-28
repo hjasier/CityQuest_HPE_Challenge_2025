@@ -148,7 +148,7 @@ const JoinGroupScreen = () => {
         [
           { 
             text: 'View Group', 
-            onPress: () => navigation.navigate('MyGroup', { groupId: groupData.id }) 
+            onPress: () => navigation.navigate('MyGroupScreen', { groupId: groupData.id }) 
           }
         ]
       )

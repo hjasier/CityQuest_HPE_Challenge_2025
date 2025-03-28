@@ -12,6 +12,10 @@ import { Icon } from '@rneui/base';
 import MapboxDirections from '@mapbox/mapbox-sdk/services/directions';
 import { useCurrentRoute, useCurrentRouteStore } from '../hooks/useCurrentRoute';
 import { useCurrentGeometryRoute } from '../hooks/useCurrentGeometryRoute';
+import { useCurrentChallenge } from '../hooks/useCurrentChallenge';
+import ChallengeRadius from './ChallengeRadius';
+import { useProximityToChallenge } from '../hooks/useProximityToChallenge';
+import { useChallengeCompletion } from '../hooks/useChallengeCompletion';
 
 MapboxGL.setAccessToken(MAPBOX_ACCESS_TOKEN);
 
@@ -25,7 +29,8 @@ const Map = () => {
   const { challenges, loading, error, refetch } = useChallenges();
   const [mapLoaded, setMapLoaded] = useState(false);
   const navigation = useNavigation();
-  
+  const { currentChallenge } = useCurrentChallenge();
+  const { navigateCompleted } = useChallengeCompletion(navigation);
 
   const { currentRoute } = useCurrentRoute();
   const { setCurrentGeometryRoute } = useCurrentGeometryRoute();
@@ -45,8 +50,28 @@ const Map = () => {
         return;
       }
 
+      // Get initial location
       let currentLocation = await Location.getCurrentPositionAsync({});
       setLocation([currentLocation.coords.longitude, currentLocation.coords.latitude]);
+      
+      // Subscribe to location updates
+      const locationSubscription = await Location.watchPositionAsync(
+        {
+          accuracy: Location.Accuracy.High,
+          distanceInterval: 5, // Update if moved by 5 meters
+          timeInterval: 2000 // Update at most every 2 seconds
+        },
+        (newLocation) => {
+          setLocation([newLocation.coords.longitude, newLocation.coords.latitude]);
+        }
+      );
+      
+      // Clean up subscription when component unmounts
+      return () => {
+        if (locationSubscription) {
+          locationSubscription.remove();
+        }
+      };
     })();
   }, []);
 
@@ -146,12 +171,16 @@ const Map = () => {
   // Parsear WKB
   const parseWKB = (hex) => {
     const wkb = new WKB();
-    const feature = wkb.readFeature(hexToUint8Array(hex));
-    if (feature) {
-      const [longitude, latitude] = feature.getGeometry().getCoordinates();
-      return { latitude, longitude };
+    if (hex){
+      const feature = wkb.readFeature(hexToUint8Array(hex));
+      if (feature) {
+        const [longitude, latitude] = feature.getGeometry().getCoordinates();
+        return { latitude, longitude };
+      }
+      return null;
     }
     return null;
+
   };
 
   const handlePress = (challenge) => {
@@ -173,6 +202,28 @@ const Map = () => {
         return {'icon':'route','iconType':'font-awesome-5', 'text': 'Ruta','color':'#30ce17'};
     }
   }
+
+
+
+  // Call the hook at the component level
+  const isNearChallenge = useProximityToChallenge(
+    location, 
+    parseWKB(currentChallenge?.Location?.point)
+  );
+
+  // Use the result in an effect
+  useEffect(() => {
+    if (location && isNearChallenge) {
+      Vibration.vibrate(1000);
+      navigateCompleted(currentChallenge);
+    }
+  }, [location, isNearChallenge, currentChallenge]); 
+      
+
+
+
+
+
 
   return (
     <View style={styles.container}>
@@ -207,11 +258,19 @@ const Map = () => {
               pulsing={true} 
               bearingImage={puckBearingEnabled ? "headingArrow" : null}
             />
-  
+
+            {/*  RADIO DEL RETO ACTUAL */}
+            {currentChallenge && (
+              <ChallengeRadius currentChallenge={currentChallenge} />
+            )}
+
+
+
             {/*  PUNTOS DE RETOS */}
             {challenges?.map(challenge => {
               const coordinates = parseWKB(challenge.Location?.point);
               const challengeType = getChallengeType(challenge.type);
+
               return (
                 <MapboxGL.PointAnnotation
                   key={`challenge-${challenge.id}`}
@@ -225,6 +284,10 @@ const Map = () => {
                 </MapboxGL.PointAnnotation>
               );
             })}
+
+
+
+            
   
             {/* RENDERIZAR LA RUTA SI EXISTE ROUTE EN HOOK */}
             {(currentRoute && routeGeometry) && (

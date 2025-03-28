@@ -32,11 +32,15 @@
     "@rneui/themed": "^4.0.0-rc.8",
     "@rnmapbox/maps": "^10.1.37",
     "@supabase/supabase-js": "^2.49.1",
+    "@turf/circle": "^7.2.0",
+    "@turf/distance": "^7.2.0",
+    "@turf/helpers": "^7.2.0",
     "axios": "^1.7.2",
     "crypto-js": "^4.2.0",
     "expo": "~52.0.36",
     "expo-asset": "~11.0.2",
     "expo-camera": "~16.0.18",
+    "expo-clipboard": "~7.0.1",
     "expo-constants": "~17.0.4",
     "expo-dev-client": "~5.0.13",
     "expo-document-picker": "~13.0.2",
@@ -80,8 +84,7 @@
     "react-native-web": "~0.19.13",
     "socket.io-client": "^4.8.1",
     "undefined": "supabase/realtime-js",
-    "zustand": "^5.0.3",
-    "expo-clipboard": "~7.0.1"
+    "zustand": "^5.0.3"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

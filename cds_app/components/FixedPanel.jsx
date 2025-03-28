@@ -43,6 +43,10 @@ const FixedPanel = ({challenge}) => {
       // Navigate to QR screen
       navigation.navigate("ChallengeScanQRScreen");
     }
+    else if (challenge?.completion_type === 'WKB') {
+      // Navigate to WKB screen
+      navigation.navigate("CompleteWKBChallengeScreen",{challenge: challenge});
+    }
   }
 
   return (

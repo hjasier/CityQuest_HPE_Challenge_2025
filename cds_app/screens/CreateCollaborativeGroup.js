@@ -73,6 +73,9 @@ const CreateCollaborativeGroup = () => {
 
       if (adminGroup || (memberGroups && memberGroups.length > 0)) {
         // User is already in a group
+        navigation.navigate("MyGroupScreen");
+        return
+        //
         const group = adminGroup || memberGroups[0].Group
         setExistingGroup(group)
         setGroupName(group.name)

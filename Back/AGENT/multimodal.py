@@ -40,10 +40,7 @@ async def entrypoint(ctx: JobContext):
     
 
     session = model.sessions[0] 
-    # session_manager.set_session(session) 
-    # session = session_manager.get_session()
-        
-    
+
     session.conversation.item.create(
         llm.ChatMessage(
             role="assistant",
