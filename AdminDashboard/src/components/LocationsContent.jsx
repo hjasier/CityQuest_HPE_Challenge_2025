@@ -3,9 +3,14 @@ import { Plus, Search, Filter, Edit, Trash2, MapPin, Phone, Clock, ListFilter, M
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { supabase } from '../hooks/supabaseClient';
+// Replace GeoJSON with WKB import
+import WKB from 'ol/format/WKB';
 
 // Set your Mapbox token
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
+
+// Create WKB format instance instead of GeoJSON
+const wkbFormat = new WKB();
 
 const LocationsContent = () => {
   // Helper function to convert between numeric status codes and display text
@@ -91,23 +96,43 @@ const LocationsContent = () => {
       console.log('Raw location data:', data); // Add this debug line
       
       // Transform data to match component structure
-      const formattedLocations = data.map(loc => ({
-        id: loc.id,
-        name: loc.name,
-        address: loc.address || '',
-        area: loc.LocationType?.name || 'Sin categoría', // Using LocationType as "area"
-        phone: loc.phone_number || '',
-        email: loc.email || '',
-        schedule: loc.opening_hours || '',
-        status: loc.status, // Keep as numeric code
-        statusText: getStatusText(loc.status), // Add display text
-        description: loc.description || '',
-        image: loc.image_url || null, // This should be correct
-        visits: loc.sustainability_score || 0, // Using sustainability_score as "visits" 
-        // Extract coordinates from PostGIS point type
-        longitude: loc.geography ? JSON.parse(loc.geography).coordinates[0] : -3.70379,
-        latitude: loc.geography ? JSON.parse(loc.geography).coordinates[1] : 40.41678
-      }));
+      const formattedLocations = data.map(loc => {
+        let longitude = -3.70379;  // Default longitude
+        let latitude = 40.41678;   // Default latitude
+        
+        if (loc.point) {
+          try {
+            // Parse the WKB point using OpenLayers
+            // PostgreSQL/PostGIS may return WKB in hexadecimal string format
+            // or as a binary buffer, we need to handle both cases
+            const geometry = wkbFormat.readGeometry(loc.point);
+            const coordinates = geometry.getCoordinates();
+            // OpenLayers uses [longitude, latitude] order
+            longitude = coordinates[0];
+            latitude = coordinates[1];
+          } catch (error) {
+            console.error('Error parsing point geometry:', error);
+          }
+        }
+        
+        return {
+          id: loc.id,
+          name: loc.name,
+          address: loc.address || '',
+          area: loc.LocationType?.name || 'Sin categoría', // Using LocationType as "area"
+          phone: loc.phone_number || '',
+          email: loc.email || '',
+          schedule: loc.opening_hours || '',
+          status: loc.status, // Keep as numeric code
+          statusText: getStatusText(loc.status), // Add display text
+          description: loc.description || '',
+          image: loc.image_url || null, // This should be correct
+          visits: loc.sustainability_score || 0, // Using sustainability_score as "visits" 
+          // Extract coordinates from PostGIS point type
+          longitude: longitude,
+          latitude: latitude
+        };
+      });
       
       setLocations(formattedLocations);
       setFilteredLocations(formattedLocations);
