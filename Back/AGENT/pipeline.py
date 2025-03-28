@@ -46,7 +46,7 @@ async def entrypoint(ctx: JobContext):
     assitant.start(ctx.room)
 
     await asyncio.sleep(1)
-    await assitant.say("¡Hola!, ¿Como te puedo ayudar hoy?", allow_interruptions=True)
+    await assitant.say(WELCOME_MESSAGE, allow_interruptions=True)
 
 
 

@@ -28,14 +28,19 @@ const useWebSocket = (navigation) => {
     });
 
     socketConnection.on("mobile_action", (data) => {
-      console.log("Received mobile action:", data);
-      setMessage(data);
+      const action = data.action;
+      console.log("Received mobile action:", action);
 
-      if (data.show_route) {
-        navigation.navigate("Route");
-      }
-      else if (data.show_camera) {
-        setIsAiIsSeeing(true); 
+      switch (action) {
+        case "show_route":
+          navigation.navigate("Route");
+          break;
+        case "show_camera":
+          setIsAiIsSeeing(true);
+          break;
+        default:
+          console.log("Unknown action:", action);
+          break;
       }
 
 

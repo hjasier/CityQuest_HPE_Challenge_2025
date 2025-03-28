@@ -3,6 +3,7 @@
 from .Auth import auth_bp  
 import logging
 
+
 # Configurar el logger
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

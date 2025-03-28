@@ -1,8 +1,13 @@
 # RouteGenerator.py
 from flask import Blueprint, jsonify
+from geopy.geocoders import Nominatim
+import logging
 
-# Crear un Blueprint para el generador de rutas
 route_generator_bp = Blueprint('route_generator', __name__)
+
+
+geolocator = Nominatim(user_agent="geoapiExercises")
+
 
 
 route_example = [
@@ -66,3 +71,16 @@ def calculate_route(destination):
 @route_generator_bp.route('/generate_route', methods=['GET'])
 def generate_route():
     return jsonify(calculate_route("destino")), 200
+
+
+
+
+def get_direction(location):
+    return geolocator.reverse(location, exactly_one=True).address
+
+
+def handle_calculate_route(data):
+    """Maneja la acción de calcular una ruta."""
+    logging.info("EMITIENDO RUTA")
+    route = calculate_route("destination")
+    return route

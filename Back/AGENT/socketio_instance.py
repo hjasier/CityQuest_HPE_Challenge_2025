@@ -4,7 +4,7 @@ import logging
 import os
 from dotenv import load_dotenv
 from ImageHandler import handle_image
-from session_handler import session_manager
+from livekit.agents import (AutoSubscribe, JobContext, WorkerOptions, cli, llm)
 
 
 load_dotenv()
@@ -16,11 +16,40 @@ logger = logging.getLogger(__name__)
 API_URL = os.getenv("API_SERVER_URL")
 
 # Instancia de la conexión al servidor por sockets
-sio = socketio.AsyncClient()
+sio = socketio.Client()
+_session = None
 
-async def connect_socket():
-    logging.info("[SOCKETIO] Conectando al servidor...")
-    await sio.connect(API_URL)
+def set_session(session):
+    """Establece la sesión global para ser usada en los eventos de socketio"""
+    global _session
+    _session = session
+    logging.info("[SOCKETIO] Sesión del modelo establecida correctamente")
+
+def get_session():
+    """Obtiene la sesión global"""
+    return _session
+
+def get_socketio():
+    return sio
+
+def socketio_connect():
+    try:
+        sio.connect(API_URL)
+        logging.info("[SOCKETIO] Conexión establecida con el servidor.")
+    except socketio.exceptions.ConnectionError as e:
+        logging.error(f"[SOCKETIO] Error al conectar con el servidor: {e}")
+        raise
+
+
+def emit_event(name,data):
+    if sio.connected:
+        try:
+            sio.emit(name, data, namespace="/")
+            logging.info(f"[SOCKETIO] Evento emitido: {data}")
+        except Exception as e:
+            logging.error(f"[SOCKETIO] Error al emitir evento: {e}")
+    else:
+        logging.warning("[SOCKETIO] No se puede emitir el evento, no hay conexión establecida.")
 
 
 @sio.event
@@ -35,22 +64,27 @@ def disconnect():
 
 @sio.event
 def agent_action(data):
-    if not session_manager.get_session():
-        logging.error("[SOCKETIO] La sesión aún no está lista.")
-        return
-    else:
-        logging.info("[SOCKETIO] Session: " + str(session_manager.get_session()))
-    #logging.info("[SOCKETIO] Acción del agente recibida: %s", data)
+    logging.info("[SOCKETIO] Acción del agente recibida")
     action_type = data.get("type")
-    if action_type == "photo":
-        photo = data.get("image")
-        if photo:
-            handle_image(photo)
-            logging.info("[SOCKETIO] Imagen recibida y procesada.")
-        else:
-            logging.warning("[SOCKETIO] No se recibió ninguna imagen en los datos.")
-    else:
-        logging.info("[SOCKETIO] Acción del agente recibida: %s", action_type)
-
-
-
+    
+    session = get_session()
+    if session is None:
+        logging.warning("[SOCKETIO] No hay sesión disponible para procesar el evento")
+        return
+    
+    logging.info(f"[SOCKETIO] Session disponible: {session}")
+    
+    logging.info(f"[SOCKETIO] Tipo de acción: {data}")
+    
+    if action_type == "photo_update":
+        info = data.get("info")
+        if info:
+            logging.info(f"[SOCKETIO] Información de la foto: {info}")
+            session.conversation.item.create(
+                llm.ChatMessage(
+                    role="system",
+                    content=f"Se recibió una actualización de foto: {info}"
+                )
+            )
+            session.response.create()
+            logging.info("[SOCKETIO] Mensaje de sistema agregado a la conversación")

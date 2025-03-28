@@ -6,18 +6,20 @@ from livekit.plugins import openai
 from dotenv import load_dotenv
 from api import AssistantFnc
 from prompts import WELCOME_MESSAGE, INSTRUCTIONS
-import os
 import logging
-from session_handler import session_manager
-from socketio_instance import sio , connect_socket
-import asyncio
+from socketio_instance import socketio_connect, set_session
+import threading
+import time
 
 load_dotenv()
 
 
 async def entrypoint(ctx: JobContext):
 
-    await connect_socket()
+    socketio_thread = threading.Thread(target=socketio_connect)
+    socketio_thread.daemon = True  # This makes the thread exit when the main program exits
+    socketio_thread.start()
+    
     await ctx.connect(auto_subscribe=AutoSubscribe.SUBSCRIBE_ALL)
     await ctx.wait_for_participant()
     
@@ -27,8 +29,6 @@ async def entrypoint(ctx: JobContext):
         temperature=0.8,
         modalities=["audio", "text"]
     )
-    
-    
     
     assistant_fnc = AssistantFnc()
     assistant = MultimodalAgent(
@@ -40,6 +40,7 @@ async def entrypoint(ctx: JobContext):
     
 
     session = model.sessions[0] 
+    set_session(session)
 
     session.conversation.item.create(
         llm.ChatMessage(
@@ -67,37 +68,8 @@ async def entrypoint(ctx: JobContext):
             )
         )
         session.response.create()
-        
-    
-    @sio.event
-    async def agent_action_session(data):
-        logging.info("Acción del agente recibida")
-        action_type = data.get("type")
-        
-        if action_type == "photo":
-            photo = data.get("image")
-            if photo:
-                logging.info("Photo: " + str(photo))
-                image_content = [llm.ChatImage(image=photo)]
-                logging.info("Imagen recibida y procesada")
-                logging.info("image_content: " + str(image_content))
-                await session.conversation.item.create(
-                    llm.ChatMessage(
-                        role="user",
-                        content=image_content
-                    )
-                )
-                await session.response.create()
-                logging.info("Imagen recibida y procesada")
-            else:
-                logging.warning("No se recibió ninguna imagen en los datos")
-        else:
-            logging.info(f"Acción del agente recibida: {action_type}")
 
 
-
-            
-    
 
 
 
