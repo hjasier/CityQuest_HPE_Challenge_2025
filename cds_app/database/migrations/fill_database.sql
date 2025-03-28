@@ -220,11 +220,11 @@ values
 INSERT INTO
     "TransportMedium"
 values
-    (default, "Foot", 10),
-    (default, "Bike", 10),
-    (default, "Car", 2),
-    (default, "Public transport", 7),
-    (default, "Boat", 4);
+    (default, 'Foot', 10),
+    (default, 'Bike', 10),
+    (default, 'Car', 2),
+    (default, 'Public transport', 7),
+    (default, 'Boat', 4);
 
 INSERT INTO
     "Route"
