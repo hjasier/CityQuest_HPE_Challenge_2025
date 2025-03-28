@@ -7,21 +7,16 @@ from dotenv import load_dotenv
 from api import AssistantFnc
 from prompts import WELCOME_MESSAGE, INSTRUCTIONS
 import logging
-from socketio_instance import socketio_connect, init_socketio
+from socketio_instance import socketio_connect, set_session
 import threading
 import time
-import asyncio
 
 load_dotenv()
 
-# Establecer un event loop en el hilo principal
-loop = asyncio.get_event_loop()
 
 async def entrypoint(ctx: JobContext):
 
-    socketio_thread = threading.Thread(target=socketio_connect)
-    socketio_thread.daemon = True  # This makes the thread exit when the main program exits
-    socketio_thread.start()
+    await socketio_connect()
     
     await ctx.connect(auto_subscribe=AutoSubscribe.SUBSCRIBE_ALL)
     await ctx.wait_for_participant()
@@ -43,7 +38,7 @@ async def entrypoint(ctx: JobContext):
     
 
     session = model.sessions[0] 
-    init_socketio(session,loop)
+    set_session(session)
 
     session.conversation.item.create(
         llm.ChatMessage(

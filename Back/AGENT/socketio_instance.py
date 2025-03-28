@@ -6,6 +6,7 @@ from ImageHandler import handle_image
 from livekit.agents import (AutoSubscribe, JobContext, WorkerOptions, cli, llm)
 import asyncio
 
+
 load_dotenv()
 
 logging.basicConfig(level=logging.DEBUG)
@@ -13,43 +14,35 @@ logger = logging.getLogger(__name__)
 
 API_URL = os.getenv("API_SERVER_URL")
 
-# Instancia de la conexión al servidor por sockets
-sio = socketio.Client()
+# Instancia asincrónica de la conexión al servidor por sockets
+sio = socketio.AsyncClient()
 _session = None
-_loop = None
 
-
-def init_socketio(session,loop):
+def set_session(session):
     """Establece la sesión global para ser usada en los eventos de socketio"""
     global _session
-    global _loop
     _session = session
-    _loop = loop
     logging.info("[SOCKETIO] Sesión del modelo establecida correctamente")
 
 def get_session():
     """Obtiene la sesión global"""
     return _session
 
-def get_loop():
-    """Obtiene el loop global"""
-    return _loop
-
 def get_socketio():
     return sio
 
-def socketio_connect():
+async def socketio_connect():
     try:
-        sio.connect(API_URL)
+        await sio.connect(API_URL)
         logging.info("[SOCKETIO] Conexión establecida con el servidor.")
     except socketio.exceptions.ConnectionError as e:
         logging.error(f"[SOCKETIO] Error al conectar con el servidor: {e}")
         raise
 
-def emit_event(name, data):
+async def emit_event(name, data):
     if sio.connected:
         try:
-            sio.emit(name, data, namespace="/")
+            await sio.emit(name, data, namespace="/")
             logging.info(f"[SOCKETIO] Evento emitido: {data}")
         except Exception as e:
             logging.error(f"[SOCKETIO] Error al emitir evento: {e}")
@@ -58,15 +51,16 @@ def emit_event(name, data):
 
 
 @sio.event
-def connect():
+async def connect():
     logging.info("[SOCKETIO] Conexión establecida con el servidor.")
 
 @sio.event
-def disconnect():
+async def disconnect():
     logging.info("[SOCKETIO] Desconectado del servidor.")
 
+
 @sio.event
-def agent_action(data):
+async def agent_action(data):
     logging.info("[SOCKETIO] Acción del agente recibida")
     action_type = data.get("type")
     
@@ -83,17 +77,11 @@ def agent_action(data):
         info = data.get("info")
         if info:
             logging.info(f"[SOCKETIO] Información de la foto: {info}")
-            
-            # Usar asyncio.run_coroutine_threadsafe para ejecutar el código asincrónico
-            async def add_photo_update_to_conversation():
-                await session.conversation.item.create(
-                    llm.ChatMessage(
-                        role="system",
-                        content=f"Se recibió una actualización de foto: {info}"
-                    )
+            await session.conversation.item.create(  # Asegúrate de que esta función sea asincrónica si es necesario
+                llm.ChatMessage(
+                    role="system",
+                    content=f"Se recibió una actualización de foto: {info}"
                 )
-                await session.response.create()
-
-            # Ejecutar la coroutine de manera segura desde un hilo de fondo
-            asyncio.run_coroutine_threadsafe(add_photo_update_to_conversation(), _loop)
+            )
+            await session.response.create()  # Asegúrate de que esta función también sea asincrónica si es necesario
             logging.info("[SOCKETIO] Mensaje de sistema agregado a la conversación")

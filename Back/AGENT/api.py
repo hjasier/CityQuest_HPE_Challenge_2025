@@ -11,15 +11,15 @@ logger.setLevel(logging.INFO)
 class AssistantFnc(llm.FunctionContext):
     
     @llm.ai_callable(description="Abre  la camara en el dispositivo del usuario para que pueda enseñarte el objeto , edificio , lugar que desea reconocer")
-    def open_camera(self):
+    async def open_camera(self):
         logging.info("Abriendo la cámara en tu móvil...")
-        emit_event("server_command", {"action": "show_camera"})
+        await emit_event("server_command", {"action": "show_camera"})
         return "Dame un momento , apunta la cámara al frente"
 
     @llm.ai_callable(description="Mostrar al usuario una ruta con los retos de por medio como puntos de interes")
-    def calculate_route(self, destination: Annotated[str, llm.TypeInfo(description="Destino final")]):
+    async def calculate_route(self, destination: Annotated[str, llm.TypeInfo(description="Destino final")]):
         logging.info(f"Calculando la ruta a {destination}...")
-        emit_event("server_command", {"calculate_route": "calculate_route", "destination": destination})
+        await emit_event("server_command", {"calculate_route": "calculate_route", "destination": destination})
         return f"Calculando la ruta a {destination}..."
     
     
