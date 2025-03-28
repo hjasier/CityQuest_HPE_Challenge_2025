@@ -75,7 +75,7 @@ const RewardsContent = () => {
       pointsCost: 100,
       status: 'Activo',
       redemptions: 0,
-      image: null
+      // Removed image property as it's not stored in database
     });
     setShowModal(true);
   };
@@ -105,15 +105,15 @@ const RewardsContent = () => {
 
   // Save changes (new reward or edit)
   const handleSave = async () => {
-    // Prepare data for Supabase
+    // Prepare data for Supabase - only include fields that exist in the actual Prize table
     const prizeData = {
       price: currentReward.pointsCost,
-      description: currentReward.description,
-      name: currentReward.name,
-      status: currentReward.status,
-      redemptions: currentReward.redemptions
-      // Note: coupon_code is generated automatically by the database
+      description: currentReward.description
+      // No need to specify coupon_code as it's generated automatically
     };
+    
+    // Note: 'name', 'status', 'image_url' fields don't exist in the actual table
+    // We'll use the description field to display name in the UI
 
     if (currentReward.id) {
       // Update existing reward
@@ -128,11 +128,18 @@ const RewardsContent = () => {
         return;
       }
       
-      // Update local state
+      // Update local state - keep UI-only fields intact for display purposes
       if (data && data[0]) {
         const updatedReward = {
           ...currentReward,
-          couponCode: data[0].coupon_code
+          pointsCost: data[0].price,
+          description: data[0].description,
+          couponCode: data[0].coupon_code,
+          // Keep the UI-only fields that aren't in the database
+          name: currentReward.name || data[0].description.substring(0, 30) + '...',
+          status: currentReward.status,
+          redemptions: currentReward.redemptions,
+          image: currentReward.image
         };
         
         setRewards(rewards.map(r => 
@@ -154,9 +161,15 @@ const RewardsContent = () => {
       // Add to local state with DB-generated ID and coupon code
       if (data && data[0]) {
         const newReward = {
-          ...currentReward,
           id: data[0].id,
-          couponCode: data[0].coupon_code
+          pointsCost: data[0].price,
+          description: data[0].description,
+          couponCode: data[0].coupon_code,
+          // UI-only fields
+          name: currentReward.name || data[0].description.substring(0, 30) + '...',
+          status: currentReward.status || 'Activo',
+          redemptions: 0,
+          image: currentReward.image instanceof File ? URL.createObjectURL(currentReward.image) : null
         };
         
         setRewards([...rewards, newReward]);
@@ -279,84 +292,125 @@ const RewardsContent = () => {
 
       {/* Modal for Add/Edit Reward */}
       {showModal && (
-        <div className="fixed inset-0 backdrop-blur-sm bg-black/30 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg w-full max-w-2xl max-h-screen overflow-y-auto p-6">
-            <h2 className="text-xl font-bold mb-4">
-              {currentReward.id ? 'Editar Premio' : 'Añadir Nuevo Premio'}
-            </h2>
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-all duration-300 ease-in-out">
+          <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
+            {/* Header */}
+            <div className="p-6 border-b border-gray-200 dark:border-gray-700 sticky top-0 bg-blue-600 text-white rounded-t-2xl z-10">
+              <h2 className="text-2xl font-bold">
+                {currentReward.id ? 'Editar Premio' : 'Añadir Nuevo Premio'}
+              </h2>
+              <p className="text-blue-100 mt-1 text-sm">
+                Completa los detalles para {currentReward.id ? 'actualizar este premio' : 'crear un nuevo premio'}
+              </p>
+            </div>
             
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Nombre del Premio</label>
-                <input
-                  type="text"
-                  className="w-full px-3 py-2 border rounded-lg"
-                  value={currentReward.name}
-                  onChange={(e) => setCurrentReward({...currentReward, name: e.target.value})}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
-                <textarea
-                  className="w-full px-3 py-2 border rounded-lg"
-                  rows="3"
-                  value={currentReward.description}
-                  onChange={(e) => setCurrentReward({...currentReward, description: e.target.value})}
-                ></textarea>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Costo en Puntos</label>
-                <div className="flex items-center border rounded-lg px-3 py-2">
-                  <Coins size={18} className="text-gray-400 mr-2" />
+            {/* Form Content */}
+            <div className="p-6 space-y-6">
+              <div className="space-y-5">
+                {/* Name - UI only field */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Nombre del Premio</label>
                   <input
-                    type="number"
-                    min="0"
-                    step="5"
-                    className="w-full outline-none"
-                    value={currentReward.pointsCost}
-                    onChange={(e) => setCurrentReward({
-                      ...currentReward, 
-                      pointsCost: parseInt(e.target.value) || 0
-                    })}
+                    type="text"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none"
+                    placeholder="Ej: Entrada al museo"
+                    value={currentReward.name}
+                    onChange={(e) => setCurrentReward({...currentReward, name: e.target.value})}
                   />
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Solo para visualización en la interfaz</p>
                 </div>
-              </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Estado</label>
-                <select
-                  className="w-full px-3 py-2 border rounded-lg"
-                  value={currentReward.status}
-                  onChange={(e) => setCurrentReward({...currentReward, status: e.target.value})}
-                >
-                  <option value="Activo">Activo</option>
-                  <option value="Inactivo">Inactivo</option>
-                </select>
-              </div>
+                {/* Description - This is stored in the database */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                    Descripción <span className="text-blue-600 dark:text-blue-400 font-medium">(Campo en base de datos)</span>
+                  </label>
+                  <textarea
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none resize-none"
+                    rows="4"
+                    placeholder="Describe el premio de manera detallada"
+                    value={currentReward.description}
+                    onChange={(e) => setCurrentReward({...currentReward, description: e.target.value})}
+                  ></textarea>
+                </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Imagen</label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="w-full px-3 py-2 border rounded-lg"
-                  onChange={(e) => setCurrentReward({...currentReward, image: e.target.files[0]})}
-                />
-              </div>
+                {/* Cost and Status */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                      Costo en Puntos <span className="text-blue-600 dark:text-blue-400 font-medium">(Campo en base de datos)</span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        min="0"
+                        step="5"
+                        className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none"
+                        placeholder="100"
+                        value={currentReward.pointsCost}
+                        onChange={(e) => setCurrentReward({
+                          ...currentReward, 
+                          pointsCost: parseInt(e.target.value) || 0
+                        })}
+                      />
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500">
+                        <Coins size={18} />
+                      </span>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Estado</label>
+                    <select
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none"
+                      value={currentReward.status}
+                      onChange={(e) => setCurrentReward({...currentReward, status: e.target.value})}
+                    >
+                      <option value="Activo">Activo</option>
+                      <option value="Inactivo">Inactivo</option>
+                    </select>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Solo para visualización en la interfaz</p>
+                  </div>
+                </div>
 
-              <div className="flex justify-end space-x-2">
+                {/* Redemption Info - Read Only */}
+                {currentReward.id && (
+                  <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-800/30">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Award className="text-blue-600 dark:text-blue-400" size={18} />
+                      <h3 className="text-sm font-medium text-blue-700 dark:text-blue-300">Detalles del premio</h3>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      {currentReward.couponCode && (
+                        <div>
+                          <span className="block text-gray-500 dark:text-gray-400">Código único <span className="text-blue-600 dark:text-blue-400 font-medium">(Campo en base de datos)</span></span>
+                          <span className="font-mono text-gray-800 dark:text-gray-200">{currentReward.couponCode?.substring(0, 12)}...</span>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Este código se genera automáticamente</p>
+                        </div>
+                      )}
+                      <div>
+                        <span className="block text-gray-500 dark:text-gray-400">Canjes realizados</span>
+                        <span className="font-medium text-gray-800 dark:text-gray-200">{currentReward.redemptions || 0}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            {/* Footer */}
+            <div className="p-6 border-t border-gray-200 dark:border-gray-700 sticky bottom-0 bg-gray-50 dark:bg-gray-800 z-10">
+              <div className="flex flex-col sm:flex-row justify-end gap-3">
                 <button
-                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg"
+                  className="px-4 py-2.5 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-gray-300/30 dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-gray-200 dark:focus:ring-gray-500/30"
                   onClick={() => setShowModal(false)}
                 >
                   Cancelar
                 </button>
                 <button
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg"
+                  className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/30 flex items-center justify-center"
                   onClick={handleSave}
                 >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
                   Guardar
                 </button>
               </div>
