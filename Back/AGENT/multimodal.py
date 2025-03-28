@@ -7,12 +7,15 @@ from dotenv import load_dotenv
 from api import AssistantFnc
 from prompts import WELCOME_MESSAGE, INSTRUCTIONS
 import logging
-from socketio_instance import socketio_connect, set_session
+from socketio_instance import socketio_connect, init_socketio
 import threading
 import time
+import asyncio
 
 load_dotenv()
 
+# Establecer un event loop en el hilo principal
+loop = asyncio.get_event_loop()
 
 async def entrypoint(ctx: JobContext):
 
@@ -40,7 +43,7 @@ async def entrypoint(ctx: JobContext):
     
 
     session = model.sessions[0] 
-    set_session(session)
+    init_socketio(session,loop)
 
     session.conversation.item.create(
         llm.ChatMessage(
