@@ -6,6 +6,7 @@ import { useCurrentRoute } from '../hooks/useCurrentRoute';
 import { useCurrentChallenge } from '../hooks/useCurrentChallenge';
 import { useWKBCoordinates } from '../hooks/useWKBCoordinates';
 import * as Location from 'expo-location';
+import useChallengeCompletion from '../hooks/useChallengeCompletion';
 
 const FixedPanel = ({challenge}) => {
 
@@ -13,40 +14,39 @@ const FixedPanel = ({challenge}) => {
   const { setCurrentRoute } = useCurrentRoute();
   const { setCurrentChallenge } = useCurrentChallenge();
   const coordinates = useWKBCoordinates(challenge.Location?.point);
-  const [userLocation, setUserLocation] = useState(null);
+
+  const { navigateToChallengeCompletion } = useChallengeCompletion(navigation);
 
 
   const handleRoute = async () => {
     try {
-      // Get current position when route is requested
-      const location = await Location.getCurrentPositionAsync({accuracy: Location.Accuracy.Highest});
-      
-      // Set the current route before navigating
+      // Immediately navigate to the Main tab
+      navigation.navigate('Main');
+  
+      // Asynchronously get the current location in the background
+      const location = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Highest
+      });
+  
+      // Once location is retrieved, update the route
       setCurrentRoute({
         startCoordinates: [location.coords.longitude, location.coords.latitude], // User's current coordinates
         endCoordinates: [coordinates.longitude, coordinates.latitude], // Challenge coordinates
         profile: 'walking'
       });
-
+  
+      // Set the current challenge
       setCurrentChallenge(challenge);
-
-      // Navigate to Main tab
-      navigation.navigate('Main');
     } catch (error) {
-      Alert.alert('Error', 'Unable to retrieve your location. Please check your device settings.');
+      // If location retrieval fails, show an alert
+      Alert.alert('Location Error', 'Unable to retrieve your location. Please check your device settings.');
       console.error(error);
     }
   }
+  
 
   const handleComplete = () => {
-    if (challenge?.completion_type === 'QR') {
-      // Navigate to QR screen
-      navigation.navigate("ChallengeScanQRScreen");
-    }
-    else if (challenge?.completion_type === 'WKB') {
-      // Navigate to WKB screen
-      navigation.navigate("CompleteWKBChallengeScreen",{challenge: challenge});
-    }
+    navigateToChallengeCompletion(challenge);
   }
 
   return (

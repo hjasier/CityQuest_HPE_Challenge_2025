@@ -6,6 +6,7 @@ import * as Location from 'expo-location';
 import ChallengeReviews from './ChallengeReviews';
 import MapboxGL from '@rnmapbox/maps';
 import { useWKBCoordinates } from '../hooks/useWKBCoordinates';
+import { Icon } from '@rneui/base';
 
 const ChallengeDetails = ({challenge}) => {
   const [location, setLocation] = useState(null);
@@ -46,12 +47,53 @@ const ChallengeDetails = ({challenge}) => {
       </Text>
       
       {/* Challenge Points */}
-      <View className="flex-row items-center mb-6">
+      <View className="flex-row items-center mb-2">
         <Text className="font-medium">Puntos: </Text>
-        <Text className="font-bold">{challenge.reward}k</Text>
+        <Text className="font-bold pr-2">{challenge.reward}k</Text>
+        <Icon name="coins" type="font-awesome-5" color="#FFD700" size={16} className="ml-1" />
+      </View>
+
+      {/* Challenge Completion Type */}
+      <View className="mb-6">
+        <View className="flex-row items-center pb-1">
+          <Text className="font-medium">Forma de Completado: </Text>
+          <Text className="font-bold pr-2">{challenge.completion_type}</Text>
+          <Icon
+            name={
+              challenge.completion_type === 'PHOTO'
+                ? 'camera'
+                : challenge.completion_type === 'QR'
+                ? 'qrcode'
+                : challenge.completion_type === 'GPS'
+                ? 'crosshairs-gps'
+                : challenge.completion_type === 'GPS-ROUTE'
+                ? 'crosshairs-gps'
+                : 'check-circle'
+            }
+            type={
+              challenge.completion_type === ('GPS' || 'GPS-ROUTE')
+                ? 'material-community'
+                : 'font-awesome-5'
+            }
+            color="#FFD700"
+            size={16}
+            className="ml-1"
+          />
+        </View>
+
+        <Text className="text-gray-400">
+          {challenge.completion_type === 'PHOTO'
+            ? 'Saca una foto al elemento citado en el desafío estando a al menos 50 metros del mismo.'
+            : challenge.completion_type === 'QR'
+            ? 'Escanea el QR del ticket/entrada que aplique al desafío para completarlo.'
+            : challenge.completion_type === 'GPS'
+            ? 'Pasa a menos de 75 metros del punto para completar el desafío.'
+            : challenge.completion_type === 'GPS-ROUTE'
+            ? 'Pasa por todos los puntosa de la ruta para completar el desafío.'
+            : ''}
+        </Text>
       </View>
       
-      {/* Map View */}
       <View className="w-full h-48 rounded-lg overflow-hidden mb-6">
         <MapboxGL.MapView
           style={{flex:1}}
@@ -66,7 +108,8 @@ const ChallengeDetails = ({challenge}) => {
           id="pointAnnotation"
           coordinate={[coordinates.longitude, coordinates.latitude]}
         >
-          <MapPin stroke="#2AF" fill="#000" />
+          <MapPin stroke="#b00202" fill="#FF3B30" />
+
         </MapboxGL.PointAnnotation>
         </MapboxGL.MapView>
       </View>

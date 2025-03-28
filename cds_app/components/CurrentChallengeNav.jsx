@@ -10,15 +10,20 @@ import useChallengeCompletion from '../hooks/useChallengeCompletion';
 const CurrentChallengeNav = () => {
   const {currentChallenge , setCurrentChallenge } = useCurrentChallenge();
   const { currentGeometryRoute , setCurrentGeometryRoute } = useCurrentGeometryRoute();
-  const { abandonChallenge, navigateToChallengeCompletion } = useChallengeCompletion(navigation);
-
   const navigation = useNavigation();
-
+  
+  const { abandonChallenge, navigateToChallengeCompletion } = useChallengeCompletion(navigation);   
 
   const completeChallenge = () => {
     Vibration.vibrate();  
     navigateToChallengeCompletion(currentChallenge);
   }
+
+  const handleAbandonChallenge = () => {
+    Vibration.vibrate();  
+    abandonChallenge();
+  }
+
 
   return (
     <View className="w-full bg-white bg-opacity-20 px-4 py-3 pt-10 flex-row items-center justify-between shadow-sm border-b border-gray-200">

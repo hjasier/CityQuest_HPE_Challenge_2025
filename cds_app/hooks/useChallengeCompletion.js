@@ -31,13 +31,13 @@ export const useChallengeCompletion = (navigation) => {
       case 'QR':
         navigation.navigate("ChallengeScanQRScreen", { challenge });
         break;
-      case 'WKB':
+      case 'GPS':
         navigation.navigate("Main");
         break;
       case 'PHOTO':
         navigation.navigate("ChallengePhotoScreen", { challenge });
         break;
-      case 'GPS':
+      case 'GPS-ROUTE':
         navigation.navigate("ChallengeGPSScreen", { challenge });
         break;
       default:
@@ -74,7 +74,6 @@ export const useChallengeCompletion = (navigation) => {
         setCurrentChallenge(null);
         setCurrentRoute(null);
         setCurrentGeometryRoute(null);
-        Vibration.vibrate();
       }
 
 

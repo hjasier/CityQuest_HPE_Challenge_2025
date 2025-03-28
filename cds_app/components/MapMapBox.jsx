@@ -101,17 +101,7 @@ const Map = () => {
           setCurrentGeometryRoute(newRoute);
 
           // Adjust camera to fit the route
-          if (cameraRef.current) {
-            console.log('Camera Available:', cameraRef.current);
-            const bounds = newRoute.bbox;
-            if (bounds) {
-              cameraRef.current.fitBounds(
-                [bounds[0], bounds[1]], 
-                [bounds[2], bounds[3]], 
-                100 // padding
-              );
-            }
-          }
+          centerOnUserLocation();
         } catch (error) {
           console.error('Error fetching route:', error);
           Alert.alert('Error', 'No se pudo cargar la ruta');
@@ -189,17 +179,17 @@ const Map = () => {
     navigation.navigate("ChallengeDetailsScreen", { challenge: challenge })
   };
 
-  const getChallengeType = (type) => { 
+  const getChallengeType = (type) => {
     switch (type) {
       case 1:
-        // Comida
-        return {'icon':'food-bank','iconType':'material', 'text': 'Comida','color':'#ffe333'};
+        // Comida - Bright orange for food
+        return {'icon':'food-bank','iconType':'material', 'text': 'Comida','color':'#FF6B35'};
       case 2:
-        // Visita
-        return {'icon':'monument','iconType':'font-awesome-5', 'text': 'Visita','color':'#c133ff'};
+        // Visita - Vibrant purple
+        return {'icon':'monument','iconType':'font-awesome-5', 'text': 'Visita','color':'#9C27B0'};
       case 3:
-        // Ruta
-        return {'icon':'route','iconType':'font-awesome-5', 'text': 'Ruta','color':'#30ce17'};
+        // Ruta - Bright green
+        return {'icon':'route','iconType':'font-awesome-5', 'text': 'Ruta','color':'#4CAF50'};
     }
   }
 

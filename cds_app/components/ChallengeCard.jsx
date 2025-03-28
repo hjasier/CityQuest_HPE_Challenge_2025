@@ -36,13 +36,22 @@ const ChallengeCard = ({challenge}) => {
             {/* Challenge Type Badge */}
             <View className="absolute top-3 left-3 px-3 py-1 bg-yellow-400 rounded-full flex-row items-center">
               <Icon 
-                name={challenge.type === 1 ? "hamburger" : "monument"} 
+                name={challenge.type === 1 
+                  ? "hamburger" 
+                  : challenge.type === 2 
+                  ? "monument" 
+                  : "route"}
                 type="font-awesome-5" 
                 color="#333" 
                 size={14} 
               />
               <Text className="text-xs font-bold text-gray-800 ml-1">
-                {challenge.type === 1 ? "Local Food" : "Visita"}
+                {challenge.type === 1 
+                  ? "Comida Local" 
+                  : challenge.type === 2 
+                  ? "Visita" 
+                  : "Ruta"}
+
               </Text>
             </View>
             
