@@ -267,7 +267,7 @@ values
     (
         default,
         2,
-        'QR',
+        1,
         1,
         'Visitar Museo Vinicio Jove Huertas S.L.L.',
         'Visita el museo y disfruta de la colección de cuadros de los artistas de GreenLake Village.',
@@ -284,7 +284,7 @@ values
     (
         default,
         1,
-        'QR',
+        1,
         3,
         'Desafío de Pintxos',
         'Prueba los famosos pintxos de GreenLake Village.',
@@ -301,7 +301,7 @@ values
     (
         default,
         1,
-        'QR',
+        1,
         3,
         'Desafío de Tortilla de Patata',
         'Prueba la tortilla de patata en un local de GreenLake Village.',
@@ -318,7 +318,7 @@ values
     (
         default,
         3,
-        'GPS-ROUTE',
+        3,
         9,
         'Paseo por la ría',
         'Disfruta de un paseo por la ría de GreenLake Village, desde el parque de Doña Casilda hasta Elorrieta.',
@@ -335,7 +335,7 @@ values
     (
         default,
         3,
-        'GPS-ROUTE',
+        3,
         10,
         'Paseo desde la Universidad de Deusto hasta el CRAI',
         'Disfruta de un paseo desde la Universidad de Deusto hasta el CRAI pasando por la Pasarela Pedro Arrupe.',
@@ -352,7 +352,7 @@ values
     (
         default,
         2,
-        'GPS',
+        2,
         8,
         'Visita el Parque de Doña Casilda Iturrizar',
         'Disfruta de un paseo por el Parque de Doña Casilda Iturrizar, un hermoso parque urbano con estanques y jardines.',
@@ -369,7 +369,7 @@ values
     (
         default,
         2,
-        'QR',
+        1,
         2,
         'Explorador de Arte',
         'Visita el icónico Museo Guggenheim y descubre su colección de arte moderno.',
@@ -386,7 +386,7 @@ values
     (
         default,
         2,
-        'GPS',
+        2,
         2,
         'El Barco de Titanio',
         'Contempla el icónico Museo Guggenheim y sus alrededores.',
