@@ -32,3 +32,5 @@ def handle_mobile_response(data):
         handle_image_upload(data)
     elif data.get("type") == "location":
         handle_location_upload(data)
+    else:
+        logging.info(f"COMANDO NO GESTIONADO RECIBIDO: {data}")

@@ -16,32 +16,28 @@ SUPABASE_KEY = os.getenv("SUPABASE_ANON_KEY")
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 
-@dataclass
-class Challenge:
-    id: int
-    name: str
-    description: str
-    reward: int
-    active: bool
-    cover_url: str
-    created_at: str
 
 
 class SupabaseDatabaseDriver:
     """Database Driver to interact with Supabase"""
 
 
-    async def get_challenge_by_id(self, challenge_id: int) -> Optional[Challenge]:
+    async def get_challenge_by_id(self, challenge_id: int):
         """Retrieves a challenge by its ID"""
         response = supabase.table("Challenge").select("*").eq("id", challenge_id).execute()
-        if response.data:
-            return Challenge(**response.data[0])
-        return None
+        return response.data
 
-    async def get_all_challenges(self) -> List[Challenge]:
+    async def get_all_challenges(self):
         """Fetches all active challenges"""
-        response = supabase.table("Challenge").select("*").eq("active", True).execute()
-        return [Challenge(**challenge) for challenge in response.data] if response.data else []
+        response = supabase.table("Challenge").select("name,description,reward").eq("active", True).execute()
+        return response.data
+    
+    async def get_all_prizes(self):
+        """Fetches all active prizes"""
+        response = supabase.table("Prize").select("price,description").execute()
+        return response.data
+    
+    
 
 
 

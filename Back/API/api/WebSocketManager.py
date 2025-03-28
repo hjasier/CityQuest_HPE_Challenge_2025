@@ -47,6 +47,12 @@ def emit_agent_test():
     return "Mensaje enviado"    
 
 
+@websocket_bp.route("/emit_test_location")
+def emit_test_location():
+    socketio.emit("mobile_action", {"action": "get_location"}, namespace="/")
+    return "Mensaje enviado"
+
+
 
 
 

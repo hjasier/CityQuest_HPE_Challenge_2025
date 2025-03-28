@@ -3,12 +3,14 @@
 import { useState, useEffect } from "react";
 import io from "socket.io-client";
 import { SERVER_API_URL } from "@env"; 
+import * as Location from 'expo-location';
 
 const useWebSocket = (navigation) => {
   const [socket, setSocket] = useState(null);
   const [message, setMessage] = useState("");
   const [connected, setConnected] = useState(false);
   const [isAiIsSeeing, setIsAiIsSeeing] = useState(false); // Estado para controlar la cámara
+
 
   useEffect(() => {
     console.log("Connecting to WebSocket:", SERVER_API_URL);
@@ -38,6 +40,9 @@ const useWebSocket = (navigation) => {
         case "show_camera":
           setIsAiIsSeeing(true);
           break;
+        case "get_location":
+          handle_send_location();
+          break;
         default:
           console.log("Unknown action:", action);
           break;
@@ -63,6 +68,14 @@ const useWebSocket = (navigation) => {
       socket.emit("mobile_response", data);
     }
   };
+
+  const handle_send_location = async () => {
+    const location = await Location.getCurrentPositionAsync({
+            accuracy: Location.Accuracy.Highest
+          });
+    data = {"type": "location", "location": {"lat": location.coords.latitude, "lon": location.coords.longitude}}
+    sendMessage(data)
+  }
 
   const toggleCamera = () => {
     setIsAiIsSeeing((prev) => !prev);

@@ -76,7 +76,8 @@ def generate_route():
 
 
 def get_direction(location):
-    return geolocator.reverse(location, exactly_one=True).address
+    coordinates = (location["lat"], location["lon"])
+    return geolocator.reverse(coordinates, exactly_one=True,language='es',addressdetails=True,zoom=18)
 
 
 def handle_calculate_route(data):

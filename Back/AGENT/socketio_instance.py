@@ -77,11 +77,24 @@ async def agent_action(data):
         info = data.get("info")
         if info:
             logging.info(f"[SOCKETIO] Información de la foto: {info}")
-            await session.conversation.item.create(  # Asegúrate de que esta función sea asincrónica si es necesario
+            await session.conversation.item.create(
                 llm.ChatMessage(
                     role="system",
                     content=f"Se recibió una actualización de foto: {info}"
                 )
             )
-            await session.response.create()  # Asegúrate de que esta función también sea asincrónica si es necesario
+            await session.response.create()  
+            logging.info("[SOCKETIO] Mensaje de sistema agregado a la conversación")
+            
+    elif action_type == "location_update":
+        location = data.get("location")
+        if location:
+            logging.info(f"[SOCKETIO] Información de la ubicación: {location}")
+            await session.conversation.item.create(
+                llm.ChatMessage(
+                    role="system",
+                    content=f"Se recibió una actualización de ubicación: {location}"
+                )
+            )
+            await session.response.create()  
             logging.info("[SOCKETIO] Mensaje de sistema agregado a la conversación")

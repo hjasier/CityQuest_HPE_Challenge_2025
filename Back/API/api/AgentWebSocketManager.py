@@ -22,7 +22,9 @@ def handle_image_upload(data):
 def handle_location_upload(data):
     location = data.get("location")
     if location:
+        logging.info(f"Ubicación recibida: {location}")
         direction = get_direction(location)
+        logging.info(f"Dirección procesada: {direction}")
         socketio.emit("agent_action", {"type":"location_update","location": f"El usuario se encuentra en la dirección: {direction}"}, namespace="/", include_self=False)
     else:
         socketio.emit("agent_action", {"type":"location_update","info": "No se ha recibido ninguna ubicación, informa al usuario que esa función no esta disponible"}, namespace="/", include_self=False)
@@ -47,6 +49,8 @@ def handle_server_command(data):
     if action == "calculate_route":
         handle_route(data)
     elif action == "show_camera":
+        handle_resend_action_to_client(data)
+    elif action == "get_location":
         handle_resend_action_to_client(data)
     else:
         logging.info(f"COMANDO NO GESTIONADO RECIBIDO: {data}")
