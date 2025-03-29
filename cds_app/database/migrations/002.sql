@@ -159,13 +159,13 @@ UPDATE
 
 -- Enable row level security
 ALTER TABLE
-    "Challenge" ENABLE ROW LEVEL SECURITY;
+    "Challenge" DISABLE ROW LEVEL SECURITY;
 
 ALTER TABLE
-    "AcceptedChallenge" ENABLE ROW LEVEL SECURITY;
+    "AcceptedChallenge" DISABLE ROW LEVEL SECURITY;
 
 ALTER TABLE
-    "User" ENABLE ROW LEVEL SECURITY;
+    "User" DISABLE ROW LEVEL SECURITY;
 
 -- Example RLS policies (adjust as needed for your application)
 CREATE POLICY "Challenges are viewable by everyone" ON "Challenge" FOR
