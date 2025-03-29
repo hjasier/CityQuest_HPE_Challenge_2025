@@ -70,14 +70,6 @@ class AssistantFnc(llm.FunctionContext):
     
     
     
-    
-    # @llm.ai_callable(description="Pedir información sobre un lugar o edificio")
-    # def ask_info(self, place: Annotated[str, llm.TypeInfo(description="Nombre del lugar o edificio")]):
-    #     logging.info(f"Pidiendo información sobre {place}...")
-    #     sio.emit("server_command", {"ask_info": "ask_info", "place": place})
-    #     return f"Pidiendo información sobre {place}..."
-
-    
     # @llm.ai_callable(description="Mostrar al usuario una imagen")
     # def show_image(self, image: Annotated[str, llm.TypeInfo(description="URL de la imagen")]):
     #     logging.info("Mostrando imagen...")
