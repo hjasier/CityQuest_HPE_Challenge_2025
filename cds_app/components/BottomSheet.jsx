@@ -6,11 +6,13 @@ import BottomSheet, {
 } from '@gorhom/bottom-sheet';
 import ChallengesList from './ChallengeList';
 import { useCurrentChallenge } from '../hooks/useCurrentChallenge';
+import { useSelectedLocation } from '../hooks/useSelectedLocation';
 
 const BottomSheetComponent = ({ bottomSheetRef }) => {
   const sheetRef = useRef(null);
   const [isOpen, setIsOpen] = useState(true);
   const { currentChallenge } = useCurrentChallenge();
+  const { selectedLocation } = useSelectedLocation();
   
   // Puntos de ajuste para el bottom sheet
   const snapPoints = useMemo(() => ['17%', '50%', '70%', '100%'], []);
@@ -19,6 +21,20 @@ const BottomSheetComponent = ({ bottomSheetRef }) => {
   useEffect(() => {
     sheetRef.current?.snapToIndex(0);
   }, [currentChallenge]);
+
+  useEffect(() => {
+    if (selectedLocation!== null) {
+      try {
+        sheetRef.current?.snapToIndex(3);
+      }
+      catch (error) {
+        console.log('Error al abrir el bottom sheet:', error);
+      }
+      
+    }
+  }
+  , [selectedLocation]);
+
 
   return (
     <BottomSheet

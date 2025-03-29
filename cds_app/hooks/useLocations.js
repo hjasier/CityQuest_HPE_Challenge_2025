@@ -1,32 +1,29 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../database/supabase';
 
-export const useChallenges = () => {
-  const [challenges, setChallenges] = useState(null);
+export const useLocations = () => {
+  const [locations, setLocations] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const fetchChallenges = async () => {
+  const fetchLocations = async () => {
     try {
       setLoading(true);
-      // Fetch challenges with all related information
+      // Fetch locations with all related information
       const { data, error } = await supabase
-        .from('Challenge')
+        .from('Location')
         .select(`
           *,
-          ChallengeType (*),
-          CompletionType (*),
-          ChallengeTags (ChallengeTag (id,tag)),
-          RequiredCapability (LocationCapability (name)),
-          Location (*)
+          LocationType (*),
+          LocationCapabilities (LocationCapability (name))
         `);
 
       if (error) throw error;
         
-      setChallenges(data);
+      setLocations(data);
       setLoading(false);
     } catch (err) {
-      console.error('Error fetching challenges:', err);
+      console.error('Error fetching locations:', err);
       setError(err);
       setLoading(false);
     }
@@ -34,16 +31,16 @@ export const useChallenges = () => {
 
   useEffect(() => {
     // Initial fetch
-    fetchChallenges();
+    fetchLocations();
 
     // Set up real-time subscription
     const channel = supabase
-      .channel('custom-challenges-channel')
+      .channel('custom-locations-channel')
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'Challenge' },
+        { event: '*', schema: 'public', table: 'Location' },
         () => {
-          fetchChallenges();
+          fetchLocations();
         }
       )
       .subscribe();
@@ -54,13 +51,13 @@ export const useChallenges = () => {
     };
   }, []);
 
-  // Method to manually refetch challenges if needed
+  // Method to manually refetch locations if needed
   const refetch = () => {
-    fetchChallenges();
+    fetchLocations();
   };
 
   return {
-    challenges,
+    locations,
     loading,
     error,
     refetch

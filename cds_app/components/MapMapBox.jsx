@@ -16,6 +16,10 @@ import { useCurrentChallenge } from '../hooks/useCurrentChallenge';
 import ChallengeRadius from './ChallengeRadius';
 import { useProximityToChallenge } from '../hooks/useProximityToChallenge';
 import { useChallengeCompletion } from '../hooks/useChallengeCompletion';
+import { useLocationChallenges } from '../hooks/useLocationChallenges';
+import { useFilteredChallenges } from '../hooks/useFilteredChallenges';
+import { useSelectedLocation } from '../hooks/useSelectedLocation';
+import { useReCenterLocation } from '../hooks/useReCenterLocation';
 
 MapboxGL.setAccessToken(MAPBOX_ACCESS_TOKEN);
 
@@ -27,16 +31,21 @@ const Map = () => {
   const { width, height } = Dimensions.get('window');
   const [puckBearingEnabled, setPuckBearingEnabled] = useState(true);
   const { challenges, loading, error, refetch } = useChallenges();
+  const { challengesByLocation } = useLocationChallenges();
   const [mapLoaded, setMapLoaded] = useState(false);
   const navigation = useNavigation();
   const { currentChallenge } = useCurrentChallenge();
   const { navigateCompleted } = useChallengeCompletion(navigation);
+  const { setSelectedLocation } = useSelectedLocation();
+  const { ReCenterLocation } = useReCenterLocation();
+
 
   const { currentRoute } = useCurrentRoute();
   const { setCurrentGeometryRoute } = useCurrentGeometryRoute();
   
 
-  console.log('RUTA DISPONIBLE:', currentRoute? 'SI' : 'NO');
+  //console.log('RUTA DISPONIBLE:', currentRoute? 'SI' : 'NO');
+
   
   
   // State for storing route information
@@ -173,14 +182,17 @@ const Map = () => {
 
   };
 
-  const handlePress = (challenge) => {
-    //Vibrar el movil
+  const handleFilterLocation = (location) => {
+    setSelectedLocation(location);
     Vibration.vibrate();
-    navigation.navigate("ChallengeDetailsScreen", { challenge: challenge })
   };
 
-  const getChallengeType = (type) => {
-    switch (type) {
+  const getChallengeType = (challenges) => {
+
+    const maxType = Math.max(...challenges.map(challenge => challenge.type));
+
+
+    switch (maxType) {
       case 1:
         // Comida - Bright orange for food
         return {'icon':'food-bank','iconType':'material', 'text': 'Comida','color':'#FF6B35'};
@@ -211,7 +223,10 @@ const Map = () => {
       
 
 
-
+  useEffect(() => {
+    centerOnUserLocation();
+  }
+  , [ReCenterLocation]);
 
 
 
@@ -257,16 +272,16 @@ const Map = () => {
 
 
             {/*  PUNTOS DE RETOS */}
-            {challenges?.map(challenge => {
-              const coordinates = parseWKB(challenge.Location?.point);
-              const challengeType = getChallengeType(challenge.type);
+            {challengesByLocation?.map(location => {
+              const coordinates = parseWKB(location?.point);
+              const challengeType = getChallengeType(location?.challenges);
 
               return (
                 <MapboxGL.PointAnnotation
-                  key={`challenge-${challenge.id}`}
-                  id={`challenge-${challenge.id}`}
+                  key={`challenge-${location.id}`}
+                  id={`challenge-${location.id}`}
                   coordinate={[coordinates.longitude, coordinates.latitude]}
-                  onSelected={() => handlePress(challenge)}
+                  onSelected={() => handleFilterLocation(location)}
                 > 
                 <View className="flex flex-row items-center">
                   <Icon name={challengeType.icon} type={challengeType.iconType} color={challengeType.color} size={24} />
@@ -317,14 +332,14 @@ const Map = () => {
           </MapboxGL.MapView>
           
           {/* Center on user location button */}
-          <TouchableOpacity 
+          {/* <TouchableOpacity 
             style={styles.centerButton}
             onPress={centerOnUserLocation}
           >
             <View style={styles.buttonContent}>
               <Icon name="assistant-navigation" type="material" color="#2A7FFF" size={24} />
             </View>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
   
         </View>
       ) : (

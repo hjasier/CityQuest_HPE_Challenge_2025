@@ -57,21 +57,21 @@ const ChallengeDetails = ({challenge}) => {
       <View className="mb-6">
         <View className="flex-row items-center pb-1">
           <Text className="font-medium">Forma de Completado: </Text>
-          <Text className="font-bold pr-2">{challenge.completion_type}</Text>
+          <Text className="font-bold pr-2">{challenge.CompletionType.type}</Text>
           <Icon
             name={
-              challenge.completion_type === 'PHOTO'
+              challenge.CompletionType.type === 'PHOTO'
                 ? 'camera'
-                : challenge.completion_type === 'QR'
+                : challenge.CompletionType.type === 'QR'
                 ? 'qrcode'
-                : challenge.completion_type === 'GPS'
+                : challenge.CompletionType.type === 'GPS'
                 ? 'crosshairs-gps'
-                : challenge.completion_type === 'GPS-ROUTE'
+                : challenge.CompletionType.type === 'GPS-ROUTE'
                 ? 'crosshairs-gps'
                 : 'check-circle'
             }
             type={
-              challenge.completion_type === ('GPS' || 'GPS-ROUTE')
+              challenge.CompletionType.type === ('GPS' || 'GPS-ROUTE')
                 ? 'material-community'
                 : 'font-awesome-5'
             }
@@ -82,13 +82,13 @@ const ChallengeDetails = ({challenge}) => {
         </View>
 
         <Text className="text-gray-400">
-          {challenge.completion_type === 'PHOTO'
+          {challenge.CompletionType.type === 'PHOTO'
             ? 'Saca una foto al elemento citado en el desafío estando a al menos 50 metros del mismo.'
-            : challenge.completion_type === 'QR'
+            : challenge.CompletionType.type === 'QR'
             ? 'Escanea el QR del ticket/entrada que aplique al desafío para completarlo.'
-            : challenge.completion_type === 'GPS'
+            : challenge.CompletionType.type === 'GPS'
             ? 'Pasa a menos de 75 metros del punto para completar el desafío.'
-            : challenge.completion_type === 'GPS-ROUTE'
+            : challenge.CompletionType.type === 'GPS-ROUTE'
             ? 'Pasa por todos los puntosa de la ruta para completar el desafío.'
             : ''}
         </Text>

@@ -27,7 +27,7 @@ export const useChallengeCompletion = (navigation) => {
       return;
     }
 
-    switch (challenge.completion_type) {
+    switch (challenge.CompletionType.type) {
       case 'QR':
         navigation.navigate("ChallengeScanQRScreen", { challenge });
         break;

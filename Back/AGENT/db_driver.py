@@ -29,7 +29,7 @@ class SupabaseDatabaseDriver:
 
     async def get_all_challenges(self):
         """Fetches all active challenges"""
-        response = supabase.table("Challenge").select("name,description,reward").eq("active", True).execute()
+        response = supabase.table("Challenge").select("name,description,reward,ChallengeType(type)").eq("active", True).execute()
         return response.data
     
     async def get_all_prizes(self):

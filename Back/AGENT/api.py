@@ -39,7 +39,7 @@ class AssistantFnc(llm.FunctionContext):
         return f"Calculando la ruta a {destination}..."
     
     
-    @llm.ai_callable(description="Pide información a la base de datos sobre TODOS los retos activos disponibles : lista(nombre,descripción,premio)")
+    @llm.ai_callable(description="Pide información a la base de datos sobre TODOS los retos activos disponibles : lista(nombre,descripción,premio,tipo)")
     async def ask_challenges(self):
         logging.info(f"[AGENT API] Buscando retos disponibles...")
         challenges = await db_driver.get_all_challenges()
@@ -52,7 +52,11 @@ class AssistantFnc(llm.FunctionContext):
         prizes = await db_driver.get_all_prizes()
         return f"La lista de premios disponibles es la siguiente: {prizes}"
     
-    
+    @llm.ai_callable(description="Acepta el reto que el usuario ha elegido")
+    async def accept_challenge(self, challenge_id: Annotated[int, llm.TypeInfo(description="ID del reto")]):
+        logging.info(f"[AGENT API] Aceptando el reto {challenge_id}...")
+        await emit_event("server_command", {"action": "accept_challenge", "challenge_id": challenge_id})
+        return f"Reto {challenge_id} aceptado, buena suerte!"
     
     
     

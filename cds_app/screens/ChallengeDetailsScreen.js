@@ -23,7 +23,7 @@ const ChallengeDetailsScreen = () => {
       {/* Food Image */}
       <View className="w-full h-72">
         <Image
-          source={challenge.cover_url ? { uri: challenge.cover_url } : testImg}
+          source={challenge.cover_url ? { uri: challenge.cover_url } : ''}
           className="w-full h-full"
           resizeMode="cover"
         />

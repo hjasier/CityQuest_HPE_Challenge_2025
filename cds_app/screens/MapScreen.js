@@ -5,6 +5,8 @@ import MapMapBox from "../components/MapMapBox";
 import BottomSheetComponent from "../components/BottomSheet";
 import { useCurrentChallenge } from "../hooks/useCurrentChallenge";
 import CurrentChallengeNav from "../components/CurrentChallengeNav";
+import ChallengeFilterer from "../components/ChallengeFilterer";
+
 
 const MapScreen = () => {
 
@@ -16,6 +18,7 @@ const MapScreen = () => {
       {currentChallenge && (
         <CurrentChallengeNav />
       )}
+      <ChallengeFilterer />
       <MapMapBox />
       <BottomSheetComponent />
     </View>
