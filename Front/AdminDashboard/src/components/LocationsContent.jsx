@@ -211,7 +211,7 @@ const LocationsContent = () => {
         map.current = new mapboxgl.Map({
           container: mapContainer.current,
           style: 'mapbox://styles/mapbox/streets-v12',
-          center: [-3.70379, 40.41678], // Madrid, Spain
+          center: [-2.934984, 43.262969], 
           zoom: 12
         });
         
