@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import * as turf from '@turf/helpers';
 import distance from '@turf/distance';
-
+import { DETECTION_RADIUS } from './constants';
+import useUserLocation from './useUserLocation';
 /**
  * Custom hook to check proximity to a challenge
  * @param {[number, number]} userLocation - Current user location [longitude, latitude]
@@ -10,11 +11,11 @@ import distance from '@turf/distance';
  * @returns {boolean} - Whether the user is within the specified radius
  */
 export function useProximityToChallenge(
-  userLocation, 
   challengeLocation, 
-  radiusInMeters = 75
+  radiusInMeters = DETECTION_RADIUS
 ) {
   const [isNearChallenge, setIsNearChallenge] = useState(false);
+  const { userLocation } = useUserLocation();
 
   useEffect(() => {
     // Only check if both locations are valid and have coordinates

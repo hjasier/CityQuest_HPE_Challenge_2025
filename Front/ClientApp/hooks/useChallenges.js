@@ -18,7 +18,7 @@ export const useChallenges = () => {
           CompletionType (*),
           ChallengeTags (ChallengeTag (id,tag)),
           RequiredCapability (LocationCapability (name)),
-          Location (*)
+          Location (*,Route(*))
         `);
 
       if (error) throw error;

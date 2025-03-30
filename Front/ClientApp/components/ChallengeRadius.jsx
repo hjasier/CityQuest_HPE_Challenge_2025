@@ -2,6 +2,7 @@ import React from 'react';
 import MapboxGL from '@rnmapbox/maps';
 import circle from '@turf/circle';
 import WKB from 'ol/format/WKB';
+import { DETECTION_RADIUS } from '../hooks/constants';
 
 const ChallengeRadius = ({ currentChallenge }) => {
   // Convertir HEX a Uint8Array
@@ -35,7 +36,7 @@ const ChallengeRadius = ({ currentChallenge }) => {
   const coordinates = [parsedCoordinates.longitude, parsedCoordinates.latitude];
   
   // Radius in kilometers (100 meters = 0.1 kilometers)
-  const meters = 75;
+  const meters = DETECTION_RADIUS;
   const radiusInKm = meters / 1000;
   
   // Configuration for creating the circle

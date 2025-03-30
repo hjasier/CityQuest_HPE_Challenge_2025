@@ -20,12 +20,13 @@ import { useLocationChallenges } from '../hooks/useLocationChallenges';
 import { useFilteredChallenges } from '../hooks/useFilteredChallenges';
 import { useSelectedLocation } from '../hooks/useSelectedLocation';
 import { useReCenterLocation } from '../hooks/useReCenterLocation';
+import ChallengeRouteRenderer from './ChallengeRouteRenderer';
+import useUserLocation from '../hooks/useUserLocation';
 
 MapboxGL.setAccessToken(MAPBOX_ACCESS_TOKEN);
 
 const Map = () => {
   const bearing = require('../assets/HeadingPuck.png');
-  const [location, setLocation] = useState(null);
   const mapRef = useRef(null);
   const cameraRef = useRef(null);
   const { width, height } = Dimensions.get('window');
@@ -35,54 +36,21 @@ const Map = () => {
   const [mapLoaded, setMapLoaded] = useState(false);
   const navigation = useNavigation();
   const { currentChallenge } = useCurrentChallenge();
-  const { navigateCompleted } = useChallengeCompletion(navigation);
+  const { handleChallengeCompleted } = useChallengeCompletion(navigation);
   const { setSelectedLocation } = useSelectedLocation();
   const { ReCenterLocation } = useReCenterLocation();
-
+  const { location } = useUserLocation();
 
   const { currentRoute } = useCurrentRoute();
   const { setCurrentGeometryRoute } = useCurrentGeometryRoute();
   
-
-  //console.log('RUTA DISPONIBLE:', currentRoute? 'SI' : 'NO');
 
   
   
   // State for storing route information
   const [routeGeometry, setRouteGeometry] = useState(null);
 
-  useEffect(() => {
-    (async () => {
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert('Permiso denegado', 'Se necesita acceso a la ubicación para mostrar el mapa.');
-        return;
-      }
 
-      // Get initial location
-      let currentLocation = await Location.getCurrentPositionAsync({});
-      setLocation([currentLocation.coords.longitude, currentLocation.coords.latitude]);
-      
-      // Subscribe to location updates
-      const locationSubscription = await Location.watchPositionAsync(
-        {
-          accuracy: Location.Accuracy.High,
-          distanceInterval: 5, // Update if moved by 5 meters
-          timeInterval: 2000 // Update at most every 2 seconds
-        },
-        (newLocation) => {
-          setLocation([newLocation.coords.longitude, newLocation.coords.latitude]);
-        }
-      );
-      
-      // Clean up subscription when component unmounts
-      return () => {
-        if (locationSubscription) {
-          locationSubscription.remove();
-        }
-      };
-    })();
-  }, []);
 
   // Fetch route if routeNavigation is provided
   useEffect(() => {
@@ -148,7 +116,7 @@ const Map = () => {
       try {
         let currentLocation = await Location.getCurrentPositionAsync({});
         const newLocation = [currentLocation.coords.longitude, currentLocation.coords.latitude];
-        setLocation(newLocation);
+        // setLocation(newLocation);
         
         if (cameraRef.current) {
           cameraRef.current.flyTo(newLocation, 300);
@@ -209,7 +177,6 @@ const Map = () => {
 
   // Call the hook at the component level
   const isNearChallenge = useProximityToChallenge(
-    location, 
     parseWKB(currentChallenge?.Location?.point)
   );
 
@@ -217,7 +184,7 @@ const Map = () => {
   useEffect(() => {
     if (location && isNearChallenge) {
       Vibration.vibrate(1000);
-      navigateCompleted(currentChallenge);
+      handleChallengeCompleted(currentChallenge);
     }
   }, [location, isNearChallenge, currentChallenge]); 
       
@@ -294,7 +261,7 @@ const Map = () => {
 
             
   
-            {/* RENDERIZAR LA RUTA SI EXISTE ROUTE EN HOOK */}
+            {/* RENDERIZAR LA RUTA HACIA UN RETO SI EXISTE ROUTE EN HOOK */}
             {(currentRoute && routeGeometry) && (
               <MapboxGL.ShapeSource
                 id="routeSource"
@@ -329,7 +296,19 @@ const Map = () => {
               </MapboxGL.ShapeSource>
             )}
   
+          
+
+          {/* RENDERIZAR LA RUTA DE UN RETO SI LA HAY */}
+
+          {currentChallenge && currentChallenge?.CompletionType.type === 'GPS-ROUTE' && (
+            <ChallengeRouteRenderer
+              challenge={currentChallenge}
+              userLocation={location}
+            />
+          )}
+
           </MapboxGL.MapView>
+
           
           {/* Center on user location button */}
           {/* <TouchableOpacity 

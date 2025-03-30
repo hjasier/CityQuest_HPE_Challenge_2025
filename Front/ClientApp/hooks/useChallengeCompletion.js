@@ -45,6 +45,19 @@ export const useChallengeCompletion = (navigation) => {
     }
   }, [navigation]);
 
+  const handleChallengeCompleted = useCallback((challenge) => {
+    if (!challenge) {
+      console.warn('No challenge provided for completion');
+      return;
+    }
+
+    navigation.navigate("ChallengeCompletedScreen", { challenge });
+
+    // ACTUALIZAR SUPABASE
+
+
+  }
+  , []);
 
   /**
     * Navigate to the challenge completed screen
@@ -53,21 +66,6 @@ export const useChallengeCompletion = (navigation) => {
   **/
  
 
-  const navigateCompleted = useCallback((challenge) => {
-    if (!challenge) {
-      console.warn('No challenge provided for completion');
-      return;
-    }
-
-    // ACTUALIZAR SUPABASE
-
-
-    navigation.navigate("ChallengeCompletedScreen")
-
-    // BORRAR CURRENT
-    abandonChallenge();
-  }
-  , [navigation]);
 
 
     const abandonChallenge = () => {
@@ -107,7 +105,7 @@ export const useChallengeCompletion = (navigation) => {
   return {
     navigateToChallengeCompletion,
     directChallengeCompletion,
-    navigateCompleted,
+    handleChallengeCompleted,
     abandonChallenge
   };
 };

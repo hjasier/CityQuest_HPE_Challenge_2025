@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { View, Text, ScrollView, TouchableOpacity } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, TextInput } from "react-native";
 import {useVoiceAssistant, useTrackTranscription, useLocalParticipant } from "@livekit/components-react";
 import { Track } from "livekit-client";
 import { Ionicons } from '@expo/vector-icons';
@@ -8,6 +8,7 @@ import { useNavigation } from '@react-navigation/native';
 import ConnectionFace from "./ConnectionFace";
 import ChatStatus from "./ChatStatus";
 import Message from "./Message";
+import { Icon } from "@rneui/base";
 
 
 
@@ -21,6 +22,7 @@ const VoiceAssistantChat = ({isConnected}) => {
   });
 
   const [messages, setMessages] = useState([]);
+  const [textMessage, setTextMessage] = useState("");
   const scrollViewRef = useRef();
   
   const navigation = useNavigation();
@@ -41,22 +43,44 @@ const VoiceAssistantChat = ({isConnected}) => {
 
 
 
-  
-
-  const openCamera = () => {
-    sendMessage("TESST DE MENSAJE");
-    console.log("Abriendo la cámara...");
+  const handleSendTextMessage = () => {
+    if (textMessage.trim() === "") return;
+    
+    // Add the message to the local messages state
+    const newMessage = {
+      id: `text-${Date.now()}`,
+      text: textMessage,
+      type: "user",
+      firstReceivedTime: Date.now()
+    };
+    
+    setMessages(prevMessages => [...prevMessages, newMessage]);
+    
+    // Enviar msg por websocket a la api 
+    sendMessage({'text_message': textMessage});
+    
+    // Clear the input
+    setTextMessage("");
+    
+    // Auto-scroll to the bottom
+    setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }, 100);
   };
 
 
   return (
     <View className="flex-1 bg-white">
       {/* Header */}
-      <View className="bg-primary p-4 pt-10 rounded-b-2xl shadow-md">
-        <Text className="text-white text-xl font-bold text-center">Magellan AI</Text>
-        <TouchableOpacity onPress={openCamera}>
-          <Text className="text-blue-100 text-center text-sm">Habla para interactuar</Text>
-        </TouchableOpacity>
+      <View className="bg-secondary items-center p-4 pt-10 rounded-b-2xl shadow-md">
+        
+        <View className="flex-row space-x-2 items-center">
+          <Icon name="robot" type="font-awesome-5" color={isConnected && connected ? 'rgba(15, 220, 18, 0.86)' : 'rgb(201, 201, 201)'} size={25} />
+          <Text className="text-white text-xl font-bold text-center">Magellan AI</Text>
+        </View>
+        
+        <Text className="text-blue-100 text-center text-sm">Habla para interactuar</Text>
+        
         <View className=" absolute left-4 top-5 flex-col items-center justify-center mt-4 space-y-1">
           <ConnectionFace isConnected={isConnected} connected={connected} />
         </View>
@@ -79,7 +103,7 @@ const VoiceAssistantChat = ({isConnected}) => {
               <Ionicons name="chatbubbles-outline" size={32} color="#3b82f6" />
             </View>
             <Text className="text-gray-500 text-center">
-              Di algo para comenzar la conversación
+              Di algo o escribe un mensaje para comenzar la conversación
             </Text>
           </View>
         ) : (
@@ -89,17 +113,37 @@ const VoiceAssistantChat = ({isConnected}) => {
         )}
       </ScrollView>
       
-      {/* Footer mic indicator */}
+      {/* Footer with mic indicator and text input */}
       <View className="p-4 border-t border-gray-200">
-        <View className="flex-row items-center justify-center bg-gray-100 p-3 rounded-full">
-          <Ionicons 
-            name={state === "connected" ? "mic" : "mic-off"} 
-            size={24} 
-            color={state === "connected" ? "#3b82f6" : "#9ca3af"} 
+        <View className="flex-row items-center justify-center mb-3">
+          <View className="flex-row items-center justify-center bg-gray-100 p-3 rounded-full">
+            <Ionicons 
+              name={state === "connected" ? "mic" : "mic-off"} 
+              size={24} 
+              color={state === "connected" ? "#3b82f6" : "#9ca3af"} 
+            />
+            <Text className="ml-2 text-gray-600">
+              {state === "connected" ? "Micrófono activo" : "Esperando..."}
+            </Text>
+          </View>
+        </View>
+        
+        {/* Text input for sending messages */}
+        <View className="flex-row items-center">
+          <TextInput
+            className="flex-1 bg-gray-100 rounded-full px-4 py-2 mr-2"
+            placeholder="Escribe un mensaje..."
+            value={textMessage}
+            onChangeText={setTextMessage}
+            onSubmitEditing={handleSendTextMessage}
           />
-          <Text className="ml-2 text-gray-600">
-            {state === "connected" ? "Micrófono activo" : "Esperando..."}
-          </Text>
+          <TouchableOpacity 
+            className="bg-secondary w-10 h-10 rounded-full items-center justify-center"
+            onPress={handleSendTextMessage}
+            disabled={textMessage.trim() === ""}
+          >
+            <Ionicons name="send" size={20} color={textMessage.trim() === "" ? "#9ca3af" : "white"} />
+          </TouchableOpacity>
         </View>
       </View>
     </View>

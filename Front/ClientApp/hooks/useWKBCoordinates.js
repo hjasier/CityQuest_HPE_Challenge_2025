@@ -4,7 +4,7 @@ import WKB from 'ol/format/WKB';
 /**
  * Custom hook to parse WKB (Well-Known Binary) coordinates
  * @param {string} wkbHex - Hexadecimal representation of WKB geometry
- * @returns {Object|null} An object with latitude and longitude, or null if parsing fails
+ * @returns {Array|Object|null} Array of coordinates for LineString, Object with lat/lng for Point, or null if parsing fails
  */
 export const useWKBCoordinates = (wkbHex) => {
   return useMemo(() => {
@@ -26,15 +26,26 @@ export const useWKBCoordinates = (wkbHex) => {
       const feature = wkb.readFeature(hexToUint8Array(wkbHex));
       
       if (feature) {
-        // Extract coordinates
-        const [longitude, latitude] = feature.getGeometry().getCoordinates();
-        return { latitude, longitude };
+        const geometry = feature.getGeometry();
+        const geometryType = geometry.getType();
+        
+        // Handle different geometry types
+        if (geometryType === 'Point') {
+          // For Point geometries, return latitude and longitude object
+          const [longitude, latitude] = geometry.getCoordinates();
+          return { latitude, longitude };
+        } else if (geometryType === 'LineString') {
+          // For LineString geometries, return array of coordinate pairs
+          const coordinates = geometry.getCoordinates();
+          return coordinates.map(([longitude, latitude]) => ({ latitude, longitude }));
+        } else {
+          console.warn(`Unsupported geometry type: ${geometryType}`);
+        }
       }
     } catch (error) {
       console.error('Error parsing WKB coordinates:', error);
     }
-
+    
     return null;
   }, [wkbHex]);
 };
-

@@ -4,9 +4,10 @@ import MapView from 'react-native-maps';
 import React, { useState, useEffect } from 'react';
 import * as Location from 'expo-location';
 import ChallengeReviews from './ChallengeReviews';
-import MapboxGL from '@rnmapbox/maps';
 import { useWKBCoordinates } from '../hooks/useWKBCoordinates';
 import { Icon } from '@rneui/base';
+import DetailsMapPoint from './DetailsMapPoint';
+import DetailsMapRoute from './DetailsMapRoute';
 
 const ChallengeDetails = ({challenge}) => {
   const [location, setLocation] = useState(null);
@@ -29,13 +30,6 @@ const ChallengeDetails = ({challenge}) => {
       });
     })();
   }, []);
-
-  console.log(challenge.Location?.point)
-  console.log(challenge.Location?.latitude)
-  console.log(challenge.Location?.longitude)
-
-
-  const coordinates = useWKBCoordinates(challenge.Location?.point);
 
 
     
@@ -71,7 +65,7 @@ const ChallengeDetails = ({challenge}) => {
                 : 'check-circle'
             }
             type={
-              challenge.CompletionType.type === ('GPS' || 'GPS-ROUTE')
+              challenge.CompletionType.type === 'GPS' || challenge.CompletionType.type === 'GPS-ROUTE'
                 ? 'material-community'
                 : 'font-awesome-5'
             }
@@ -95,23 +89,11 @@ const ChallengeDetails = ({challenge}) => {
       </View>
       
       <View className="w-full h-48 rounded-lg overflow-hidden mb-6">
-        <MapboxGL.MapView
-          style={{flex:1}}
-          zoomEnabled
-          scaleBarEnabled={false}
-          styleURL='mapbox://styles/asiier/cm86e6z8s007t01safl5m10hl/draft'
-        >
-        <MapboxGL.Camera animationDuration={0} 
-        centerCoordinate={[coordinates.longitude, coordinates.latitude]} 
-        zoomLevel={14} />
-        <MapboxGL.PointAnnotation
-          id="pointAnnotation"
-          coordinate={[coordinates.longitude, coordinates.latitude]}
-        >
-          <MapPin stroke="#b00202" fill="#FF3B30" />
-
-        </MapboxGL.PointAnnotation>
-        </MapboxGL.MapView>
+        {challenge.CompletionType.type !== 'GPS-ROUTE' ? (
+        <DetailsMapPoint challenge={challenge}/>
+        ) : (
+        <DetailsMapRoute challenge={challenge}/>
+        )}
       </View>
 
       {/* Reviews */}

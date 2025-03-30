@@ -15,11 +15,12 @@ export const useLocations = () => {
         .select(`
           *,
           LocationType (*),
-          LocationCapabilities (LocationCapability (name))
+          LocationCapabilities (LocationCapability (name)),
+          Route(*)
         `);
 
       if (error) throw error;
-        
+       
       setLocations(data);
       setLoading(false);
     } catch (err) {
