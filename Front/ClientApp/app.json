@@ -23,7 +23,8 @@
       },
       "runtimeVersion": {
         "policy": "appVersion"
-      }
+      },
+      "bitcode": false
     },
     "android": {
       "adaptiveIcon": {
@@ -35,7 +36,27 @@
         "CAMERA",
         "WRITE_EXTERNAL_STORAGE",
         "android.permission.CAMERA",
-        "android.permission.RECORD_AUDIO"
+        "android.permission.RECORD_AUDIO",
+        "android.permission.ACCESS_NETWORK_STATE",
+        "android.permission.INTERNET",
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.SYSTEM_ALERT_WINDOW",
+        "android.permission.WAKE_LOCK",
+        "android.permission.BLUETOOTH",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "CAMERA",
+        "WRITE_EXTERNAL_STORAGE",
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.ACCESS_NETWORK_STATE",
+        "android.permission.INTERNET",
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.SYSTEM_ALERT_WINDOW",
+        "android.permission.WAKE_LOCK",
+        "android.permission.BLUETOOTH",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
       ],
       "runtimeVersion": "1.0.0"
     },
@@ -64,28 +85,26 @@
       [
         "@rnmapbox/maps",
         {
-          
-          "RNMapboxMapsDownloadToken":"sk.eyJ1IjoiYXNpaWVyIiwiYSI6ImNtODYweWxvbTAwNGcyaXFzeWNndHRodzMifQ.Kl3w4UT-iYCrOv2O60tpGg",
+          "RNMapboxMapsDownloadToken": "sk.eyJ1IjoiYXNpaWVyIiwiYSI6ImNtODYweWxvbTAwNGcyaXFzeWNndHRodzMifQ.Kl3w4UT-iYCrOv2O60tpGg",
           "RNMapboxMaps": {
             "accessToken": "sk.eyJ1IjoiYXNpaWVyIiwiYSI6ImNtODYweWxvbTAwNGcyaXFzeWNndHRodzMifQ.Kl3w4UT-iYCrOv2O60tpGg",
-            "DownloadToken":"sk.eyJ1IjoiYXNpaWVyIiwiYSI6ImNtODYweWxvbTAwNGcyaXFzeWNndHRodzMifQ.Kl3w4UT-iYCrOv2O60tpGg"
-          },
+            "DownloadToken": "sk.eyJ1IjoiYXNpaWVyIiwiYSI6ImNtODYweWxvbTAwNGcyaXFzeWNndHRodzMifQ.Kl3w4UT-iYCrOv2O60tpGg"
+          }
         }
       ]
-    ]
-    ,
+    ],
     "hooks": {},
     "extra": {
       "eas": {
         "build": {
           "releaseChannel": "preview",
           "development": {
-            "distribution": "internal",  // Esto es para un build interno, no público
-            "debug": true,              // Activar debug (útil para desarrollo)
-            "developmentClient": true   // Esto es clave para habilitar builds de desarrollo para pruebas
+            "distribution": "internal",
+            "debug": true,
+            "developmentClient": true
           },
           "production": {
-            "distribution": "store",    // Para build de producción
+            "distribution": "store",
             "debug": false
           }
         },
@@ -94,7 +113,7 @@
     },
     "owner": "hjasier",
     "updates": {
-      "url": "https://u.expo.dev/06f32d72-676c-4abd-8e97-d871d53f31c4",
+      "url": "https://u.expo.dev/c9b1853d-e8da-4873-a670-fe5a3b40fbdb",
       "checkAutomatically": "ON_LOAD",
       "enabled": true,
       "fallbackToCacheTimeout": 0

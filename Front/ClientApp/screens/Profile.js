@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { useNavigation } from '@react-navigation/native'
 import { useSession } from '../hooks/SessionProvider'
 import { supabase } from '../database/supabase'
+import UpdateAppButton from '../components/UpdateAppButton'
 
 const Profile = () => {
   const navigation = useNavigation()
@@ -144,7 +145,7 @@ const Profile = () => {
             <View className="bg-yellow-100 p-2 rounded-lg mr-3">
               <Ionicons name="notifications-outline" size={22} color="#eab308" />
             </View>
-            <Text className="text-gray-700 font-medium">Notifications</Text>
+            <Text className="text-gray-700 font-medium">Notificaciones</Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
         </TouchableOpacity>
@@ -154,7 +155,7 @@ const Profile = () => {
             <View className="bg-green-100 p-2 rounded-lg mr-3">
               <Ionicons name="shield-checkmark-outline" size={22} color="#10b981" />
             </View>
-            <Text className="text-gray-700 font-medium">Privacy</Text>
+            <Text className="text-gray-700 font-medium">Privacidad</Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
         </TouchableOpacity>
@@ -164,10 +165,17 @@ const Profile = () => {
             <View className="bg-red-100 p-2 rounded-lg mr-3">
               <Ionicons name="help-circle-outline" size={22} color="#ef4444" />
             </View>
-            <Text className="text-gray-700 font-medium">Help & Support</Text>
+            <Text className="text-gray-700 font-medium">Ayuda & Soporte</Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
         </TouchableOpacity>
+
+        {/* Actualizar app*/}
+        <UpdateAppButton />
+
+
+
+
       </View>
       
       {/* Logout button */}
