@@ -430,12 +430,121 @@ const ChallengesContent = () => {
                     rows="4"
                     placeholder="Describe el reto de manera clara y motivadora"
                     value={currentChallenge.description}
-                    onChange={(e) => setCurrentChallenge({...currentChallenge, description: e.target.value})}
+                    onChange={(e) => setCurrentChallenge({ ...currentChallenge, description: e.target.value })}
                   ></textarea>
                 </div>
 
-                {/* Rest of existing form fields... */}
-                
+                {/* Challenge Type Field */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Tipo de Reto</label>
+                  <select
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none"
+                    value={currentChallenge.type || ''}
+                    onChange={(e) => setCurrentChallenge({ ...currentChallenge, type: e.target.value })}
+                  >
+                    {challengeTypes.map((chType) => (
+                      <option key={chType.id} value={chType.id}>
+                        {chType.type}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Category Field */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Categoría</label>
+                  <select
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none"
+                    value={currentChallenge.category || ''}
+                    onChange={(e) => setCurrentChallenge({ ...currentChallenge, category: e.target.value })}
+                  >
+                    {categories.map((cat, index) => (
+                      <option key={index} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Points */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                    Puntos de recompensa
+                  </label>
+                  <input
+                    type="number"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none"
+                    placeholder="Ingresa la cantidad de puntos"
+                    value={currentChallenge.points}
+                    onChange={(e) =>
+                      setCurrentChallenge({
+                        ...currentChallenge,
+                        points: parseInt(e.target.value) || 0
+                      })
+                    }
+                  />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div className="flex items-center">
+                    <input
+                      id="repeatable"
+                      type="checkbox"
+                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                      checked={currentChallenge.repeatable}
+                      onChange={(e) =>
+                        setCurrentChallenge({
+                          ...currentChallenge,
+                          repeatable: e.target.checked,
+                          // Initialize cooldown if switching to repeatable; clear if not
+                          duration: e.target.checked ? currentChallenge.duration || 1 : null
+                        })
+                      }
+                    />
+                    <label htmlFor="repeatable" className="ml-2 block text-sm text-gray-700">
+                      ¿Se puede repetir?
+                    </label>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                      Dificultad
+                    </label>
+                    <select
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none"
+                      value={currentChallenge.difficulty}
+                      onChange={(e) =>
+                        setCurrentChallenge({
+                          ...currentChallenge,
+                          difficulty: e.target.value
+                        })
+                      }
+                    >
+                      {difficulties.map((diff, index) => (
+                        <option key={index} value={diff}>
+                          {diff}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                {currentChallenge.repeatable && (
+                  <div className="mt-5">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                      Tiempo de espera (horas)
+                    </label>
+                    <input
+                      type="number"
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none"
+                      placeholder="Ingresa el tiempo en horas"
+                      value={currentChallenge.duration || ''}
+                      onChange={(e) =>
+                        setCurrentChallenge({
+                          ...currentChallenge,
+                          duration: e.target.value
+                        })
+                      }
+                    />
+                  </div>
+                )}
                 {/* Image Upload - Updated */}
                 <div className="bg-gray-100 dark:bg-gray-700/30 p-5 rounded-xl border border-dashed border-gray-300 dark:border-gray-600">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Cambiar imagen</label>

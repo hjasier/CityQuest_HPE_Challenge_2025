@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, Edit, Trash2, Filter, Award, Check, X, Coins } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, Filter, Award, Check, X, Coins, Image } from 'lucide-react';
 import { supabase } from '../hooks/supabaseClient';
 
 const RewardsContent = () => {
@@ -37,7 +37,7 @@ const RewardsContent = () => {
         status: prize.status || 'Activo', // Default status if not in database
         redemptions: prize.redemptions || 0, // Default redemptions if not in database
         couponCode: prize.coupon_code,
-        image: prize.image_url || null // Default image if not in database
+        image: prize.image_url // Use the image_url from database
       }));
       
       setRewards(formattedRewards);
@@ -69,13 +69,13 @@ const RewardsContent = () => {
   // Open modal to add new reward
   const handleAddNew = () => {
     setCurrentReward({
-      id: null, // Let Supabase generate the ID
+      id: null,
       name: '',
       description: '',
       pointsCost: 100,
       status: 'Activo',
       redemptions: 0,
-      // Removed image property as it's not stored in database
+      image: null
     });
     setShowModal(true);
   };
@@ -105,78 +105,109 @@ const RewardsContent = () => {
 
   // Save changes (new reward or edit)
   const handleSave = async () => {
-    // Prepare data for Supabase - only include fields that exist in the actual Prize table
-    const prizeData = {
-      price: currentReward.pointsCost,
-      description: currentReward.description
-      // No need to specify coupon_code as it's generated automatically
-    };
-    
-    // Note: 'name', 'status', 'image_url' fields don't exist in the actual table
-    // We'll use the description field to display name in the UI
+    try {
+      // Handle image upload first if a new file is selected
+      let imageUrl = currentReward.image;
+      
+      if (currentReward.image instanceof File) {
+        // Create unique file name
+        const fileExt = currentReward.image.name.split('.').pop();
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+        // Specify the path to include prize-images subfolder
+        const filePath = `prize-images/${fileName}`;
+        
+        // Upload to Supabase storage
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('prizes')
+          .upload(filePath, currentReward.image);
+        
+        if (uploadError) {
+          console.error('Error uploading image:', uploadError);
+          throw uploadError;
+        }
+        
+        // Get the public URL
+        const { data: publicURLData } = supabase.storage
+          .from('prizes')
+          .getPublicUrl(filePath);
+        
+        imageUrl = publicURLData.publicUrl;
+      }
+      
+      // Prepare data for Supabase - include all fields from the Prize table
+      const prizeData = {
+        price: currentReward.pointsCost,
+        description: currentReward.description,
+        image_url: imageUrl
+        // No need to specify coupon_code as it's generated automatically
+      };
 
-    if (currentReward.id) {
-      // Update existing reward
-      const { data, error } = await supabase
-        .from('Prize')
-        .update(prizeData)
-        .eq('id', currentReward.id)
-        .select();
-      
-      if (error) {
-        console.error('Error updating reward:', error);
-        return;
-      }
-      
-      // Update local state - keep UI-only fields intact for display purposes
-      if (data && data[0]) {
-        const updatedReward = {
-          ...currentReward,
-          pointsCost: data[0].price,
-          description: data[0].description,
-          couponCode: data[0].coupon_code,
-          // Keep the UI-only fields that aren't in the database
-          name: currentReward.name || data[0].description.substring(0, 30) + '...',
-          status: currentReward.status,
-          redemptions: currentReward.redemptions,
-          image: currentReward.image
-        };
+      if (currentReward.id) {
+        // Update existing reward
+        const { data, error } = await supabase
+          .from('Prize')
+          .update(prizeData)
+          .eq('id', currentReward.id)
+          .select();
         
-        setRewards(rewards.map(r => 
-          r.id === currentReward.id ? updatedReward : r
-        ));
-      }
-    } else {
-      // Add new reward
-      const { data, error } = await supabase
-        .from('Prize')
-        .insert(prizeData)
-        .select();
-      
-      if (error) {
-        console.error('Error adding reward:', error);
-        return;
-      }
-      
-      // Add to local state with DB-generated ID and coupon code
-      if (data && data[0]) {
-        const newReward = {
-          id: data[0].id,
-          pointsCost: data[0].price,
-          description: data[0].description,
-          couponCode: data[0].coupon_code,
-          // UI-only fields
-          name: currentReward.name || data[0].description.substring(0, 30) + '...',
-          status: currentReward.status || 'Activo',
-          redemptions: 0,
-          image: currentReward.image instanceof File ? URL.createObjectURL(currentReward.image) : null
-        };
+        if (error) {
+          console.error('Error updating reward:', error);
+          return;
+        }
         
-        setRewards([...rewards, newReward]);
+        // Update local state
+        if (data && data[0]) {
+          const updatedReward = {
+            ...currentReward,
+            pointsCost: data[0].price,
+            description: data[0].description,
+            couponCode: data[0].coupon_code,
+            image: data[0].image_url,
+            // Keep the UI-only fields that aren't in the database
+            name: currentReward.name || data[0].description.substring(0, 30) + '...',
+            status: currentReward.status,
+            redemptions: currentReward.redemptions
+          };
+          
+          setRewards(rewards.map(r => 
+            r.id === currentReward.id ? updatedReward : r
+          ));
+        }
+      } else {
+        // Add new reward
+        const { data, error } = await supabase
+          .from('Prize')
+          .insert(prizeData)
+          .select();
+        
+        if (error) {
+          console.error('Error adding reward:', error);
+          return;
+        }
+        
+        // Add to local state with DB-generated ID and coupon code
+        if (data && data[0]) {
+          const newReward = {
+            id: data[0].id,
+            pointsCost: data[0].price,
+            description: data[0].description,
+            couponCode: data[0].coupon_code,
+            image: data[0].image_url,
+            // UI-only fields
+            name: currentReward.name || data[0].description.substring(0, 30) + '...',
+            status: currentReward.status || 'Activo',
+            redemptions: 0
+          };
+          
+          setRewards([...rewards, newReward]);
+        }
       }
+      
+      setShowModal(false);
+    } catch (error) {
+      console.error('Error saving prize:', error);
+      alert('Error al guardar el premio. Por favor, inténtalo de nuevo.');
     }
-    
-    setShowModal(false);
   };
 
   return (
@@ -244,9 +275,25 @@ const RewardsContent = () => {
               {filteredRewards.map((reward) => (
                 <tr key={reward.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex flex-col">
-                      <div className="font-medium text-gray-900">{reward.name}</div>
-                      <div className="text-sm text-gray-500 truncate max-w-xs">{reward.description}</div>
+                    <div className="flex items-center">
+                      {/* Add image thumbnail */}
+                      {reward.image && (
+                        <div className="flex-shrink-0 h-10 w-10 mr-3">
+                          <img 
+                            className="h-10 w-10 rounded-full object-cover" 
+                            src={reward.image} 
+                            alt={reward.name}
+                            onError={(e) => {
+                              e.target.onerror = null;
+                              e.target.src = 'https://via.placeholder.com/40?text=No+Image';
+                            }}
+                          />
+                        </div>
+                      )}
+                      <div className="flex flex-col">
+                        <div className="font-medium text-gray-900">{reward.name}</div>
+                        <div className="text-sm text-gray-500 truncate max-w-xs">{reward.description}</div>
+                      </div>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">
@@ -323,7 +370,7 @@ const RewardsContent = () => {
                 {/* Description - This is stored in the database */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                    Descripción <span className="text-blue-600 dark:text-blue-400 font-medium">(Campo en base de datos)</span>
+                    Descripción
                   </label>
                   <textarea
                     className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none resize-none"
@@ -338,7 +385,7 @@ const RewardsContent = () => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                      Costo en Puntos <span className="text-blue-600 dark:text-blue-400 font-medium">(Campo en base de datos)</span>
+                      Costo en Puntos
                     </label>
                     <div className="relative">
                       <input
@@ -372,6 +419,48 @@ const RewardsContent = () => {
                   </div>
                 </div>
 
+                {/* Image Upload */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                    Imagen del Premio
+                  </label>
+                  
+                  {/* Image Preview */}
+                  {(currentReward.image instanceof File || (typeof currentReward.image === 'string' && currentReward.image)) && (
+                    <div className="mb-4 border rounded-xl overflow-hidden w-full h-48">
+                      <img 
+                        src={currentReward.image instanceof File ? URL.createObjectURL(currentReward.image) : currentReward.image} 
+                        alt={currentReward.name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = 'https://via.placeholder.com/300x150?text=Sin+Imagen';
+                        }}
+                      />
+                    </div>
+                  )}
+                  
+                  {/* Upload Control */}
+                  <div className="bg-gray-100 dark:bg-gray-700/30 p-5 rounded-xl border border-dashed border-gray-300 dark:border-gray-600">
+                    <div className="flex items-center justify-center w-full">
+                      <label className="flex flex-col items-center justify-center w-full h-24 bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 border-dashed rounded-xl cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-600/50 transition-all">
+                        <div className="flex flex-col items-center justify-center pt-4 pb-4">
+                          <Image className="text-blue-500 mb-2" size={24} />
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            <span className="font-semibold text-blue-500">Haz clic para subir</span> 
+                          </p>
+                        </div>
+                        <input 
+                          type="file" 
+                          accept="image/*"
+                          className="hidden" 
+                          onChange={(e) => setCurrentReward({...currentReward, image: e.target.files[0]})}
+                        />
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Redemption Info - Read Only */}
                 {currentReward.id && (
                   <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-800/30">
@@ -382,7 +471,7 @@ const RewardsContent = () => {
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       {currentReward.couponCode && (
                         <div>
-                          <span className="block text-gray-500 dark:text-gray-400">Código único <span className="text-blue-600 dark:text-blue-400 font-medium">(Campo en base de datos)</span></span>
+                          <span className="block text-gray-500 dark:text-gray-400">Código único</span>
                           <span className="font-mono text-gray-800 dark:text-gray-200">{currentReward.couponCode?.substring(0, 12)}...</span>
                           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Este código se genera automáticamente</p>
                         </div>
