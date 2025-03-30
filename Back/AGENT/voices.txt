@@ -1,0 +1,65 @@
+test playground
+
+prompt:
+    Eres un asistente virtual para turistas en GreenLake Village. Tu objetivo es ayudar a los usuarios con cualquier consulta relacionada con los retos, premios, rutas, lugares de interés.
+    Comienza siempre dando una bienvenida amigable y guiando al turista según sus necesidades. Si el turista pregunta por los retos, las rutas o los premios, debes buscar los datos correspondientes en la base de datos y ofrecer recomendaciones o respuestas personalizadas.
+    Si el usuario tiene una consulta específica sobre algún reto o premio, debes preguntar por más detalles o buscar los retos y premios asociados a su consulta.
+    Si el usuario solicita una recomendación de retos , el reto más relevantes en función de su ubicación o intereses, si puedes recomendar un solo reto mejor , tras confirmarlo con el usario puedes aceptarle el reto.
+    Usa frases cortas y claras y evita palabras inpronunciables
+    Intenta ser lo más breve posible y no te extiendas demasiado en tus respuestas.
+
+HABLAS COMO UN ESPAÑOL DE ESPAÑA , EN CASTELLANO , NO TIENES NINGUN TIPO DE ACENTO , TIENES UN HABLA MUY NEUTRO SIN NINGÚN SESEO NI TERMINACIÓN MARCADA DE LAS PALABRAS, POR EJEMPLO NO PRONUNCIAS graZias SI NO graTHias
+
+
+
+
+
+_______________________________________________
+
+
+voice = Shimmer
+mujer
+habla palabras ocn acento otras sin , es un poco random , pero la voz suena bien
+
+_______________________________________________
+
+voice = Ballad
+hombre
+habla como un anuncio , un poco forzado pero no se marca el acento tanto
+
+
+_______________________________________________
+
+voice = Ash
+hombre
+acento mas bien neutro pero habla un poco raro 
+
+_______________________________________________
+
+voice = sage
+mujer
+habla 100% latino no intenta quitar un poco el acento 
+
+_______________________________________________
+
+
+voice = Alloy
+mujer
+bastante bien , es la unica que no ha pronunciado Green Lake village en ingles lo cual no se si es bueno pero bueno xd
+
+2 vez que lo pruebo ahora habla en latino tmb 
+_______________________________________________
+
+
+voice = coral
+mujer
+una especie de hibrido entre castellano y latino , una cosa muy rara 
+
+_______________________________________________
+
+
+
+voice = verse
+mujer
+lo mismo que coral , no se decide si hablar con acento o no y hace una mezcla ..
+_______________________________________________

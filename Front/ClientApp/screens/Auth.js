@@ -143,7 +143,7 @@ export default function Auth() {
 
       if (profileError) throw profileError
       
-      Alert.alert('Success', 'Your account has been created! Please check your inbox for email verification!')
+      Alert.alert('¡Se ha creado tu cuenta!', 'Tu cuenta ha sido creada con éxito, verifica tu email confirmar la cuenta')
       setIsSignUp(false)
       resetForm()
     } catch (error) {
@@ -167,17 +167,18 @@ export default function Auth() {
   }
 
   return (
+    <View className="absolute top-0 left-0 right-0 bottom-0 bg-white">
     <ScrollView 
       ref={scrollViewRef}
-      className="flex-1 bg-green-50 pt-12"
+      className="flex-1 pt-12 top-0"
       contentContainerStyle={{ paddingBottom: 40 }}
     >
-      <View className="px-6">
+      <View className="px-6 pb-10">
         <View className="items-center mb-8">
-          <Text className="text-3xl font-bold text-green-800">
+          <Text className="text-3xl font-bold text-blue-800">
             {isSignUp ? 'Create Account' : 'Welcome Back'}
           </Text>
-          <Text className="text-green-600 text-center mt-2">
+          <Text className="text-blue-600 text-center mt-2">
             {isSignUp 
               ? 'Join our eco-friendly community' 
               : 'Sign in to continue your green journey'}
@@ -186,11 +187,11 @@ export default function Auth() {
         
         <View className="bg-white rounded-xl shadow-md p-5 mb-4">
           <View className="mb-4">
-            <Text className="text-green-800 font-medium mb-1 ml-1">Email</Text>
+            <Text className="text-blue-800 font-medium mb-1 ml-1">Email</Text>
             <View className="flex-row items-center border border-gray-200 rounded-lg px-3 py-2">
-              <FontAwesome5 name="envelope" size={16} color="#047857" />
+              <FontAwesome5 name="envelope" size={16} color="#022495" />
               <Input
-                containerStyle={{ paddingHorizontal: 0, marginBottom: -10, flex: 1 }}
+                containerStyle={{ paddingHorizontal: 0, marginBottom: -20, paddingLeft:10, flex: 1 }}
                 inputContainerStyle={{ borderBottomWidth: 0 }}
                 onChangeText={setEmail}
                 value={email}
@@ -203,11 +204,11 @@ export default function Auth() {
           </View>
           
           <View className="mb-4">
-            <Text className="text-green-800 font-medium mb-1 ml-1">Password</Text>
+            <Text className="text-blue-800 font-medium mb-1 ml-1">Password</Text>
             <View className="flex-row items-center border border-gray-200 rounded-lg px-3 py-2">
-              <FontAwesome5 name="lock" size={16} color="#047857" />
+              <FontAwesome5 name="lock" size={16} color="#022495" />
               <Input
-                containerStyle={{ paddingHorizontal: 0, marginBottom: -10, flex: 1 }}
+                containerStyle={{ paddingHorizontal: 0, marginBottom: -20, paddingLeft:10, flex: 1 }}
                 inputContainerStyle={{ borderBottomWidth: 0 }}
                 onChangeText={setPassword}
                 value={password}
@@ -222,11 +223,11 @@ export default function Auth() {
           {isSignUp && (
             <>
               <View className="mb-4">
-                <Text className="text-green-800 font-medium mb-1 ml-1">Username</Text>
+                <Text className="text-blue-800 font-medium mb-1 ml-1">Username</Text>
                 <View className="flex-row items-center border border-gray-200 rounded-lg px-3 py-2">
-                  <FontAwesome5 name="user" size={16} color="#047857" />
+                  <FontAwesome5 name="user" size={16} color="#022495" />
                   <Input
-                    containerStyle={{ paddingHorizontal: 0, marginBottom: -10, flex: 1 }}
+                    containerStyle={{ paddingHorizontal: 0, marginBottom: -20, paddingLeft:10, flex: 1 }}
                     inputContainerStyle={{ borderBottomWidth: 0 }}
                     onChangeText={setUsername}
                     value={username}
@@ -238,11 +239,11 @@ export default function Auth() {
               </View>
               
               <View className="mb-4">
-                <Text className="text-green-800 font-medium mb-1 ml-1">Age</Text>
+                <Text className="text-blue-800 font-medium mb-1 ml-1">Age</Text>
                 <View className="flex-row items-center border border-gray-200 rounded-lg px-3 py-2">
-                  <FontAwesome5 name="birthday-cake" size={16} color="#047857" />
+                  <FontAwesome5 name="birthday-cake" size={16} color="#022495" />
                   <Input
-                    containerStyle={{ paddingHorizontal: 0, marginBottom: -10, flex: 1 }}
+                    containerStyle={{ paddingHorizontal: 0, marginBottom: -20, paddingLeft:10, flex: 1 }}
                     inputContainerStyle={{ borderBottomWidth: 0 }}
                     onChangeText={setAge}
                     value={age}
@@ -254,10 +255,10 @@ export default function Auth() {
               </View>
               
               <View className="mb-6">
-                <Text className="text-green-800 font-medium mb-3 ml-1">Profile Picture</Text>
+                <Text className="text-blue-800 font-medium mb-3 ml-1">Profile Picture</Text>
                 <TouchableOpacity 
                   onPress={selectAvatar}
-                  className="items-center justify-center border-2 border-dashed border-green-300 rounded-xl p-4 bg-green-50"
+                  className="items-center justify-center border-2 border-dashed border-blue-300 rounded-xl p-4 bg-blue-50"
                 >
                   {avatar ? (
                     <Image 
@@ -267,7 +268,7 @@ export default function Auth() {
                   ) : (
                     <View className="items-center">
                       <FontAwesome5 name="camera" size={24} color="#10B981" />
-                      <Text className="text-green-600 mt-2">Upload a photo</Text>
+                      <Text className="text-blue-600 mt-2">Upload a photo</Text>
                       <Text className="text-gray-400 text-xs mt-1">(Optional)</Text>
                     </View>
                   )}
@@ -280,7 +281,7 @@ export default function Auth() {
         <TouchableOpacity
           onPress={isSignUp ? signUpWithEmail : signInWithEmail}
           disabled={loading}
-          className={`rounded-lg py-4 px-6 mb-4 items-center ${loading ? 'bg-green-400' : 'bg-green-600'}`}
+          className={`rounded-lg py-4 px-6 mb-4 items-center ${loading ? 'bg-blue-400' : 'bg-blue-600'}`}
         >
           {loading ? (
             <ActivityIndicator color="white" />
@@ -295,11 +296,12 @@ export default function Auth() {
           onPress={toggleAuthMode}
           className="items-center py-3"
         >
-          <Text className="text-green-700">
+          <Text className="text-blue-700">
             {isSignUp ? 'Already have an account? Sign In' : 'Need an account? Sign Up'}
           </Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
+    </View>
   )
 }

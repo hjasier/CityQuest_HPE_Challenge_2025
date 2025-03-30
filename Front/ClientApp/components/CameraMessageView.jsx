@@ -301,11 +301,11 @@ const CameraMessageView = ({ toggleCamera, isVisible, transcription }) => {
         />
         
         {/* Semi-transparent overlay at the top with text */}
-        <TouchableOpacity onPress={() => toggleCamera()} className="absolute top-0 w-full bg-black/50 px-2 py-1">
+        {/* <TouchableOpacity onPress={() => toggleCamera()} className="absolute top-0 w-full bg-black/50 px-2 py-1">
           <Text className="text-white text-xs text-center">
             {message}
           </Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
         
         {/* Countdown overlay in the middle */}
         {isStable && (

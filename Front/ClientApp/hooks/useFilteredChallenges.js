@@ -32,7 +32,7 @@ export const useFilteredChallenges = () => {
 
 
   useEffect(() => {
-
+    console.log('useFilteredChallenges', selectedTags, selectedLocation);
     if (!challengesByLocation || !challenges) {
       return;
     }

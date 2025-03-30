@@ -4,13 +4,14 @@ import { useState, useEffect } from "react";
 import io from "socket.io-client";
 import { SERVER_API_URL } from "@env"; 
 import * as Location from 'expo-location';
+import useAcceptChallenge from "./useAcceptChallenge";
 
 const useWebSocket = (navigation) => {
   const [socket, setSocket] = useState(null);
   const [message, setMessage] = useState("");
   const [connected, setConnected] = useState(false);
   const [isAiIsSeeing, setIsAiIsSeeing] = useState(false); // Estado para controlar la cámara
-
+  const { acceptChallengeById } = useAcceptChallenge();
 
   useEffect(() => {
     console.log("Connecting to WebSocket:", SERVER_API_URL);
@@ -39,6 +40,10 @@ const useWebSocket = (navigation) => {
           break;
         case "show_camera":
           setIsAiIsSeeing(true);
+          break;
+        case "accept_challenge":
+          const challengeId = data.challenge_id;
+          acceptChallengeById(challengeId);
           break;
         case "get_location":
           handle_send_location();

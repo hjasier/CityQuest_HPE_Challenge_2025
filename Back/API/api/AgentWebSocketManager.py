@@ -52,5 +52,7 @@ def handle_server_command(data):
         handle_resend_action_to_client(data)
     elif action == "get_location":
         handle_resend_action_to_client(data)
+    elif action == "accept_challenge":
+        handle_resend_action_to_client(data)
     else:
         logging.info(f"COMANDO NO GESTIONADO RECIBIDO: {data}")

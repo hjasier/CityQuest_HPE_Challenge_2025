@@ -53,7 +53,10 @@ def emit_test_location():
     return "Mensaje enviado"
 
 
-
+@websocket_bp.route("/emit_test_accept_challenge")
+def emit_test_accept_challenge():
+    socketio.emit("mobile_action", {"action": "accept_challenge","challenge_id":4}, namespace="/")
+    return "Mensaje enviado"
 
 
 

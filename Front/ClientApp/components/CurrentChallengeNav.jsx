@@ -123,10 +123,10 @@ const CurrentChallengeNav = () => {
           <View>
             <Text className="text-sm text-gray-500">En progreso</Text>
             <Text className="text-base font-bold">
-              {currentChallenge?.name?.slice(0, 20) || 'Desafío actual'}
-              {currentChallenge?.name?.length > 20 ? '...' : ''}
+              {currentChallenge?.name?.slice(0, 18) || 'Desafío actual'}
+              {currentChallenge?.name?.length > 18 ? '...' : ''}
             </Text>
-            <Text className="text-sm font-medium text-blue-500">{Math.round(currentGeometryRoute?.distance || 0)} metros restantes</Text>
+            <Text className="text-sm font-medium text-blue-500">{Math.round(currentGeometryRoute?.remainingDistance || 0)} metros restantes</Text>
           </View>
         </View>
         
@@ -136,7 +136,7 @@ const CurrentChallengeNav = () => {
             onPress={handleAbandonChallenge}
             className="bg-red-100 rounded-full p-2 mr-2"
           >
-            <X stroke="#EF4444" width={20} height={20} />
+            <Icon name="exit" type="ionicon" color="#EF4444" size={20} />
           </TouchableOpacity>
           
           {/* BOTÓN DE COMPLETAR SOLO SI ES QR */}

@@ -1,6 +1,6 @@
 import { View, Text, TouchableOpacity, Image, ImageBackground } from 'react-native'
 import React from 'react'
-import testImg from '../assets/testImg.png'
+import testImg from '../assets/preview2.png'
 import { Icon } from '@rneui/base'
 import { useNavigation } from '@react-navigation/native'
 // Remove the expo-linear-gradient import
@@ -15,6 +15,18 @@ const ChallengeCard = ({challenge}) => {
     return date.toLocaleDateString();
   }
 
+  const getChallengeType = (challenge) => {
+    switch (challenge.type) {
+      case 1:
+        return {'icon':'hamburger','iconType':'material', 'text': 'Comida Local','color':'#FF6B35'};
+      case 2:
+        return {'icon':'monument','iconType':'font-awesome-5', 'text': 'Visita','color':'rgb(250 204 21)'};
+      case 3:
+        return {'icon':'route','iconType':'font-awesome-5', 'text': 'Ruta','color':'#4CAF50'};
+    }
+  }
+
+  const challengeType = getChallengeType(challenge);
 
   return (
     <TouchableOpacity 
@@ -31,26 +43,18 @@ const ChallengeCard = ({challenge}) => {
             resizeMode="cover"
           >
             {/* Overlay instead of gradient */}
-            <View className="absolute bottom-0 left-0 right-0 h-20 bg-black opacity-50" />
+            <View className="absolute bottom-0 left-0 right-0 h-20 bg-black opacity-30" />
             
             {/* Challenge Type Badge */}
-            <View className="absolute top-3 left-3 px-3 py-1 bg-yellow-400 rounded-full flex-row items-center">
+            <View className="absolute top-3 left-3 px-3 py-1 rounded-full flex-row items-center" style={{ backgroundColor: challengeType.color }}>  
               <Icon 
-                name={challenge.type === 1 
-                  ? "hamburger" 
-                  : challenge.type === 2 
-                  ? "monument" 
-                  : "route"}
+                name={challengeType.icon}
                 type="font-awesome-5" 
-                color="#333" 
+                color={"#333"} 
                 size={14} 
               />
               <Text className="text-xs font-bold text-gray-800 ml-1">
-                {challenge.type === 1 
-                  ? "Comida Local" 
-                  : challenge.type === 2 
-                  ? "Visita" 
-                  : "Ruta"}
+              {challengeType.text}
 
               </Text>
             </View>

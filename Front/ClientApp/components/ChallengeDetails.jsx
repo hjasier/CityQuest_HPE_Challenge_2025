@@ -57,7 +57,7 @@ const ChallengeDetails = ({challenge}) => {
               challenge.CompletionType.type === 'PHOTO'
                 ? 'camera'
                 : challenge.CompletionType.type === 'QR'
-                ? 'qrcode'
+                ? 'qr-code'
                 : challenge.CompletionType.type === 'GPS'
                 ? 'crosshairs-gps'
                 : challenge.CompletionType.type === 'GPS-ROUTE'
@@ -65,7 +65,9 @@ const ChallengeDetails = ({challenge}) => {
                 : 'check-circle'
             }
             type={
-              challenge.CompletionType.type === 'GPS' || challenge.CompletionType.type === 'GPS-ROUTE'
+              challenge.CompletionType.type === 'QR'
+                ? 'ionicon'
+                : challenge.CompletionType.type === 'GPS' || challenge.CompletionType.type === 'GPS-ROUTE'
                 ? 'material-community'
                 : 'font-awesome-5'
             }
