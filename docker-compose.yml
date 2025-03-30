@@ -1,0 +1,33 @@
+version: '3'
+
+services:
+  frontend:
+    build:
+      context: ./Front/AdminDashboard
+    ports:
+      - "3000:3000"
+    networks:
+      - mynetwork
+    depends_on:
+      - api
+      - agent
+
+  api:
+    build:
+      context: ./Back/API
+    ports:
+      - "5000:5000"
+    networks:
+      - mynetwork
+
+  agent:
+    build:
+      context: ./Back/AGENT
+    ports:
+      - "5001:5001"
+    networks:
+      - mynetwork
+
+networks:
+  mynetwork:
+    driver: bridge
