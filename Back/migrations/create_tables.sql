@@ -39,7 +39,7 @@ CREATE TABLE "Location" (
     image_url TEXT,
     location_type INT REFERENCES "LocationType",
     sustainability_score INT,
-    status TEXT,
+    status INT references "LocationStatus",
     address TEXT,
     solicited_at TIMESTAMP,
     email TEXT,
