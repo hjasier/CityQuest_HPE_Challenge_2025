@@ -79,7 +79,7 @@ const ChallengesContent = () => {
         description: challenge.description || 'Sin descripción',
         points: challenge.reward || 0,
         difficulty: calculateDifficulty(challenge.priority || 5),
-        duration: challenge.cooldown_time ? `${challenge.cooldown_time} horas` : 'Sin límite',
+        duration: challenge.cooldown_time ? secondsToDhms(challenge.cooldown_time) : 'Sin límite',
         status: challenge.active ? 'Activo' : 'Inactivo',
         completions: 0, // You might want to fetch this from AcceptedChallenge
         abandonment: 0, // This would need a separate query
@@ -115,6 +115,19 @@ const ChallengesContent = () => {
       default: return 5;
     }
   };
+
+  const secondsToDhms = (seconds) => {
+    let d = Math.floor(seconds / 86400);
+    let h = Math.floor(seconds % 86400 / 3600);
+    let m = Math.floor(seconds % 86400 % 3600 / 60);
+    let s = Math.floor(seconds % 86400 % 3600 % 60);
+
+    let dDisplay = d > 0 ? d + "d " : "";
+    var hDisplay = h > 0 ? h + "h " : "";
+    var mDisplay = m > 0 ? m + "m " : "";
+    var sDisplay = s > 0 ? s + "s" : "";
+    return (dDisplay + hDisplay + mDisplay + sDisplay).trim();
+ }
 
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
