@@ -45,12 +45,12 @@ const RequestApiUrlScreen = ({ navigation }) => {
                 setIsSaved(true);
                 
             } else {
-                Alert.alert('Error de Conexión', 'No se pudo conectar con el servidor de la API. Por favor, revise la URL e intente nuevamente.');
+                Alert.alert('Error de Conexión', 'No se pudo conectar con el servidor de la API. Por favor, revise la URL e intente nuevamente. Error: ' + response.status);
             }
         } catch (error) {
             Alert.alert(
                 'Error de Conexión', 
-                'No se pudo conectar con el servidor de la API. Por favor, revise la URL e intente nuevamente.'
+                'No se pudo conectar con el servidor de la API. Por favor, revise la URL e intente nuevamente. Error: ' + error.message
             );
         } finally {
             setIsLoading(false);

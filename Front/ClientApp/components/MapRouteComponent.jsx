@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
 import MapboxGL from '@rnmapbox/maps';
 import MapboxDirections from '@mapbox/mapbox-sdk/services/directions';
-import { EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN } from '@env'; // Ensure you have your Mapbox access token in .env
+// import { EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN } from '@env'; // Ensure you have your Mapbox access token in .env
 
 // Configure Mapbox
-MapboxGL.setAccessToken(EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN);
+MapboxGL.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN);
 
 const MapRouteComponent = () => {
   const [route, setRoute] = useState(null);
@@ -13,7 +13,7 @@ const MapRouteComponent = () => {
   useEffect(() => {
     // Initialize the Directions service
     const directionsClient = MapboxDirections({
-      accessToken: EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN
+      accessToken: process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN
     });
 
     // Function to fetch route
