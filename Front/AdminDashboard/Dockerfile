@@ -13,7 +13,7 @@ RUN npm install
 COPY . .
 
 # Exponer el puerto donde la app de React va a correr
-EXPOSE 3000
+EXPOSE 5173
 
 # Comando para ejecutar el frontend
 CMD ["npm", "run", "dev"]

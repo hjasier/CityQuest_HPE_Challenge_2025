@@ -6,3 +6,5 @@ python-dotenv
 livekit-api
 uvicorn
 requests
+python-socketio
+supabase

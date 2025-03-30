@@ -1,6 +1,8 @@
+gunicorn
 livekit-agents
 python-dotenv
 livekit-api
+openai
 flask[async]
 flask-cors
 supabase    

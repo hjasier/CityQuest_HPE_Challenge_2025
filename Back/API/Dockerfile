@@ -4,6 +4,9 @@ FROM python:3.9-slim
 # Establecer el directorio de trabajo
 WORKDIR /app
 
+# Actualizar pip, setuptools y wheel
+RUN pip install --upgrade pip setuptools wheel
+
 # Copiar los archivos de requisitos
 COPY requirements.txt .
 
@@ -17,4 +20,5 @@ COPY . .
 EXPOSE 5000
 
 # Comando para ejecutar la API
-CMD ["python3", "app.py"]
+CMD ["gunicorn", "-w", "4", "app:app", "-b", "0.0.0.0:5000"]
+

@@ -5,7 +5,7 @@ services:
     build:
       context: ./Front/AdminDashboard
     ports:
-      - "3000:3000"
+      - "5173:5173"
     networks:
       - mynetwork
     depends_on:
@@ -27,6 +27,8 @@ services:
       - "5001:5001"
     networks:
       - mynetwork
+    depends_on:
+      - api
 
 networks:
   mynetwork:

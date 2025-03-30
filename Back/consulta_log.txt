@@ -1,5 +1,5 @@
 
-
+--------------------------------------------------
 Imagen : Sin comprimir
 Tiempo: 6.33 segundos
 Modelo: gpt-4o-mini
