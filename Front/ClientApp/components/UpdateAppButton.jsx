@@ -3,6 +3,7 @@ import React from 'react'
 import { TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Updates from 'expo-updates';
+import { useEffect } from 'react';
 
 
 const UpdateAppButton = () => {
@@ -13,12 +14,12 @@ const UpdateAppButton = () => {
       const update = await Updates.checkForUpdateAsync();
 
       if (update.isAvailable) {
-        alert('update.isAvailable:true')
+        alert('Se ha encontrado una nueva actualización');
         await Updates.fetchUpdateAsync();
         await Updates.reloadAsync();
       }
       else {
-        alert('update.isAvailable:false')
+        alert('No se ha encontrado ninguna actualización.');
       }
     } catch (error) {
       alert(`Error fetching latest Expo update: ${error}`);
