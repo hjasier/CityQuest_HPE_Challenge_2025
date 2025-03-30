@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { StyleSheet, View, Alert, Dimensions, Text, TouchableOpacity } from 'react-native';
 import MapboxGL, { LocationPuck } from '@rnmapbox/maps';
 import * as Location from 'expo-location';
-import { MAPBOX_ACCESS_TOKEN } from "@env"; 
+import { EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN } from "@env"; 
 import MapLoadingAnimation from './MapLoadingAnimation';
 import { useChallenges } from '../hooks/useChallenges';
 import WKB from 'ol/format/WKB';
@@ -23,7 +23,7 @@ import { useReCenterLocation } from '../hooks/useReCenterLocation';
 import ChallengeRouteRenderer from './ChallengeRouteRenderer';
 import useUserLocation from '../hooks/useUserLocation';
 
-MapboxGL.setAccessToken(MAPBOX_ACCESS_TOKEN);
+MapboxGL.setAccessToken(EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN);
 
 const Map = () => {
   const bearing = require('../assets/HeadingPuck.png');
@@ -59,7 +59,7 @@ const Map = () => {
         try {
           // Initialize the Directions service
           const directionsClient = MapboxDirections({
-            accessToken: MAPBOX_ACCESS_TOKEN
+            accessToken: EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN
           });
 
           // Fetch route between start and end coordinates

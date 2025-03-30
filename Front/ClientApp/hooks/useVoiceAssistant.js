@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { AudioSession } from '@livekit/react-native';
-import { LIVEKIT_WS_URL, SERVER_API_URL } from "@env";
+import { EXPO_PUBLIC_LIVEKIT_WS_URL, SERVER_API_URL } from "@env";
 import useApiUrl from "./useApiUrl";
 
 const useVoiceAssistant = () => {
@@ -48,7 +48,7 @@ const useVoiceAssistant = () => {
     isConnected,
     setIsConnected,
     token,
-    serverUrl: LIVEKIT_WS_URL,
+    serverUrl: EXPO_PUBLIC_LIVEKIT_WS_URL,
   };
 };
 
