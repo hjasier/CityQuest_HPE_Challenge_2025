@@ -14,6 +14,7 @@ import Account from '../screens/Account';
 import CreateCollaborativeGroup from '../screens/CreateCollaborativeGroup';
 import JoinGroupScreen from '../screens/JoinGroupScreen';
 import MyGroupScreen from '../screens/MyGroupScreen';
+import RequestApiUrlScreen from '../screens/RequestApiUrlScreen';
 
 const Stack = createStackNavigator();
 
@@ -41,7 +42,7 @@ const StackNavigator = () => {
         <Stack.Screen name="CreateCollaborativeGroup" component={CreateCollaborativeGroup} options={{ headerShown: false }} />
         <Stack.Screen name="JoinGroupScreen" component={JoinGroupScreen} options={{ headerShown: false }} />
         <Stack.Screen name="MyGroupScreen" component={MyGroupScreen} options={{ headerShown: false }} />
-
+        <Stack.Screen name="RequestApiUrlScreen" component={RequestApiUrlScreen} options={{ headerShown: false }} />
       </Stack.Navigator>
 
       {/* Botón de asistente de voz */}

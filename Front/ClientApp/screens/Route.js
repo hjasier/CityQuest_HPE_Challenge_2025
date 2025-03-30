@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, View, Alert, Dimensions } from 'react-native';
 import MapboxGL from '@rnmapbox/maps';
 import { SERVER_API_URL } from "@env";
+import useApiUrl from '../hooks/useApiUrl';
 
 // Configurar el token de Mapbox
 MapboxGL.setAccessToken("pk.eyJ1IjoiYXNpaWVyIiwiYSI6ImNrenU0aW9zMjE4ZnEyb285eW1yY3p2N3oifQ.T2QoudfHezOdNRnRx2wIcA");
@@ -12,12 +13,17 @@ const Route = () => {
   const [initialRegion, setInitialRegion] = useState(null);
   const mapRef = useRef(null);
   const cameraRef = useRef(null);
+  const { apiUrl } = useApiUrl();
+  
 
   useEffect(() => {
     (async () => {
+      if (!apiUrl) {
+        return;
+      }
       try {
         // Obtener la ruta y puntos de interés desde la API Flask
-        const response = await fetch(`${SERVER_API_URL}/generate_route`);
+        const response = await fetch(`${apiUrl}/generate_route`);
         const data = await response.json();
         
         // Asegurarse de que hay datos de ruta antes de proceder
@@ -45,7 +51,7 @@ const Route = () => {
         );
       }
     })();
-  }, []);
+  }, [apiUrl]);
 
   // Renderizar el mapa solo cuando tengamos los datos de la región inicial
   if (!initialRegion) {

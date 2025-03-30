@@ -2,6 +2,8 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../database/supabase';
 import Auth from '../screens/Auth';
 import LoadingScreen from '../components/LoadingScreen'; // Import the new LoadingScreen component
+import useApiUrl from './useApiUrl';
+import RequestApiUrlScreen from '../screens/RequestApiUrlScreen';
 
 const SessionContext = createContext();
 
@@ -12,6 +14,7 @@ export const useSession = () => {
 export const SessionProvider = ({ children }) => {
   const [session, setSession] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { apiUrl } = useApiUrl();
 
   useEffect(() => {
     const checkSession = async () => {
@@ -49,10 +52,11 @@ export const SessionProvider = ({ children }) => {
   if (isLoading) {
     return <LoadingScreen />;
   }
+  
 
   return (
     <SessionContext.Provider value={{ session, setSession }}>
-      {session && session.user ? children : <Auth />}
+      {apiUrl ? (session && session.user ? children : <Auth />) : <RequestApiUrlScreen />}
     </SessionContext.Provider>
   );
 };

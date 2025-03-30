@@ -5,6 +5,7 @@ import io from "socket.io-client";
 import { SERVER_API_URL } from "@env"; 
 import * as Location from 'expo-location';
 import useAcceptChallenge from "./useAcceptChallenge";
+import useApiUrl from "./useApiUrl";
 
 const useWebSocket = (navigation) => {
   const [socket, setSocket] = useState(null);
@@ -12,11 +13,15 @@ const useWebSocket = (navigation) => {
   const [connected, setConnected] = useState(false);
   const [isAiIsSeeing, setIsAiIsSeeing] = useState(false); // Estado para controlar la cámara
   const { acceptChallengeById } = useAcceptChallenge();
+  const { apiUrl } = useApiUrl();
 
   useEffect(() => {
-    console.log("Connecting to WebSocket:", SERVER_API_URL);
+    if (!apiUrl) {
+      return;
+    }
+    console.log("Connecting to WebSocket:", apiUrl);
     // Crear la conexión WebSocket
-    const socketConnection = io(SERVER_API_URL, {
+    const socketConnection = io(apiUrl, {
       transports: ["websocket"],
     });
 
@@ -61,7 +66,7 @@ const useWebSocket = (navigation) => {
     return () => {
       socketConnection.disconnect();
     };
-  }, [navigation]);
+  }, [navigation,apiUrl]);
 
 
 

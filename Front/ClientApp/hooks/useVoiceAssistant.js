@@ -1,10 +1,13 @@
 import { useState, useEffect } from "react";
 import { AudioSession } from '@livekit/react-native';
 import { LIVEKIT_WS_URL, SERVER_API_URL } from "@env";
+import useApiUrl from "./useApiUrl";
 
 const useVoiceAssistant = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [token, setToken] = useState(null);
+  const { apiUrl } = useApiUrl();
+  
 
   // Configurar la sesión de audio
   useEffect(() => {
@@ -18,12 +21,16 @@ const useVoiceAssistant = () => {
       AudioSession.stopAudioSession();
     };
   }, []);
+  
 
   // Fetchear el token de autenticación
   useEffect(() => {
     const fetchToken = async () => {
+      if (!apiUrl) {
+        return;
+      }
       try {
-        const response = await fetch(`${SERVER_API_URL}/getToken`);
+        const response = await fetch(`${apiUrl}/getToken`);
         if (!response.ok) {
           throw new Error("Failed to fetch token");
         }
@@ -35,7 +42,7 @@ const useVoiceAssistant = () => {
     };
 
     fetchToken();
-  }, []);
+  }, [apiUrl]);
 
   return {
     isConnected,

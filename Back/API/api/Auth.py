@@ -40,3 +40,7 @@ async def get_token():
         ))
     
     return token.to_jwt()
+
+@auth_bp.route("/ping")
+async def ping():
+    return {"message": "pong"}

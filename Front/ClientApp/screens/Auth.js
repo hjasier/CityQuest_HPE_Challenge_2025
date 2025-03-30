@@ -170,13 +170,13 @@ export default function Auth() {
     <View className="absolute top-0 left-0 right-0 bottom-0 bg-white">
     <ScrollView 
       ref={scrollViewRef}
-      className="flex-1 pt-12 top-0"
+      className="flex-1 pt-16 top-0"
       contentContainerStyle={{ paddingBottom: 40 }}
     >
       <View className="px-6 pb-10">
         <View className="items-center mb-8">
           <Text className="text-3xl font-bold text-blue-800">
-            {isSignUp ? 'Create Account' : 'Welcome Back'}
+            {isSignUp ? 'Create Account' : '¡Hola!'}
           </Text>
           <Text className="text-blue-600 text-center mt-2">
             {isSignUp 
