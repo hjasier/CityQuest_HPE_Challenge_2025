@@ -33,6 +33,25 @@ const LocationsContent = () => {
     }
   };
 
+  // Add this helper function after your existing helper functions (getStatusText, getStatusCode)
+
+  // Helper function to get sustainability score color and label
+  const getSustainabilityInfo = (score) => {
+    // Normalize score if needed (assuming score range 0-100)
+    const normalizedScore = Math.max(0, Math.min(100, score));
+    
+    // Determine color based on score ranges
+    if (normalizedScore < 25) {
+      return { color: '#ef4444', bgColor: '#fee2e2', label: 'Baja' }; // Red
+    } else if (normalizedScore < 50) {
+      return { color: '#f97316', bgColor: '#ffedd5', label: 'Media' }; // Orange
+    } else if (normalizedScore < 75) {
+      return { color: '#eab308', bgColor: '#fef9c3', label: 'Buena' }; // Yellow
+    } else {
+      return { color: '#22c55e', bgColor: '#dcfce7', label: 'Excelente' }; // Green
+    }
+  };
+
   // Existing states 
   const [locations, setLocations] = useState([]);
   const [filteredLocations, setFilteredLocations] = useState([]);
@@ -65,6 +84,11 @@ const LocationsContent = () => {
   const markers = useRef({});
   const [viewMode, setViewMode] = useState('table'); // 'table' or 'map'
   const [selectedMarker, setSelectedMarker] = useState(null);
+
+  // Add this with the other refs at the beginning of the component
+  const modalMapContainer = useRef(null);
+  const modalMap = useRef(null);
+  const modalMarker = useRef(null);
 
   // Fetch locations from Supabase
   useEffect(() => {
@@ -251,13 +275,23 @@ const LocationsContent = () => {
       icon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path><circle cx="12" cy="10" r="3"></circle></svg>`;
       el.appendChild(icon);
       
-      // Create popup
+      // Add this to the popup content:
+      const { color, label } = getSustainabilityInfo(location.visits);
+      const sustainabilityEl = `
+        <p style="margin-top: 4px; font-size: 13px;">
+          <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background-color: ${color}; margin-right: 4px;"></span>
+          <span>Sostenibilidad: ${label} (${location.visits})</span>
+        </p>
+      `;
+
+      // And update the popup HTML to include it:
       const popup = new mapboxgl.Popup({ offset: 25 })
         .setHTML(`
           <div style="padding: 8px;">
             <h3 style="font-weight: bold;">${location.name}</h3>
             <p style="font-size: 14px;">${location.address}</p>
             <p style="font-size: 14px;">${location.phone}</p>
+            ${sustainabilityEl}
             <div style="display: flex; gap: 8px; margin-top: 8px;">
               <button class="edit-btn" data-id="${location.id}" style="color: #2563eb;">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path><path d="m15 5 4 4"></path></svg>
@@ -373,8 +407,10 @@ const LocationsContent = () => {
         phone_number: currentLocation.phone,
         opening_hours: currentLocation.schedule,
         status: currentLocation.status,
-        point: `POINT(${currentLocation.longitude} ${currentLocation.latitude})`,
-        sustainability_score: currentLocation.visits || 0
+        // Use PostGIS ST_MakePoint function to create a proper geography point
+        point: `SRID=4326;POINT(${currentLocation.longitude} ${currentLocation.latitude})`,
+        sustainability_score: currentLocation.visits || 0,
+        location_type: currentLocation.location_type || null
       };
 
       // Handle image upload if a new file is selected
@@ -535,6 +571,61 @@ const LocationsContent = () => {
 
   // Then replace the hardcoded areas array
   const areas = ['Todas las zonas', ...locationTypes.map(type => type.name)];
+
+  // Add this useEffect to handle the modal map
+  useEffect(() => {
+    if (showModal && modalMapContainer.current) {
+      // Create new map instance for the modal
+      if (!modalMap.current) {
+        modalMap.current = new mapboxgl.Map({
+          container: modalMapContainer.current,
+          style: 'mapbox://styles/mapbox/streets-v12',
+          center: [currentLocation.longitude || -3.70379, currentLocation.latitude || 40.41678],
+          zoom: 12
+        });
+        
+        // Add navigation controls
+        modalMap.current.addControl(new mapboxgl.NavigationControl());
+        
+        // Add a marker for the current location
+        const el = document.createElement('div');
+        el.className = 'modal-marker';
+        el.style.width = '24px';
+        el.style.height = '24px';
+        el.style.borderRadius = '50%';
+        el.style.backgroundColor = '#3b82f6';
+        el.style.border = '2px solid white';
+        
+        modalMarker.current = new mapboxgl.Marker(el)
+          .setLngLat([currentLocation.longitude || -3.70379, currentLocation.latitude || 40.41678])
+          .addTo(modalMap.current);
+        
+        // Add click event to update marker position
+        modalMap.current.on('click', (e) => {
+          const { lng, lat } = e.lngLat;
+          modalMarker.current.setLngLat([lng, lat]);
+          setCurrentLocation({
+            ...currentLocation,
+            longitude: lng,
+            latitude: lat
+          });
+        });
+      } else {
+        // Update map and marker if they already exist
+        modalMap.current.resize();
+        modalMap.current.setCenter([currentLocation.longitude || -3.70379, currentLocation.latitude || 40.41678]);
+        modalMarker.current.setLngLat([currentLocation.longitude || -3.70379, currentLocation.latitude || 40.41678]);
+      }
+    }
+    
+    return () => {
+      if (!showModal && modalMap.current) {
+        modalMap.current.remove();
+        modalMap.current = null;
+        modalMarker.current = null;
+      }
+    };
+  }, [showModal, currentLocation.id]);
 
   return (
     <div className="flex flex-col h-full p-6">
@@ -763,7 +854,7 @@ const LocationsContent = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Zona</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contacto</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Visitas</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sostenibilidad</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
                 </tr>
               </thead>
@@ -807,8 +898,28 @@ const LocationsContent = () => {
                         {getStatusText(location.status)}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {location.visits} visitas
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {(() => {
+                        const { color, bgColor, label } = getSustainabilityInfo(location.visits);
+                        return (
+                          <div className="flex items-center">
+                            <div 
+                              className="w-2 h-8 rounded-l-full" 
+                              style={{ backgroundColor: color }}
+                            />
+                            <div 
+                              className="px-3 py-1 rounded-r-lg flex items-center"
+                              style={{ backgroundColor: bgColor }}
+                            >
+                              <span className="font-medium" style={{ color }}>
+                                {location.visits}
+                              </span>
+                              <span className="ml-1 text-xs text-gray-600">/ 100</span>
+                            </div>
+                            <span className="ml-2 text-xs text-gray-500">{label}</span>
+                          </div>
+                        );
+                      })()}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex gap-3">
@@ -967,6 +1078,18 @@ const LocationsContent = () => {
                   </div>
                 </div>
 
+                {/* Interactive Map for Point Selection */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                    Ubicación en el Mapa (Haz clic para establecer el punto)
+                  </label>
+                  <div 
+                    id="modal-map" 
+                    className="w-full h-48 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-600"
+                    ref={modalMapContainer}
+                  ></div>
+                </div>
+
                 {/* Contact Info */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -1043,6 +1166,21 @@ const LocationsContent = () => {
                       ))}
                     </select>
                   </div>
+                </div>
+
+                {/* Sustainability Score (Visits) */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                    Puntuación de Sostenibilidad
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none"
+                    placeholder="Número de visitas"
+                    value={currentLocation.visits || 0}
+                    onChange={(e) => setCurrentLocation({...currentLocation, visits: parseInt(e.target.value) || 0})}
+                  />
                 </div>
 
                 {/* Image Upload */}
