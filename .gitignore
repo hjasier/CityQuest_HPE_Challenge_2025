@@ -1,6 +1,6 @@
 .expo/
 node_modules/
-cds_app/eas.json
+Client App/eas.json
 LivekitTest/py312_env
 LivekitTest/venv
 LivekitTest/.env
