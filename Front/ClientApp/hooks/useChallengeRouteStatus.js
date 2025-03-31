@@ -98,8 +98,6 @@ export function useChallengeRouteStatus() {
       nextPoint: remainingPoints.length > 0 ? remainingPoints[0] : null,
     });
 
-    console.log('Route status updated:', routeStatus);
-    
   }, [location, remainingPoints, completedPoints]);
   
   /**

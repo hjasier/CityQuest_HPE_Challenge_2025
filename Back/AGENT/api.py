@@ -39,7 +39,7 @@ class AssistantFnc(llm.FunctionContext):
         return f"Calculando la ruta a {destination}..."
     
     
-    @llm.ai_callable(description="Pide información a la base de datos sobre TODOS los retos activos disponibles : lista(nombre,descripción,premio,tipo)")
+    @llm.ai_callable(description="Pide información a la base de datos sobre TODOS los retos activos disponibles : lista(id,nombre,descripción,premio,tipo[consumicion/visita/ruta]")
     async def ask_challenges(self):
         logging.info(f"[AGENT API] Buscando retos disponibles...")
         challenges = await db_driver.get_all_challenges()
@@ -58,14 +58,12 @@ class AssistantFnc(llm.FunctionContext):
         await emit_event("server_command", {"action": "accept_challenge", "challenge_id": challenge_id})
         return f"Reto {challenge_id} aceptado, buena suerte!"
     
-    
-    
-    #ESTA A MEDIAS , NO BORRAR , FALLA EN DETECTAR LA RESPUESTA DEL CLIENTE POR ALGÚN MOTIVO
-    # @llm.ai_callable(description="Pide la localización del usuario para poder describir el lugar donde se encuentra")
-    # async def get_user_location(self):
-    #     logging.info("[AGENT API] Pidiendo la localización del usuario...")
-    #     await emit_event("server_command", {"action": "get_location"})
-    #     return "Esperando llegada de ubicación"
+
+    @llm.ai_callable(description="Pide la dirección actual del usuario para lo que necesites , recomendar retos cercanos , preferencias, ayuda de navegación , descripción de lugar donde esta... lo que necesites")
+    async def get_user_location(self):
+        logging.info("[AGENT API] Pidiendo la localización del usuario...")
+        await emit_event("server_command", {"action": "get_location"})
+        return "Esperando llegada de ubicación"
     
     
     

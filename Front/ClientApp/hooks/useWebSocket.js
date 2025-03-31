@@ -25,6 +25,22 @@ const useWebSocket = (navigation) => {
       transports: ["websocket"],
     });
 
+    const handle_send_location = async () => {
+      try {
+        const location = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Highest
+        });
+        const data = {
+          type: "location", 
+          location: {"lat": location.coords.latitude, "lon": location.coords.longitude}
+        };
+        socketConnection.emit("mobile_response", data);
+        console.log("Location sent:", data);
+      } catch (error) {
+        console.error("Error sending location:", error);
+      }
+    };
+
     socketConnection.on("connect", () => {
       setConnected(true);
       console.log("Connected to WebSocket");
@@ -74,18 +90,15 @@ const useWebSocket = (navigation) => {
   const sendMessage = (data) => {
     console.log("Socket is connected:", connected);
     if (socket && connected) {
-      console.log("Sending message to server:", data);
-      socket.emit("mobile_response", data);
+      try {
+        socket.emit("mobile_response", data);
+        console.log("Message sent to server:", data);
+      } catch (error) {
+        console.error("Error sending message:", error);
+      }
     }
   };
 
-  const handle_send_location = async () => {
-    const location = await Location.getCurrentPositionAsync({
-            accuracy: Location.Accuracy.Highest
-          });
-    data = {"type": "location", "location": {"lat": location.coords.latitude, "lon": location.coords.longitude}}
-    sendMessage(data)
-  }
 
   const toggleCamera = () => {
     setIsAiIsSeeing((prev) => !prev);

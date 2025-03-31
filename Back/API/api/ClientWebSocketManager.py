@@ -25,12 +25,13 @@ def handle_resend_action_to_client(data):
 @socketio.on("mobile_response")
 def handle_mobile_response(data):
     logging.info(f"Respuesta del móvil recibida: {data}")
+    type = data.get("type")
     
     from .AgentWebSocketManager import handle_image_upload, handle_location_upload
     
-    if data.get("type") == "photo":
+    if type == "photo":
         handle_image_upload(data)
-    elif data.get("type") == "location":
+    elif type == "location":
         handle_location_upload(data)
     else:
         logging.info(f"COMANDO NO GESTIONADO RECIBIDO: {data}")

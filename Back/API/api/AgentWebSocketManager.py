@@ -37,7 +37,7 @@ def handle_location_upload(data):
 
 def handle_route(data):
     route = handle_calculate_route(data)
-    socketio.emit("mobile_action", {"show_route": route}, namespace="/")
+    socketio.emit("mobile_action", {"action": "show_route","route":route}, namespace="/")
 
 # Recibe comandos del AGENTE y los procesa
 @socketio.on("server_command")
