@@ -147,7 +147,7 @@ const ChallengeCard = ({challenge}) => {
                 className="ml-1"
               />
               <Text className="text-gray-700 ml-1 text-xs">
-                Tipo
+                {challenge.CompletionType.type}
               </Text>
             </View>
 
