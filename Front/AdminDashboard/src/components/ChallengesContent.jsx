@@ -135,6 +135,7 @@ const ChallengesContent = () => {
           status: challenge.active ? 'Activo' : 'Inactivo',
           completions: 0, // You might want to fetch this from AcceptedChallenge
           abandonment: 0, // This would need a separate query
+          completion_type: challenge.completion_type,
           category: challenge.ChallengeType?.type || 'Sin categoría',
           cover_url: challenge.cover_url || '',
           type: challenge.type,
@@ -233,6 +234,7 @@ const ChallengesContent = () => {
       status: 'Activo',
       completions: 0,
       abandonment: 0,
+      completion_type: null,
       category: challengeTypes.length > 0 ? challengeTypes[0].type : '',
       coverUrl: '',
       repeatable: false,
@@ -338,6 +340,7 @@ const ChallengesContent = () => {
       priority: currentChallenge.priority,
       active: currentChallenge.status === 'Activo',
       type: parseInt(currentChallenge.type),  // Make sure this is the ID, not the string
+      completion_type: currentChallenge.completion_type,
       location: currentChallenge.location,
       cover_url: currentChallenge.coverUrl,
       repeatable: currentChallenge.repeatable,
@@ -605,7 +608,7 @@ const ChallengesContent = () => {
                   <select
                     className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none"
                     value={currentChallenge.completion_type || ''}
-                    onChange={(e) => setCurrentChallenge({ ...currentChallenge, completion_type: e.target.value })}
+                    onChange={(e) => setCurrentChallenge({ ...currentChallenge, completion_type: parseInt(e.target.value) })}
                   >
                     {completionTypes.map((compType) => (
                       <option key={compType.id} value={compType.id}>
@@ -616,44 +619,33 @@ const ChallengesContent = () => {
                 </div>
 
                 {/* Conditional Location Select Field */}
-                {currentChallenge.completion_type === '2' && (
+                {currentChallenge.completion_type && (
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Seleccionar Ubicación</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                      Seleccionar Ubicación
+                    </label>
                     <select
                       className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none"
                       value={currentChallenge.location || ''}
                       onChange={(e) => setCurrentChallenge({ ...currentChallenge, location: e.target.value })}
                     >
-                      <option value="">Selecciona una ubicación</option>
-                      {locations.filter((loc) => loc.LocationType.name != "route").map((loc) => (
-                        <option key={loc.id} value={loc.id}>
-                          {loc.name}
-                        </option>
-                      ))}
+                      <option value="">
+                        {currentChallenge.completion_type === 3 ? 'Selecciona una ruta' : 'Selecciona una ubicación'}
+                      </option>
+                      {locations
+                        .filter((loc) =>
+                          currentChallenge.completion_type === 3
+                            ? loc.LocationType.name === 'route'
+                            : loc.LocationType.name !== 'route'
+                        )
+                        .map((loc) => (
+                          <option key={loc.id} value={loc.id}>
+                            {loc.name}
+                          </option>
+                        ))}
                     </select>
                   </div>
                 )}
-
-                {/* Conditional Route Select Field */}
-                {currentChallenge.completion_type === '3' && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Seleccionar Ubicación</label>
-                    <select
-                      className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none"
-                      value={currentChallenge.location || ''}
-                      onChange={(e) => setCurrentChallenge({ ...currentChallenge, location: e.target.value })}
-                    >
-                      <option value="">Selecciona una ruta</option>
-                      {locations.filter((loc) => loc.LocationType.name == "route").map((loc) => (
-                        <option key={loc.id} value={loc.id}>
-                          {loc.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-
-
 
                 {/* Category Field */}
                 <div>
