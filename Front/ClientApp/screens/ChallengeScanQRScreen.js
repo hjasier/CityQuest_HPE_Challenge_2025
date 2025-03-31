@@ -3,13 +3,18 @@ import { useState } from 'react';
 import { Button, StyleSheet, Text, TouchableOpacity, View , Vibration } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import RequestPermission from '../components/RequestPermission';
+import useChallengeCompletion from '../hooks/useChallengeCompletion';
 
-const ChallengeScanQRScreen = () => {
+const ChallengeScanQRScreen = ({route}) => {
 
     const [facing, setFacing] = useState('back');
     const [permission, requestPermission] = useCameraPermissions();
     const [scanned, setScanned] = useState(false);
     const navigation = useNavigation();
+    const { handleChallengeCompleted } = useChallengeCompletion(navigation);
+
+    const challenge = route.params.challenge;
+
 
     if (!permission) {
     // Camera permissions are still loading.
@@ -44,7 +49,7 @@ const ChallengeScanQRScreen = () => {
 
 
     const loadChallengeStatus = async (data) => {
-        navigation.navigate('ChallengeCompletedScreen', {data: data});
+      handleChallengeCompleted(challenge);
     }
 
 

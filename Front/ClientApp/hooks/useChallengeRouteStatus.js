@@ -5,12 +5,16 @@ import distance from '@turf/distance';
 import { DETECTION_RADIUS } from './constants';
 import { useWKBCoordinates } from './useWKBCoordinates';
 import useUserLocation from "./useUserLocation";
+import useChallengeCompletion from "./useChallengeCompletion";
+import { useNavigation } from "@react-navigation/native";
 
 
 export function useChallengeRouteStatus() {
 
     const { currentChallenge } = useCurrentChallenge();
     const { location } = useUserLocation();
+    const navigation = useNavigation();
+    const { handleChallengeCompleted } = useChallengeCompletion(navigation);
 
   // Extract route coordinates from challenge
   const routeCoordinates = useWKBCoordinates(
@@ -50,7 +54,12 @@ export function useChallengeRouteStatus() {
   // Check proximity to next point in route
   // Check proximity to next point in route
     useEffect(() => {
-    if (!location || remainingPoints.length === 0) return;
+    if (!location || currentChallenge.CompletionType.type !== 'GPS-ROUTE') return;
+
+    if (remainingPoints.length === 0) {
+      handleChallengeCompleted(currentChallenge);
+      return;
+    }
     
     // Get the next point in the route
     const nextPoint = remainingPoints[0];
@@ -59,30 +68,16 @@ export function useChallengeRouteStatus() {
     const isNearNextPoint = checkProximityToPoint(location, nextPoint);
     
     if (isNearNextPoint) {
+
+
       // User has reached the next point
       const updatedCompleted = [...completedPoints, nextPoint];
       setCompletedPoints(updatedCompleted);
+      console.log('Completed points:', updatedCompleted.length);
       
       // Remove the completed point from remaining points
       let newRemaining = [...remainingPoints.slice(1)];
-      
-      // Check if any nearby subsequent points can also be completed
-      // (This handles closely spaced points on the route)
-      let additionalCompletedPoints = [];
-      while (newRemaining.length > 0) {
-        const nextPointToCheck = newRemaining[0];
-        if (checkProximityToPoint(location, nextPointToCheck)) {
-          additionalCompletedPoints.push(nextPointToCheck);
-          newRemaining = newRemaining.slice(1);
-        } else {
-          break;
-        }
-      }
-      
-      // Update completed points with additional nearby points
-      if (additionalCompletedPoints.length > 0) {
-        setCompletedPoints([...updatedCompleted, ...additionalCompletedPoints]);
-      }
+      console.log('Remaining points:', newRemaining.length);
       
       // Update remaining points
       setRemainingPoints(newRemaining);
@@ -102,6 +97,8 @@ export function useChallengeRouteStatus() {
       nextPointIndex: totalCompleted,
       nextPoint: remainingPoints.length > 0 ? remainingPoints[0] : null,
     });
+
+    console.log('Route status updated:', routeStatus);
     
   }, [location, remainingPoints, completedPoints]);
   
