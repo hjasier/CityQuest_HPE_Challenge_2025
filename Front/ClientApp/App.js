@@ -49,7 +49,7 @@ export default function App() {
         <NavigationContainer>
           <StackNavigator />
           {/* Status Bar transparente , no se donde devería ir esto pero bueno ya se movera*/}
-          <StatusBar translucent backgroundColor="transparent" style="dark" />
+          <StatusBar hideTransitionAnimation translucent backgroundColor="transparent" style="dark" />
         </NavigationContainer>
       </SessionProvider>
     </GestureHandlerRootView>
