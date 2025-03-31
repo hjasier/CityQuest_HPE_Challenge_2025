@@ -15,16 +15,16 @@ export function useProximityToChallenge(
   radiusInMeters = DETECTION_RADIUS
 ) {
   const [isNearChallenge, setIsNearChallenge] = useState(false);
-  const { userLocation } = useUserLocation();
+  const { location } = useUserLocation();
 
   useEffect(() => {
     // Only check if both locations are valid and have coordinates
-    if (!userLocation || !challengeLocation || 
+    if (!location || !challengeLocation || 
         challengeLocation.latitude === undefined || 
         challengeLocation.longitude === undefined) return;
 
     // Create point features for user and challenge
-    const userPoint = turf.point([userLocation[0], userLocation[1]]);
+    const userPoint = turf.point([location[0], location[1]]);
     const challengePoint = turf.point([
       challengeLocation.longitude, 
       challengeLocation.latitude
@@ -37,7 +37,7 @@ export function useProximityToChallenge(
 
     // Update proximity state
     setIsNearChallenge(distanceToChallenge <= radiusInMeters);
-  }, [userLocation, challengeLocation, radiusInMeters]);
+  }, [location, challengeLocation, radiusInMeters]);
 
   return isNearChallenge;
 }

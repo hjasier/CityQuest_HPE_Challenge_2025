@@ -78,13 +78,14 @@ const ChallengesContent = () => {
         title: challenge.name || 'Sin título',
         description: challenge.description || 'Sin descripción',
         points: challenge.reward || 0,
-        difficulty: calculateDifficulty(challenge.priority || 5),
-        duration: challenge.cooldown_time ? `${challenge.cooldown_time} horas` : 'Sin límite',
+        priority: challenge.priority,
+        cooldown_time: challenge.cooldown_time,
+        cooldown_time_text: challenge.cooldown_time ? secondsToDhms(challenge.cooldown_time) : 'Sin límite',
         status: challenge.active ? 'Activo' : 'Inactivo',
         completions: 0, // You might want to fetch this from AcceptedChallenge
         abandonment: 0, // This would need a separate query
         category: challenge.ChallengeType?.type || 'Sin categoría',
-        coverUrl: challenge.cover_url || '',
+        cover_url: challenge.cover_url || '',
         type: challenge.type,
         location: challenge.location,
         repeatable: challenge.repeatable || false,
@@ -99,22 +100,18 @@ const ChallengesContent = () => {
     fetchChallenges();
   }, []);
 
-  // Helper function to convert priority to difficulty
-  const calculateDifficulty = (priority) => {
-    if (priority <= 3) return 'Fácil';
-    if (priority <= 7) return 'Medio';
-    return 'Difícil';
-  };
+  const secondsToDhms = (seconds) => {
+    let d = Math.floor(seconds / 86400);
+    let h = Math.floor(seconds % 86400 / 3600);
+    let m = Math.floor(seconds % 86400 % 3600 / 60);
+    let s = Math.floor(seconds % 86400 % 3600 % 60);
 
-  // Helper function to convert difficulty to priority
-  const calculatePriority = (difficulty) => {
-    switch(difficulty) {
-      case 'Fácil': return 3;
-      case 'Medio': return 6;
-      case 'Difícil': return 9;
-      default: return 5;
-    }
-  };
+    let dDisplay = d > 0 ? d + "d " : "";
+    var hDisplay = h > 0 ? h + "h " : "";
+    var mDisplay = m > 0 ? m + "m " : "";
+    var sDisplay = s > 0 ? s + "s" : "";
+    return (dDisplay + hDisplay + mDisplay + sDisplay).trim();
+ }
 
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
@@ -122,7 +119,6 @@ const ChallengesContent = () => {
   const [filterStatus, setFilterStatus] = useState('Todos');
 
   const statuses = ['Todos', 'Activo', 'Inactivo'];
-  const difficulties = ['Fácil', 'Medio', 'Difícil'];
   const categories = ['Cultural', 'Gastronomía', 'Histórico', 'Arte', 'Naturaleza', 'Aventura'];
 
   // Función para filtrar retos
@@ -141,8 +137,8 @@ const ChallengesContent = () => {
       title: '',
       description: '',
       points: 50,
-      difficulty: 'Fácil',
-      duration: '1 hora',
+      priority: 5,
+      cooldown_time: null,
       status: 'Activo',
       completions: 0,
       abandonment: 0,
@@ -185,13 +181,13 @@ const ChallengesContent = () => {
       name: currentChallenge.title,
       description: currentChallenge.description,
       reward: currentChallenge.points,
-      priority: calculatePriority(currentChallenge.difficulty),
+      priority: currentChallenge.priority,
       active: currentChallenge.status === 'Activo',
       type: parseInt(currentChallenge.type),  // Make sure this is the ID, not the string
       location: currentChallenge.location,
-      cover_url: currentChallenge.coverUrl || 'https://placeholder.com/150',
+      cover_url: currentChallenge.coverUrl,
       repeatable: currentChallenge.repeatable,
-      cooldown_time: parseInt(currentChallenge.duration) || null,
+      cooldown_time: parseInt(currentChallenge.cooldown_time) || null,
       expiration_date: currentChallenge.expiration_date
     };
 
@@ -312,8 +308,8 @@ const ChallengesContent = () => {
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reto</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Puntos</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dificultad</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duración</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prioridad</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cooldown</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Completados</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
@@ -329,8 +325,8 @@ const ChallengesContent = () => {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">{challenge.points} trotamundis</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{challenge.difficulty}</td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{challenge.duration}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{challenge.priority} / 10</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{challenge.cooldown_time_text}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                       challenge.status === 'Activo' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
@@ -496,7 +492,8 @@ const ChallengesContent = () => {
                           ...currentChallenge,
                           repeatable: e.target.checked,
                           // Initialize cooldown if switching to repeatable; clear if not
-                          duration: e.target.checked ? currentChallenge.duration || 1 : null
+                          cooldown_time: e.target.checked ? currentChallenge.cooldown_time || 3600 : null,
+                          cooldown_time_text: e.target.checked ? secondsToDhms(currentChallenge.cooldown_time || 3600) : 'Sin límite'
                         })
                       }
                     />
@@ -506,40 +503,39 @@ const ChallengesContent = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                      Dificultad
+                      Prioridad
                     </label>
-                    <select
+                    <input 
+                      type="number"
+                      min="1"
+                      max="10"
+                      placeholder="5"
                       className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none"
-                      value={currentChallenge.difficulty}
+                      value={currentChallenge.priority}
                       onChange={(e) =>
                         setCurrentChallenge({
                           ...currentChallenge,
-                          difficulty: e.target.value
+                          priority: e.target.value
                         })
-                      }
-                    >
-                      {difficulties.map((diff, index) => (
-                        <option key={index} value={diff}>
-                          {diff}
-                        </option>
-                      ))}
-                    </select>
+                      }>
+                    </input>
                   </div>
                 </div>
                 {currentChallenge.repeatable && (
                   <div className="mt-5">
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                      Tiempo de espera (horas)
+                      Tiempo de espera (segundos)
                     </label>
                     <input
                       type="number"
                       className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none"
-                      placeholder="Ingresa el tiempo en horas"
-                      value={currentChallenge.duration || ''}
+                      placeholder="Ingresa el tiempo en segundos"
+                      value={currentChallenge.cooldown_time || 0}
                       onChange={(e) =>
                         setCurrentChallenge({
                           ...currentChallenge,
-                          duration: e.target.value
+                          cooldown_time: e.target.value,
+                          cooldown_time_text: secondsToDhms(e.target.value) || 'Sin límite'
                         })
                       }
                     />

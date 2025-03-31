@@ -37,6 +37,9 @@ const LocationsContent = () => {
 
   // Helper function to get sustainability score color and label
   const getSustainabilityInfo = (score) => {
+    if (score === "No aplica") {
+      return { color: '#6b7280', bgColor: '#f3f4f6', label: 'No aplica' }; // Gray
+    }
     // Normalize score if needed (assuming score range 0-100)
     const normalizedScore = Math.max(0, Math.min(100, score));
     
@@ -101,14 +104,14 @@ const LocationsContent = () => {
           description, 
           image_url,
           point,
-          location_type,
+          LocationType(name),
           sustainability_score,
-          status,
+          LocationStatus(status),
           address,
           email,
           phone_number,
           opening_hours,
-          LocationType(name)
+          status
         `)
         .not('status', 'eq', 1); // Exclude requested locations
       
@@ -143,7 +146,7 @@ const LocationsContent = () => {
           id: loc.id,
           name: loc.name,
           address: loc.address || '',
-          area: loc.LocationType?.name || 'Sin categoría', // Using LocationType as "area"
+          area: loc.LocationType?.name ? loc.LocationType.name.charAt(0).toUpperCase() + loc.LocationType.name.slice(1) : 'Sin categoría', // Using LocationType as "area"
           phone: loc.phone_number || '',
           email: loc.email || '',
           schedule: loc.opening_hours || '',
@@ -151,7 +154,7 @@ const LocationsContent = () => {
           statusText: getStatusText(loc.status), // Add display text
           description: loc.description || '',
           image: loc.image_url || null, // This should be correct
-          visits: loc.sustainability_score || 0, // Using sustainability_score as "visits" 
+          sustainability_score: loc.sustainability_score, 
           // Extract coordinates from PostGIS point type
           longitude: longitude,
           latitude: latitude
@@ -211,7 +214,7 @@ const LocationsContent = () => {
         map.current = new mapboxgl.Map({
           container: mapContainer.current,
           style: 'mapbox://styles/mapbox/streets-v12',
-          center: [-3.70379, 40.41678], // Madrid, Spain
+          center: [-2.934984, 43.262969], 
           zoom: 12
         });
         
@@ -252,75 +255,128 @@ const LocationsContent = () => {
   }, [filteredLocations]);
 
   // Function to add markers to map
-  const addMarkersToMap = () => {
-    // Remove existing markers
-    Object.values(markers.current).forEach(marker => marker.remove());
-    markers.current = {};
+const addMarkersToMap = () => {
+  // Remove existing markers
+  Object.values(markers.current).forEach(marker => marker.remove());
+  markers.current = {};
+  
+  // Add new markers for filtered locations
+  filteredLocations.forEach(location => {
+    // Create marker element
+    const el = document.createElement('div');
+    el.className = 'marker';
+    el.style.width = '32px';
+    el.style.height = '32px';
+    el.style.borderRadius = '50%';
+    el.style.backgroundColor = location.status === 2 ? '#3b82f6' : '#6b7280';
+    el.style.display = 'flex';
+    el.style.alignItems = 'center';
+    el.style.justifyContent = 'center';
     
-    // Add new markers for filtered locations
-    filteredLocations.forEach(location => {
-      // Create marker element
-      const el = document.createElement('div');
-      el.className = 'marker';
-      el.style.width = '32px';
-      el.style.height = '32px';
-      el.style.borderRadius = '50%';
-      el.style.backgroundColor = location.status === 2 ? '#3b82f6' : '#6b7280';
-      el.style.display = 'flex';
-      el.style.alignItems = 'center';
-      el.style.justifyContent = 'center';
-      
-      // Add pin icon inside marker
-      const icon = document.createElement('div');
-      icon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path><circle cx="12" cy="10" r="3"></circle></svg>`;
-      el.appendChild(icon);
-      
-      // Add this to the popup content:
-      const { color, label } = getSustainabilityInfo(location.visits);
-      const sustainabilityEl = `
-        <p style="margin-top: 4px; font-size: 13px;">
-          <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background-color: ${color}; margin-right: 4px;"></span>
-          <span>Sostenibilidad: ${label} (${location.visits})</span>
-        </p>
-      `;
+    // Add pin icon inside marker
+    const icon = document.createElement('div');
+    icon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path><circle cx="12" cy="10" r="3"></circle></svg>`;
+    el.appendChild(icon);
+    
+    // Get sustainability info
+    const { color, bgColor, label } = getSustainabilityInfo(location.sustainability_score || "No aplica");
 
-      // And update the popup HTML to include it:
-      const popup = new mapboxgl.Popup({ offset: 25 })
-        .setHTML(`
-          <div style="padding: 8px;">
-            <h3 style="font-weight: bold;">${location.name}</h3>
-            <p style="font-size: 14px;">${location.address}</p>
-            <p style="font-size: 14px;">${location.phone}</p>
-            ${sustainabilityEl}
-            <div style="display: flex; gap: 8px; margin-top: 8px;">
-              <button class="edit-btn" data-id="${location.id}" style="color: #2563eb;">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path><path d="m15 5 4 4"></path></svg>
+    // Create popup with inline event handlers
+    const popup = new mapboxgl.Popup({ offset: 25, closeButton: false })
+      .setHTML(`
+          <div class="flex justify-between items-center border-b border-gray-100 pb-2 mb-2">
+            <h3 class="font-bold text-gray-800 truncate mr-2">${location.name}</h3>
+            <button 
+              onclick="document.dispatchEvent(new CustomEvent('closePopup', {detail: ${location.id}}))"
+              class="text-gray-400 hover:text-gray-600 transition-colors p-0.5 rounded-full hover:bg-gray-100">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+          </div>
+          
+          <div class="space-y-1.5 mb-3">
+            <p class="text-sm text-gray-600 flex items-start">
+              <svg class="w-4 h-4 mr-1.5 mt-0.5 text-gray-500 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+              <span class="truncate">${location.address}</span>
+            </p>
+            
+            <p class="text-sm text-gray-600 flex items-center">
+              <svg class="w-4 h-4 mr-1.5 text-gray-500 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+              <span>${location.phone || 'No disponible'}</span>
+            </p>
+          </div>
+          
+          <div class="mb-3 flex items-center">
+            <div class="w-2 h-6 rounded-l-full" style="background-color: ${color};"></div>
+            <div class="px-2 py-1 rounded-r-md flex items-center text-xs" style="background-color: ${bgColor};">
+              <span class="font-medium mr-1" style="color: ${color};">${location.sustainability_score || "?"}</span>
+              <span class="text-gray-600">/ 100</span>
+            </div>
+            <span class="ml-2 text-xs text-gray-600">${label}</span>
+          </div>
+          
+          <div class="flex justify-between items-center pt-2 border-t border-gray-100">
+            <div class="text-xs text-gray-500">${location.area}</div>
+            <div class="flex gap-1">
+              <button 
+                onclick="document.dispatchEvent(new CustomEvent('editLocation', {detail: ${location.id}}))"
+                class="p-1.5 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-full transition-colors" 
+                title="Editar">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path><path d="m15 5 4 4"></path></svg>
               </button>
-              <button class="delete-btn" data-id="${location.id}" style="color: #dc2626;">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" x2="10" y1="11" y2="17"></line><line x1="14" x2="14" y1="11" y2="17"></line></svg>
+              <button 
+                onclick="document.dispatchEvent(new CustomEvent('deleteLocation', {detail: ${location.id}}))"
+                class="p-1.5 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-full transition-colors"
+                title="Eliminar">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" x2="10" y1="11" y2="17"></line><line x1="14" x2="14" y1="11" y2="17"></line></svg>
               </button>
             </div>
           </div>
-        `);
+      `);
+    
+    // Create marker
+    const marker = new mapboxgl.Marker(el)
+      .setLngLat([location.longitude, location.latitude])
+      .setPopup(popup)
+      .addTo(map.current);
       
-      // Create marker
-      const marker = new mapboxgl.Marker(el)
-        .setLngLat([location.longitude, location.latitude])
-        .setPopup(popup)
-        .addTo(map.current);
-        
-      markers.current[location.id] = marker;
-      
-      // Event listeners for popup buttons
-      setTimeout(() => {
-        const editBtn = document.querySelector(`.edit-btn[data-id="${location.id}"]`);
-        const deleteBtn = document.querySelector(`.delete-btn[data-id="${location.id}"]`);
-        
-        if (editBtn) editBtn.addEventListener('click', () => handleEdit(location));
-        if (deleteBtn) deleteBtn.addEventListener('click', () => handleDelete(location.id));
-      }, 100);
-    });
-  };
+    markers.current[location.id] = marker;
+  });
+};
+
+  // Add event listeners outside of the loop, using document events
+  useEffect(() => {
+    // Create event listeners for edit and delete actions from map popup
+    const handleEditFromMap = (e) => {
+      const locationId = e.detail;
+      const location = locations.find(loc => loc.id === locationId);
+      if (location) handleEdit(location);
+    };
+
+    const handleDeleteFromMap = (e) => {
+      const locationId = e.detail;
+      handleDelete(locationId);
+    };
+
+    // Add handler for popup close button
+    const handleClosePopup = (e) => {
+      const locationId = e.detail;
+      if (markers.current[locationId]) {
+        markers.current[locationId].getPopup().remove();
+      }
+    };
+
+    // Add event listeners
+    document.addEventListener('editLocation', handleEditFromMap);
+    document.addEventListener('deleteLocation', handleDeleteFromMap);
+    document.addEventListener('closePopup', handleClosePopup);
+
+    // Clean up
+    return () => {
+      document.removeEventListener('editLocation', handleEditFromMap);
+      document.removeEventListener('deleteLocation', handleDeleteFromMap);
+      document.removeEventListener('closePopup', handleClosePopup);
+    };
+  }, [locations]); // Depend on locations to get updated data for editing
 
   // Rest of your existing code (filter, add, edit, delete handlers)
   
@@ -370,7 +426,7 @@ const LocationsContent = () => {
       image: null,
       longitude: -3.70379,
       latitude: 40.41678,
-      visits: 0
+      sustainability_score: 0
     });
     setShowModal(true);
   };
@@ -409,7 +465,7 @@ const LocationsContent = () => {
         status: currentLocation.status,
         // Use PostGIS ST_MakePoint function to create a proper geography point
         point: `SRID=4326;POINT(${currentLocation.longitude} ${currentLocation.latitude})`,
-        sustainability_score: currentLocation.visits || 0,
+        sustainability_score: currentLocation.sustainability_score,
         location_type: currentLocation.location_type || null
       };
 
@@ -496,7 +552,6 @@ const LocationsContent = () => {
       .from('Location')
       .update({ 
         status: 2, // Active status (2)
-        solicited_at: null // Clear the solicited flag
       })
       .eq('id', petition.id);
     
@@ -510,7 +565,7 @@ const LocationsContent = () => {
       ...petition,
       status: 2, // Active status (2)
       statusText: 'Activo',
-      visits: 0
+      sustainability_score: 0
     };
     
     setLocations([...locations, newLocation]);
@@ -580,7 +635,7 @@ const LocationsContent = () => {
         modalMap.current = new mapboxgl.Map({
           container: modalMapContainer.current,
           style: 'mapbox://styles/mapbox/streets-v12',
-          center: [currentLocation.longitude || -3.70379, currentLocation.latitude || 40.41678],
+          center: [currentLocation.longitude || -2.934984, currentLocation.latitude || 43.262969],
           zoom: 12
         });
         
@@ -899,8 +954,9 @@ const LocationsContent = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      {(() => {
-                        const { color, bgColor, label } = getSustainabilityInfo(location.visits);
+                    {location.sustainability_score !== null ? (
+                      (() => {
+                        const { color, bgColor, label } = getSustainabilityInfo(location.sustainability_score);
                         return (
                           <div className="flex items-center">
                             <div 
@@ -912,14 +968,17 @@ const LocationsContent = () => {
                               style={{ backgroundColor: bgColor }}
                             >
                               <span className="font-medium" style={{ color }}>
-                                {location.visits}
+                                {location.sustainability_score}
                               </span>
                               <span className="ml-1 text-xs text-gray-600">/ 100</span>
                             </div>
                             <span className="ml-2 text-xs text-gray-500">{label}</span>
                           </div>
                         );
-                      })()}
+                      })()
+                    ) : (
+                      <span className="text-gray-500 text-sm">No aplica</span>
+                    )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex gap-3">
@@ -1168,7 +1227,7 @@ const LocationsContent = () => {
                   </div>
                 </div>
 
-                {/* Sustainability Score (Visits) */}
+                {/* Sustainability Score */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                     Puntuación de Sostenibilidad
@@ -1176,10 +1235,11 @@ const LocationsContent = () => {
                   <input
                     type="number"
                     min="0"
+                    max="100"
                     className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none"
-                    placeholder="Número de visitas"
-                    value={currentLocation.visits || 0}
-                    onChange={(e) => setCurrentLocation({...currentLocation, visits: parseInt(e.target.value) || 0})}
+                    placeholder="Puntuación de sostenibilidad"
+                    value={currentLocation.sustainability_score}
+                    onChange={(e) => setCurrentLocation({...currentLocation, sustainability_score: Math.max(0, Math.min(parseInt(e.target.value), 100)) || null})}
                   />
                 </div>
 

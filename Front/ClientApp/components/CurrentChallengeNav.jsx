@@ -1,7 +1,7 @@
-import { View, Text, TouchableOpacity, Vibration, Animated, Modal, Pressable } from 'react-native'
+import { View, Text, TouchableOpacity, Vibration, Animated, Modal, Pressable, ActivityIndicator } from 'react-native'
 import React from 'react'
 import { useCurrentChallenge } from '../hooks/useCurrentChallenge';
-import { CheckCircle, Navigation2, X, AlertTriangle } from 'react-native-feather';
+import { CheckCircle, Navigation2, X, AlertTriangle, Activity } from 'react-native-feather';
 import { useNavigation } from '@react-navigation/native';
 import { useCurrentGeometryRoute } from '../hooks/useCurrentGeometryRoute';
 import { set } from 'lodash';
@@ -120,7 +120,8 @@ const CurrentChallengeNav = () => {
           <View className="bg-blue-500 rounded-full p-2 mr-3">
             <Navigation2 stroke="white" width={20} height={20} />
           </View>
-          <View>
+          {(currentChallenge && currentGeometryRoute) ? (
+          <View className="h-16">
             <Text className="text-sm text-gray-500">En progreso</Text>
             <Text className="text-base font-bold">
               {currentChallenge?.name?.slice(0, 18) || 'Desafío actual'}
@@ -128,6 +129,14 @@ const CurrentChallengeNav = () => {
             </Text>
             <Text className="text-sm font-medium text-blue-500">{Math.round(currentGeometryRoute?.remainingDistance || 0)} metros restantes</Text>
           </View>
+          ):(
+            <View className="flex-row items-center space-x-2 h-16">
+            <ActivityIndicator className="px-2" size="small" color="#136dff" />
+            <Text className="text-sm text-gray-500">Cargando ruta</Text>
+            </View>
+          )
+        }
+
         </View>
         
         {/* Right side - Action buttons */}

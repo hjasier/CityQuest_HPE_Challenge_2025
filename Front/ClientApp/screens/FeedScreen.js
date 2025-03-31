@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   View, 
   Text, 
@@ -7,11 +7,12 @@ import {
   TouchableOpacity, 
   Modal,
   TextInput,
-  ActivityIndicator
+  ActivityIndicator,
+  RefreshControl
 } from 'react-native';
 import { HeartIcon, ChatBubbleLeftIcon, XMarkIcon } from 'react-native-heroicons/outline';
 import { HeartIcon as HeartSolidIcon } from 'react-native-heroicons/solid';
-
+import { useFeedAcceptedChallenges } from '../hooks/useFeedAcceptedChallenges';
 // Sample data for demonstration
 const SAMPLE_FEED_DATA = [
   {
@@ -19,69 +20,50 @@ const SAMPLE_FEED_DATA = [
     type: 'challenge_completion',
     user: {
       id: '101',
-      name: 'Alex Johnson',
+      name: 'Carlos Rodríguez',
       avatar: 'https://randomuser.me/api/portraits/men/32.jpg',
       xp: 2500
     },
     challenge: {
       id: 'c101',
-      title: 'Morning Jog Challenge',
+      title: 'Ruta Gastronómica en GreenLake',
       xpEarned: 150
     },
     timestamp: new Date(Date.now() - 1800000), // 30 minutes ago
     likes: 24,
     comments: [
-      { id: 'cm1', user: 'Sarah', text: 'Great job!', timestamp: new Date(Date.now() - 900000) },
-      { id: 'cm2', user: 'Mike', text: 'Keep it up!', timestamp: new Date(Date.now() - 600000) }
+      { id: 'cm1', user: 'Ana', text: '¡Deliciosa experiencia!', timestamp: new Date(Date.now() - 900000) },
+      { id: 'cm2', user: 'Luis', text: '¡Qué bien se ve todo!', timestamp: new Date(Date.now() - 600000) }
     ],
     liked: false
   },
-  {
-    id: '2',
-    type: 'image_upload',
-    user: {
-      id: '102',
-      name: 'Emma Wilson',
-      avatar: 'https://randomuser.me/api/portraits/women/44.jpg',
-      xp: 1800
-    },
-    image: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b',
-    caption: 'Completed my first marathon!',
-    timestamp: new Date(Date.now() - 7200000), // 2 hours ago
-    likes: 56,
-    comments: [
-      { id: 'cm3', user: 'David', text: 'Amazing! 👏', timestamp: new Date(Date.now() - 5400000) }
-    ],
-    xpEarned: 100,
-    liked: true
-  },
-  {
-    id: '3',
-    type: 'challenge_completion',
-    user: {
-      id: '103',
-      name: 'James Smith',
-      avatar: 'https://randomuser.me/api/portraits/men/67.jpg',
-      xp: 3200
-    },
-    challenge: {
-      id: 'c102',
-      title: 'Meditation Streak',
-      xpEarned: 200
-    },
-    timestamp: new Date(Date.now() - 14400000), // 4 hours ago
-    likes: 32,
-    comments: [],
-    liked: false
-  }
+  // ... other sample data
 ];
 
 const FeedScreen = () => {
   const [feedData, setFeedData] = useState(SAMPLE_FEED_DATA);
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [commentsVisible, setCommentsVisible] = useState(false);
   const [newComment, setNewComment] = useState('');
+  const { FeedAcceptedChallenges, loading: feedLoading, refetch } = useFeedAcceptedChallenges();
+
+  // Handle refresh when user pulls down the list
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    
+    // Call the refetch function from our custom hook
+    refetch()
+      .then(() => {
+        console.log('Feed data refreshed successfully');
+        setRefreshing(false);
+      })
+      .catch((error) => {
+        console.error('Error refreshing feed data:', error);
+        setRefreshing(false);
+      });
+  }, [refetch]);
 
   // Format timestamp to show only hours and minutes
   const formatTime = (timestamp) => {
@@ -140,8 +122,19 @@ const FeedScreen = () => {
     setSelectedItem(updatedItem);
   };
 
-  // Render different types of feed items
+  // Add this new renderFeedItem function that delegates to the appropriate renderer
   const renderFeedItem = ({ item }) => {
+    // For accepted/completed challenges from the API
+    if (item.type === 'challenge_item') {
+      return renderAcceptedChallengeItem({ item: item.originalData });
+    }
+    
+    // For original sample data, use the existing renderer
+    return renderFeedItemDumm({ item });
+  };
+
+  // Render different types of feed items
+  const renderFeedItemDumm = ({ item }) => {
     const isChallenge = item.type === 'challenge_completion';
     const isImageUpload = item.type === 'image_upload';
 
@@ -168,7 +161,7 @@ const FeedScreen = () => {
         {isChallenge && (
           <View className="mb-3">
             <Text className="text-gray-700 mb-1">
-              Completed the <Text className="font-semibold">{item.challenge.title}</Text>
+              A completado <Text className="font-semibold">{item.challenge.title}</Text>
             </Text>
             <View className="bg-green-100 rounded-lg p-3 mt-1">
               <Text className="text-green-700 font-medium text-center">
@@ -181,7 +174,7 @@ const FeedScreen = () => {
         {isImageUpload && (
           <View className="mb-3">
             <Text className="text-gray-700 mb-2">
-              Uploaded a photo: <Text className="text-gray-600">{item.caption}</Text>
+              A subido una foto: <Text className="text-gray-600">{item.caption}</Text>
             </Text>
             <Image
               source={{ uri: item.image }}
@@ -216,6 +209,151 @@ const FeedScreen = () => {
       </View>
     );
   };
+
+  // Updated renderAcceptedChallengeItem function with conditional messaging
+  const renderAcceptedChallengeItem = ({ item }) => {
+    // Extract data from the item
+    const { User, Challenge, accepted_at, completed, completed_at } = item;
+    const acceptedDate = new Date(accepted_at);
+    const completedDate = completed_at ? new Date(completed_at) : null;
+    const location = Challenge.Location;
+
+    return (
+      <View className="bg-white rounded-xl p-4 mb-4 shadow-sm">
+        {/* User info and timestamp */}
+        <View className="flex-row justify-between items-center mb-3">
+          <View className="flex-row items-center">
+            <Image
+              source={{ uri: User.avatar_url }}
+              className="w-10 h-10 rounded-full"
+            />
+            <View className="ml-2">
+              <Text className="font-semibold text-gray-800">{User.username}</Text>
+              <Text className="text-xs text-gray-500">
+                {completed ? formatTime(completedDate) : formatTime(acceptedDate)}
+              </Text>
+            </View>
+          </View>
+          <View className="bg-purple-100 px-2 py-1 rounded-lg">
+            <Text className="text-purple-600 font-medium text-xs">Reward: {Challenge.reward} XP</Text>
+          </View>
+        </View>
+
+        {/* Challenge content */}
+        <View className="mb-3">
+          {/* Different message based on completed status */}
+          <Text className="text-gray-700 mb-1">
+            {completed ? (
+              <>
+                <Text className="font-semibold">{User.username}</Text> a completado el reto: <Text className="font-semibold">{Challenge.name}</Text>!
+              </>
+            ) : (
+              <>
+                <Text className="font-semibold">{User.username}</Text> a aceptado el reto <Text className="font-semibold">{Challenge.name}</Text>!
+              </>
+            )}
+          </Text>
+          
+          <Text className="text-gray-600 text-sm mb-2">{Challenge.description}</Text>
+          
+          {Challenge.cover_url && (
+            <View className="mt-2">
+              <Image
+                source={{ uri: Challenge.cover_url }}
+                className="w-full h-40 rounded-lg"
+                resizeMode="cover"
+              />
+            </View>
+          )}
+          
+          {/* Different status indicator based on completed */}
+          <View className={`${completed ? 'bg-green-100' : 'bg-amber-100'} rounded-lg p-3 mt-3`}>
+            <Text className={`${completed ? 'text-green-700' : 'text-amber-700'} font-medium text-center`}>
+              {completed ? (
+                `Challenge Completed! +${Challenge.reward} XP`
+              ) : (
+                'Challenge Accepted!'
+              )}
+            </Text>
+          </View>
+        </View>
+
+        {/* Show proof image if completed and has proof */}
+        {completed && item.image_url_proof && (
+          <View className="mb-3">
+            <Text className="text-gray-700 font-medium mb-1">Completion Proof:</Text>
+            <Image
+              source={{ uri: item.image_url_proof }}
+              className="w-full h-32 rounded-lg"
+              resizeMode="cover"
+            />
+          </View>
+        )}
+
+        {/* Location info */}
+        {location && (
+          <View className="flex-row items-center mt-1 mb-2 bg-gray-50 p-2 rounded-lg">
+            {location.image_url && (
+              <Image 
+                source={{ uri: location.image_url }}
+                className="w-8 h-8 rounded mr-2"
+              />
+            )}
+            <View>
+              <Text className="text-gray-800 font-medium">{location.name}</Text>
+              {location.address && (
+                <Text className="text-gray-500 text-xs">{location.address}</Text>
+              )}
+            </View>
+          </View>
+        )}
+
+        {/* Likes and comments section */}
+        <View className="flex-row justify-between items-center mt-2 pt-2 border-t border-gray-100">
+          <TouchableOpacity 
+            className="flex-row items-center"
+          >
+            <HeartIcon size={20} color="#6b7280" />
+            <Text className="ml-1 text-gray-600">0</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            className="flex-row items-center"
+          >
+            <ChatBubbleLeftIcon size={20} color="#6b7280" />
+            <Text className="ml-1 text-gray-600">0</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  };
+
+  useEffect(() => {
+    if (FeedAcceptedChallenges && !feedLoading) {
+      // Convert accepted/completed challenges to feed format
+      const challengesFeed = FeedAcceptedChallenges.map(item => ({
+        id: `challenge-${item.id}`,
+        type: 'challenge_item',
+        originalData: item,
+        // Use completed_at timestamp if completed, otherwise use accepted_at
+        timestamp: item.completed ? new Date(item.completed_at) : new Date(item.accepted_at),
+        user: {
+          id: item.user_id,
+          name: item.User.username,
+          avatar: item.User.avatar_url
+        },
+        likes: 0,
+        comments: []
+      }));
+      
+      // Combine with sample data and sort by timestamp (newest first)
+      const combinedFeed = [...SAMPLE_FEED_DATA, ...challengesFeed].sort(
+        (a, b) => b.timestamp - a.timestamp
+      );
+      
+      setFeedData(combinedFeed);
+    }
+  }, [FeedAcceptedChallenges, feedLoading]);
 
   // Comments Modal
   const renderCommentsModal = () => {
@@ -280,11 +418,12 @@ const FeedScreen = () => {
   };
 
   return (
-    <View className="flex-1 bg-gray-100 ">
+    <View className="flex-1 bg-gray-100">
       {/* Header */}
       <View className=" px-4 py-3 shadow-sm mt-5">
         <Text className="text-xl font-bold text-gray-800">Activity Feed</Text>
       </View>
+
 
       {/* Feed List */}
       {loading ? (
@@ -298,9 +437,17 @@ const FeedScreen = () => {
           renderItem={renderFeedItem}
           contentContainerClassName="p-4"
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl 
+              refreshing={refreshing} 
+              onRefresh={onRefresh}
+              colors={["#3b82f6"]}
+              tintColor="#3b82f6"
+            />
+          }
         />
       )}
-
+   
       {/* Comments Modal */}
       {renderCommentsModal()}
     </View>
