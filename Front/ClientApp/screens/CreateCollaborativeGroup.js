@@ -161,6 +161,8 @@ const CreateCollaborativeGroup = () => {
       if (memberError) throw memberError
 
       setGroupCreated(true)
+      navigation.navigate("MyGroupScreen");
+      return
       setMembers([{
         id: session?.user.id,
         name: username,

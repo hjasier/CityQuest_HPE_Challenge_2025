@@ -150,8 +150,8 @@ const Map = () => {
 
   };
 
-  const handleFilterLocation = (location) => {
-    setSelectedLocation(location);
+  const handleFilterLocation = (cLocation) => {
+    setSelectedLocation(cLocation);
     Vibration.vibrate();
   };
 

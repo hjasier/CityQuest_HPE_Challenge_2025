@@ -1,9 +1,9 @@
 import { useChallenges } from "./useChallenges";
 import { useCurrentChallenge } from "./useCurrentChallenge";
 import { useCurrentRoute } from "./useCurrentRoute";
-import useUserLocation from "./useUserLocation";
 import WKB from 'ol/format/WKB';
 import * as Location from 'expo-location';
+import { supabase } from "../database/supabase";
 
 /**
  * Hook for accepting challenges and navigating to them
@@ -48,6 +48,7 @@ export const useAcceptChallenge = () => {
       endCoordinates: [coordinates.longitude, coordinates.latitude], // Challenge coordinates
       profile: 'walking'
     });
+    handleAcceptChallengeSupabase(challenge);
   };
   
   /**
@@ -58,6 +59,47 @@ export const useAcceptChallenge = () => {
     const challenge = challenges.find(challenge => challenge.id === challengeId);
     if (challenge) {
       acceptChallenge(challenge);
+    }
+  };
+
+
+  const handleAcceptChallengeSupabase = async (challenge) => {
+    try {
+      // Get the current user's session
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        console.error('Error getting user session:', sessionError.message);
+        return;
+      }
+      
+      if (!session || !session.user) {
+        console.error('No active user session found');
+        return;
+      }
+      
+      const userId = session.user.id;
+      
+      // Insert a new record into AcceptedChallenge table
+      const { data, error } = await supabase
+        .from('AcceptedChallenge')
+        .insert({
+          user_id: userId,
+          challenge_id: challenge.id,
+          completed: false,
+          location_id: challenge.Location.id || null
+        })
+        .select();
+      
+      if (error) {
+        console.error('Error accepting challenge:', error.message);
+        return;
+      }
+      
+      console.log('Challenge accepted successfully:', data);
+      return data;
+    } catch (error) {
+      console.error('Unexpected error while accepting challenge:', error);
     }
   };
   
