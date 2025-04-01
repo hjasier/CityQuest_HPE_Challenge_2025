@@ -83,6 +83,14 @@
         }
       ],
       [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true // ? enable HTTP requests
+          }
+        }
+      ],
+      [
         "@rnmapbox/maps",
         {
           "RNMapboxMapsDownloadToken": "sk.eyJ1IjoiYXNpaWVyIiwiYSI6ImNtODYweWxvbTAwNGcyaXFzeWNndHRodzMifQ.Kl3w4UT-iYCrOv2O60tpGg",

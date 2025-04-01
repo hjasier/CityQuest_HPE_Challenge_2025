@@ -13,7 +13,7 @@ import MapboxDirections from '@mapbox/mapbox-sdk/services/directions';
 import { useCurrentRoute, useCurrentRouteStore } from '../hooks/useCurrentRoute';
 import { useCurrentGeometryRoute } from '../hooks/useCurrentGeometryRoute';
 import { useCurrentChallenge } from '../hooks/useCurrentChallenge';
-import ChallengeRadius from './ChallengeRadius';
+import ChallengeRadius from './PlotPointRadius';
 import { useProximityToChallenge } from '../hooks/useProximityToChallenge';
 import { useChallengeCompletion } from '../hooks/useChallengeCompletion';
 import { useLocationChallenges } from '../hooks/useLocationChallenges';
@@ -22,6 +22,8 @@ import { useSelectedLocation } from '../hooks/useSelectedLocation';
 import { useReCenterLocation } from '../hooks/useReCenterLocation';
 import ChallengeRouteRenderer from './ChallengeRouteRenderer';
 import useUserLocation from '../hooks/useUserLocation';
+import PlotPointRadius from './PlotPointRadius';
+import { get, set } from 'lodash';
 
 MapboxGL.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN);
 
@@ -180,21 +182,34 @@ const Map = () => {
     parseWKB(currentChallenge?.Location?.point)
   );
 
-  // Use the result in an effect
+ 
+  //ESTO HAY QUE MOVERLO A UN HOOK PK NO TIENE MUCHO SENTIDO QUE ESTE AQUI
   useEffect(() => {
-    if (location && isNearChallenge) {
+    if (location && isNearChallenge && currentChallenge?.CompletionType.type === 'GPS') {
       Vibration.vibrate(1000);
       handleChallengeCompleted(currentChallenge);
     }
   }, [location, isNearChallenge, currentChallenge]); 
       
 
-
+  
   useEffect(() => {
     centerOnUserLocation();
   }
   , [ReCenterLocation]);
 
+
+  const [userZoom, setUserZoom] = useState(15);
+
+  const getCurrentZoom = async () => {
+    if (mapRef.current) {
+      const zoom = await mapRef.current.getZoom();
+      // console.log('Nivel de zoom actual:', zoom);
+      setUserZoom(zoom);
+    }
+  }
+
+  
 
 
   return (
@@ -207,16 +222,23 @@ const Map = () => {
             zoomEnabled
             scaleBarEnabled={false}
             styleURL='mapbox://styles/asiier/cm86e6z8s007t01safl5m10hl/draft'
+            onRegionDidChange={getCurrentZoom}
           >
             {location && (
               <MapboxGL.Camera
                 ref={cameraRef}
-                animationDuration={0}
+                followUserLocation={false}
+                animationDuration={500}
+                animationMode="flyTo"
+                followUserMode="normal"
                 centerCoordinate={location}
-                zoomLevel={15}
+                zoomLevel={userZoom}
                 onRender={() => setMapLoaded(true)}
+                followZoomLevel={20}
+                
               />
             )}
+
          
             <MapboxGL.Images images={{ 
             "headingArrow": bearing,
@@ -233,7 +255,7 @@ const Map = () => {
 
             {/*  RADIO DEL RETO ACTUAL */}
             {currentChallenge && (
-              <ChallengeRadius currentChallenge={currentChallenge} />
+              <PlotPointRadius point={currentChallenge.Location?.point} />
             )}
 
 

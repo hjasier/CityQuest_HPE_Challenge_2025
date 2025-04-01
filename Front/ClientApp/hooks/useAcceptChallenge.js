@@ -56,6 +56,7 @@ export const useAcceptChallenge = () => {
    * @param {string} challengeId - The ID of the challenge to accept
    */
   const acceptChallengeById = (challengeId) => {
+    console.log('Accepting challenge with ID:', challengeId);
     const challenge = challenges.find(challenge => challenge.id === challengeId);
     if (challenge) {
       acceptChallenge(challenge);

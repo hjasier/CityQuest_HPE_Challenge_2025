@@ -107,7 +107,7 @@ const ChallengeCard = ({challenge}) => {
           <View className="flex-row justify-between px-2 pt-3 border-t border-gray-100">
             <View className="flex-row items-center">
               <Icon name="star" type="font-awesome-5" solid color="#FFC107" size={14} />
-              <Text className="text-gray-700 ml-1 text-xs">Reward: {challenge.reward}</Text>
+              <Text className="text-gray-700 ml-1 text-xs">Recompensa: {challenge.reward}</Text>
             </View>
 
             <View className="flex-row items-center">
@@ -118,21 +118,40 @@ const ChallengeCard = ({challenge}) => {
                 size={14} 
               />
               <Text className="text-gray-700 ml-1 text-xs">
-                {challenge.repeatable ? "Repeatable" : "One-time"}
+                {challenge.repeatable ? "Repetible" : "Una-vez"}
               </Text>
             </View>
 
             <View className="flex-row items-center">
-              <Icon 
-                name={challenge.active ? "toggle-on" : "toggle-off"} 
-                type="font-awesome-5" 
-                color={challenge.active ? "#2196F3" : "#888"} 
-                size={14} 
+              <Icon
+                name={
+                  challenge.CompletionType.type === 'PHOTO'
+                    ? 'camera'
+                    : challenge.CompletionType.type === 'QR'
+                    ? 'qr-code'
+                    : challenge.CompletionType.type === 'GPS'
+                    ? 'crosshairs-gps'
+                    : challenge.CompletionType.type === 'GPS-ROUTE'
+                    ? 'crosshairs-gps'
+                    : 'check-circle'
+                }
+                type={
+                  challenge.CompletionType.type === 'QR'
+                    ? 'ionicon'
+                    : challenge.CompletionType.type === 'GPS' || challenge.CompletionType.type === 'GPS-ROUTE'
+                    ? 'material-community'
+                    : 'font-awesome-5'
+                }
+                color="#2196F3"
+                size={16}
+                className="ml-1"
               />
               <Text className="text-gray-700 ml-1 text-xs">
-                {challenge.active ? "Active" : "Inactive"}
+                {challenge.CompletionType.type}
               </Text>
             </View>
+
+            
           </View>
         </View>
       </View>

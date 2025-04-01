@@ -3,8 +3,11 @@ import React from 'react'
 import { useWKBCoordinates } from '../hooks/useWKBCoordinates';
 import { useMemo } from 'react';
 import MapboxGL from '@rnmapbox/maps';
+import { useChallengeRouteStatus } from '../hooks/useChallengeRouteStatus';
+import PlotPointRadius from './PlotPointRadius';
 
-const ChallengeRouteRenderer = ({userLocation, challenge}) => {
+const ChallengeRouteRenderer = ({location, challenge}) => {
+  const { isStarted , routeStatus } = useChallengeRouteStatus();
 
 
   const routeCoordinates = useWKBCoordinates(challenge.Location.Route[0].linestring);
@@ -34,6 +37,7 @@ const ChallengeRouteRenderer = ({userLocation, challenge}) => {
 
 
   return (
+    <>
     <MapboxGL.ShapeSource
         id="challengeRouteLineBackground"
         shape={routeGeometry}
@@ -61,6 +65,13 @@ const ChallengeRouteRenderer = ({userLocation, challenge}) => {
         }}
         />
     </MapboxGL.ShapeSource>
+
+    {isStarted && routeStatus?.nextPoint && (
+      <PlotPointRadius coordinates={routeStatus.nextPoint} />
+    )}
+
+
+    </>
   )
 }
 

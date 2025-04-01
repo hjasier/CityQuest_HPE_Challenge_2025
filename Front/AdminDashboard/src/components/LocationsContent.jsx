@@ -124,8 +124,8 @@ const LocationsContent = () => {
       
       // Transform data to match component structure
       const formattedLocations = data.map(loc => {
-        let longitude = -3.70379;  // Default longitude
-        let latitude = 40.41678;   // Default latitude
+        let longitude = -2.934983;  // Default longitude
+        let latitude = 43.262995;   // Default latitude
         
         if (loc.point) {
           try {
@@ -134,6 +134,7 @@ const LocationsContent = () => {
             // or as a binary buffer, we need to handle both cases
             const geometry = wkbFormat.readGeometry(loc.point);
             const coordinates = geometry.getCoordinates();
+
             // OpenLayers uses [longitude, latitude] order
             longitude = coordinates[0];
             latitude = coordinates[1];
@@ -194,8 +195,8 @@ const LocationsContent = () => {
         description: loc.description || '',
         location_type: loc.location_type,
         status: loc.status,
-        longitude: loc.geography ? JSON.parse(loc.geography).coordinates[0] : -3.70379,
-        latitude: loc.geography ? JSON.parse(loc.geography).coordinates[1] : 40.41678,
+        longitude: loc.geography ? JSON.parse(loc.geography).coordinates[0] : -2.934983,
+        latitude: loc.geography ? JSON.parse(loc.geography).coordinates[1] : 43.262995,
         requestDate: loc.solicited_at ? new Date(loc.solicited_at).toLocaleDateString() : 'Desconocido'
       }));
       
@@ -652,7 +653,7 @@ const addMarkersToMap = () => {
         el.style.border = '2px solid white';
         
         modalMarker.current = new mapboxgl.Marker(el)
-          .setLngLat([currentLocation.longitude || -3.70379, currentLocation.latitude || 40.41678])
+          .setLngLat([currentLocation.longitude || -2.934984, currentLocation.latitude || 43.262969])
           .addTo(modalMap.current);
         
         // Add click event to update marker position
@@ -668,8 +669,8 @@ const addMarkersToMap = () => {
       } else {
         // Update map and marker if they already exist
         modalMap.current.resize();
-        modalMap.current.setCenter([currentLocation.longitude || -3.70379, currentLocation.latitude || 40.41678]);
-        modalMarker.current.setLngLat([currentLocation.longitude || -3.70379, currentLocation.latitude || 40.41678]);
+        modalMap.current.setCenter([currentLocation.longitude || -2.934984, currentLocation.latitude || 43.262969]);
+        modalMarker.current.setLngLat([currentLocation.longitude || -2.934984, currentLocation.latitude || 43.262969]);
       }
     }
     

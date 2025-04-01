@@ -34,7 +34,7 @@ const ChallengeDetails = ({challenge}) => {
 
     
   return (
-    <View className="flex-1">
+    <View className="flex">
       {/* Challenge Description */}
       <Text className="text-gray-800 leading-5 mb-5">
         {challenge.description}

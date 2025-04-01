@@ -6,7 +6,7 @@ import logging
 route_generator_bp = Blueprint('route_generator', __name__)
 
 
-geolocator = Nominatim(user_agent="geoapiExercises")
+geolocator = Nominatim(user_agent="cds_app_city_quest (admin@cityquest.com)")
 
 
 

@@ -4,7 +4,11 @@ import circle from '@turf/circle';
 import WKB from 'ol/format/WKB';
 import { DETECTION_RADIUS } from '../hooks/constants';
 
-const ChallengeRadius = ({ currentChallenge }) => {
+const PlotPointRadius = ({ coordinates , point }) => {
+
+
+
+
   // Convertir HEX a Uint8Array
   const hexToUint8Array = (hex) => {
     return new Uint8Array(
@@ -23,18 +27,24 @@ const ChallengeRadius = ({ currentChallenge }) => {
     return null;
   };
 
-  // Check if challenge and location exist
-  if (!currentChallenge || !currentChallenge.Location?.point) {
-    return null;
-  }
+    // Check if challenge and location exist
+    if (!point && !coordinates) {
+      return null;
+    }
+    else if (coordinates) {
+      coordinates = [coordinates.longitude, coordinates.latitude];
 
-  // Parse coordinates
-  const parsedCoordinates = parseWKB(currentChallenge.Location.point);
-  if (!parsedCoordinates) return null;
+    }
+    else if (point) {
+      const parsedCoordinates = parseWKB(point);
+      coordinates = [parsedCoordinates.longitude, parsedCoordinates.latitude];
+    
+    }
+
+
+
   
-  // Convert to array format [longitude, latitude] for turf
-  const coordinates = [parsedCoordinates.longitude, parsedCoordinates.latitude];
-  
+
   // Radius in kilometers (100 meters = 0.1 kilometers)
   const meters = DETECTION_RADIUS;
   const radiusInKm = meters / 1000;
@@ -42,7 +52,7 @@ const ChallengeRadius = ({ currentChallenge }) => {
   // Configuration for creating the circle
   const options = {
     units: 'kilometers', 
-    properties: { challenge: currentChallenge.id }
+    // properties: { challenge: currentChallenge.id }
   };
 
   // Create circle GeoJSON
@@ -73,4 +83,4 @@ const ChallengeRadius = ({ currentChallenge }) => {
   );
 };
 
-export default ChallengeRadius;
+export default PlotPointRadius;

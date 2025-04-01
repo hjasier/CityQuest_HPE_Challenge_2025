@@ -1,102 +1,157 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Search, Plus, Edit, Trash2, Filter, Calendar, Clock, Users, Image, Tag, Check, X, Award } from 'lucide-react';
+import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
 import { supabase } from '../hooks/supabaseClient';
+// Replace GeoJSON with WKB import
+import WKB from 'ol/format/WKB';
+
+// Set your Mapbox token
+mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
+
+// Create WKB format instance instead of GeoJSON
+const wkbFormat = new WKB();
 
 const ChallengesContent = () => {
   const [challenges, setChallenges] = useState([]);
   const [loading, setLoading] = useState(true);
   const [challengeTypes, setChallengeTypes] = useState([]);
+  const [completionTypes, setCompletionTypes] = useState([]);
   const [locations, setLocations] = useState([]);
-  
+
   // Fetch locations
   useEffect(() => {
     const fetchLocations = async () => {
       const { data, error } = await supabase
         .from('Location')
-        .select('id, name, address, point');
-      
+        .select('id, name, LocationType(id, name), address, point');
+
       if (error) {
         console.error('Error fetching locations:', error);
         return;
       }
-      
+
       console.log('Locations data:', data);
       setLocations(data || []);
     };
-    
+
     fetchLocations();
   }, []);
-  
+
   // Fetch challenge types
   useEffect(() => {
     const fetchChallengeTypes = async () => {
       const { data, error } = await supabase
         .from('ChallengeType')
         .select('*');
-      
+
       if (error) {
         console.error('Error fetching challenge types:', error);
         return;
       }
-      
+
       setChallengeTypes(data);
     };
-    
+
     fetchChallengeTypes();
   }, []);
-  
+
+  // Fetch completion types
+  useEffect(() => {
+    const fetchCompletionTypes = async () => {
+      const { data, error } = await supabase
+        .from('CompletionType')
+        .select('*');
+
+      if (error) {
+        console.error('Error fetching completion types:', error);
+        return;
+      }
+      console.log('Completion types data:', data);
+      setCompletionTypes(data);
+
+    };
+
+    fetchCompletionTypes();
+  }, []);
+
   // Fetch challenges
   useEffect(() => {
     const fetchChallenges = async () => {
       setLoading(true);
-      
+
       const { data, error } = await supabase
         .from('Challenge')
         .select(`
           *,
           ChallengeType:type (type),
-          Location:location (name, address)
+          Location:location (name, address, point)
         `);
-      
+
       if (error) {
         console.error('Error fetching challenges:', error);
         setLoading(false);
         return;
       }
-      
+
       console.log('Raw challenge data from Supabase:', data);
-      
+
       if (!data || data.length === 0) {
         console.warn('No challenges found in database');
         setLoading(false);
         return;
       }
-      
+
+
       // Map data to match component's expected structure
-      const formattedChallenges = data.map(challenge => ({
-        id: challenge.id,
-        title: challenge.name || 'Sin título',
-        description: challenge.description || 'Sin descripción',
-        points: challenge.reward || 0,
-        priority: challenge.priority,
-        cooldown_time: challenge.cooldown_time,
-        cooldown_time_text: challenge.cooldown_time ? secondsToDhms(challenge.cooldown_time) : 'Sin límite',
-        status: challenge.active ? 'Activo' : 'Inactivo',
-        completions: 0, // You might want to fetch this from AcceptedChallenge
-        abandonment: 0, // This would need a separate query
-        category: challenge.ChallengeType?.type || 'Sin categoría',
-        cover_url: challenge.cover_url || '',
-        type: challenge.type,
-        location: challenge.location,
-        repeatable: challenge.repeatable || false,
-        expiration_date: challenge.expiration_date
-      }));
-      
+      const formattedChallenges = data.map(challenge => {
+        let longitude = -2.934983;  // Default longitude
+        let latitude = 43.262995;   // Default latitude
+
+        if (challenge.point) {
+          try {
+            // Parse the WKB point using OpenLayers
+            // PostgreSQL/PostGIS may return WKB in hexadecimal string format
+            // or as a binary buffer, we need to handle both cases
+            const geometry = wkbFormat.readGeometry(loc.point);
+            const coordinates = geometry.getCoordinates();
+
+            // OpenLayers uses [longitude, latitude] order
+            longitude = coordinates[0];
+            latitude = coordinates[1];
+          } catch (error) {
+            console.error('Error parsing point geometry:', error);
+          }
+        }
+
+        return {
+          id: challenge.id,
+          title: challenge.name || 'Sin título',
+          description: challenge.description || 'Sin descripción',
+          points: challenge.reward || 0,
+          priority: challenge.priority,
+          cooldown_time: challenge.cooldown_time,
+          cooldown_time_text: challenge.cooldown_time ? secondsToDhms(challenge.cooldown_time) : 'Sin límite',
+          status: challenge.active ? 'Activo' : 'Inactivo',
+          completions: 0, // You might want to fetch this from AcceptedChallenge
+          abandonment: 0, // This would need a separate query
+          completion_type: challenge.completion_type,
+          category: challenge.ChallengeType?.type || 'Sin categoría',
+          cover_url: challenge.cover_url || '',
+          type: challenge.type,
+          location: challenge.location,
+          longitude: longitude,
+          latitude: latitude,
+          repeatable: challenge.repeatable || false,
+          expiration_date: challenge.expiration_date,
+        }
+      });
+
       console.log('Formatted challenges:', formattedChallenges);
       setChallenges(formattedChallenges);
       setLoading(false);
     };
-    
+
     fetchChallenges();
   }, []);
 
@@ -111,11 +166,49 @@ const ChallengesContent = () => {
     var mDisplay = m > 0 ? m + "m " : "";
     var sDisplay = s > 0 ? s + "s" : "";
     return (dDisplay + hDisplay + mDisplay + sDisplay).trim();
- }
+  }
+
+  const translateChallengeType = (type) => {
+    switch (type) {
+      case 'consume':
+        return 'Consumo';
+      case 'visit':
+        return 'Visita';
+      case 'route':
+        return 'Ruta';
+    }
+  }
+
+  const translateCompletionType = (type) => {
+    switch (type) {
+      case 'QR': return 'QR';
+      case 'GPS': return 'Punto GPS';
+      case 'GPS-ROUTE': return 'Ruta GPS';
+      case 'PHOTO': return 'Foto';
+    }
+  }
 
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
-  const [currentChallenge, setCurrentChallenge] = useState(null);
+  const [currentChallenge, setCurrentChallenge] = useState({
+    id: null, // Let Supabase generate the ID
+    title: '',
+    description: '',
+    points: 50,
+    priority: 5,
+    status: 'Activo',
+    completions: 0,
+    abandonment: 0,
+    completion_type: null,
+    category: challengeTypes.length > 0 ? challengeTypes[0].type : '',
+    coverUrl: '',
+    repeatable: false,
+    cooldown_time: null,
+    location: null, // Initialize location as null
+    longitude: -2.934984, // Default longitude
+    latitude: 43.262969, // Default latitude
+    expiration_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days from now
+  });
   const [filterStatus, setFilterStatus] = useState('Todos');
 
   const statuses = ['Todos', 'Activo', 'Inactivo'];
@@ -124,9 +217,9 @@ const ChallengesContent = () => {
   // Función para filtrar retos
   const filteredChallenges = challenges.filter(challenge => {
     const matchesSearch = challenge.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          challenge.description.toLowerCase().includes(searchTerm.toLowerCase());
+      challenge.description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = filterStatus === 'Todos' || challenge.status === filterStatus;
-    
+
     return matchesSearch && matchesStatus;
   });
 
@@ -138,22 +231,85 @@ const ChallengesContent = () => {
       description: '',
       points: 50,
       priority: 5,
-      cooldown_time: null,
       status: 'Activo',
       completions: 0,
       abandonment: 0,
+      completion_type: null,
       category: challengeTypes.length > 0 ? challengeTypes[0].type : '',
       coverUrl: '',
       repeatable: false,
+      cooldown_time: null,
       location: null, // Initialize location as null
-      expiration_date: new Date(Date.now() + 30*24*60*60*1000).toISOString() // 30 days from now
+      longitude: -2.934984, // Default longitude
+      latitude: 43.262969, // Default latitude
+      expiration_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
     });
     setShowModal(true);
   };
 
+  // Add this with the other refs at the beginning of the component
+  const modalMapContainer = useRef(null);
+  const modalMap = useRef(null);
+  const modalMarker = useRef(null);
+
+  // Add this useEffect to handle the modal map
+  useEffect(() => {
+    if (showModal && modalMapContainer.current) {
+      // Create new map instance for the modal
+      if (!modalMap.current) {
+        modalMap.current = new mapboxgl.Map({
+          container: modalMapContainer.current,
+          style: 'mapbox://styles/mapbox/streets-v12',
+          center: [currentChallenge.longitude || -2.934984, currentChallenge.latitude || 43.262969],
+          zoom: 12
+        });
+
+        // Add navigation controls
+        modalMap.current.addControl(new mapboxgl.NavigationControl());
+
+        // Add a marker for the current location
+        const el = document.createElement('div');
+        el.className = 'modal-marker';
+        el.style.width = '24px';
+        el.style.height = '24px';
+        el.style.borderRadius = '50%';
+        el.style.backgroundColor = '#3b82f6';
+        el.style.border = '2px solid white';
+
+        modalMarker.current = new mapboxgl.Marker(el)
+          .setLngLat([currentChallenge.longitude || -2.934984, currentChallenge.latitude || 43.262969])
+          .addTo(modalMap.current);
+
+        // Add click event to update marker position
+        modalMap.current.on('click', (e) => {
+          const { lng, lat } = e.lngLat;
+          modalMarker.current.setLngLat([lng, lat]);
+          setCurrentChallenge({
+            ...currentChallenge,
+            longitude: lng,
+            latitude: lat
+          });
+        });
+      } else {
+        // Update map and marker if they already exist
+        modalMap.current.resize();
+        modalMap.current.setCenter([currentChallenge.longitude || -2.934984, currentChallenge.latitude || 43.262969]);
+        modalMarker.current.setLngLat([currentChallenge.longitude || -2.934984, currentChallenge.latitude || 43.262969]);
+      }
+    }
+
+    return () => {
+      if (!showModal && modalMap.current) {
+        modalMap.current.remove();
+        modalMap.current = null;
+        modalMarker.current = null;
+      }
+    };
+  }, [showModal, currentChallenge.id]);
+
   // Abrir modal para editar reto existente
   const handleEdit = (challenge) => {
-    setCurrentChallenge({...challenge});
+    setCurrentChallenge({ ...challenge });
     setShowModal(true);
   };
 
@@ -161,16 +317,16 @@ const ChallengesContent = () => {
     const fileExt = file.name.split('.').pop();
     const fileName = `${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
     const filePath = `challenge-images/${fileName}`;
-    
+
     const { error: uploadError } = await supabase.storage
       .from('challenges')
       .upload(filePath, file);
-      
+
     if (uploadError) {
       console.error('Error uploading image:', uploadError);
       return null;
     }
-    
+
     const { data } = supabase.storage.from('challenges').getPublicUrl(filePath);
     return data.publicUrl;
   };
@@ -184,6 +340,7 @@ const ChallengesContent = () => {
       priority: currentChallenge.priority,
       active: currentChallenge.status === 'Activo',
       type: parseInt(currentChallenge.type),  // Make sure this is the ID, not the string
+      completion_type: currentChallenge.completion_type,
       location: currentChallenge.location,
       cover_url: currentChallenge.coverUrl,
       repeatable: currentChallenge.repeatable,
@@ -204,14 +361,14 @@ const ChallengesContent = () => {
         .from('Challenge')
         .update(challengeData)
         .eq('id', currentChallenge.id);
-      
+
       if (error) {
         console.error('Error updating challenge:', error);
         return;
       }
 
-      setChallenges(challenges.map(c => 
-        c.id === currentChallenge.id ? {...c, ...currentChallenge} : c
+      setChallenges(challenges.map(c =>
+        c.id === currentChallenge.id ? { ...c, ...currentChallenge } : c
       ));
     } else {
       // Add new challenge
@@ -219,7 +376,7 @@ const ChallengesContent = () => {
         .from('Challenge')
         .insert(challengeData)
         .select();
-      
+
       if (error) {
         console.error('Error adding challenge:', error);
         return;
@@ -229,10 +386,10 @@ const ChallengesContent = () => {
         ...currentChallenge,
         id: data[0].id
       };
-      
+
       setChallenges([...challenges, newChallenge]);
     }
-    
+
     setShowModal(false);
   };
 
@@ -243,12 +400,12 @@ const ChallengesContent = () => {
         .from('Challenge')
         .delete()
         .eq('id', id);
-      
+
       if (error) {
         console.error('Error deleting challenge:', error);
         return;
       }
-      
+
       setChallenges(challenges.filter(challenge => challenge.id !== id));
     }
   };
@@ -258,7 +415,7 @@ const ChallengesContent = () => {
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Gestión de Retos</h1>
-        <button 
+        <button
           onClick={handleAddNew}
           className="flex items-center gap-2 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700"
         >
@@ -283,7 +440,7 @@ const ChallengesContent = () => {
         <div className="relative min-w-40">
           <div className="flex items-center gap-2 px-3 py-2 bg-white rounded-lg border cursor-pointer">
             <Filter size={18} className="text-gray-400" />
-            <select 
+            <select
               className="border-none outline-none w-full bg-transparent cursor-pointer"
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
@@ -328,9 +485,8 @@ const ChallengesContent = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{challenge.priority} / 10</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{challenge.cooldown_time_text}</td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      challenge.status === 'Activo' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                    }`}>
+                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${challenge.status === 'Activo' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                      }`}>
                       {challenge.status}
                     </span>
                   </td>
@@ -342,12 +498,12 @@ const ChallengesContent = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex gap-3">
-                      <button 
+                      <button
                         onClick={() => handleEdit(challenge)}
                         className="text-blue-600 hover:text-blue-900">
                         <Edit size={18} />
                       </button>
-                      <button 
+                      <button
                         onClick={() => handleDelete(challenge.id)}
                         className="text-red-600 hover:text-red-900">
                         <Trash2 size={18} />
@@ -378,7 +534,7 @@ const ChallengesContent = () => {
                 Completa los detalles para {currentChallenge.id ? 'actualizar este reto' : 'crear un nuevo reto'}
               </p>
             </div>
-            
+
             {/* Form Content */}
             <div className="p-6 space-y-6">
               {/* Image Preview Section */}
@@ -387,8 +543,8 @@ const ChallengesContent = () => {
                 <div className="flex flex-col items-center gap-4">
                   {(currentChallenge.coverUrl || currentChallenge.image) && (
                     <div className="w-full h-48 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700 flex items-center justify-center">
-                      <img 
-                        src={currentChallenge.image ? URL.createObjectURL(currentChallenge.image) : currentChallenge.coverUrl} 
+                      <img
+                        src={currentChallenge.image ? URL.createObjectURL(currentChallenge.image) : currentChallenge.coverUrl}
                         alt={currentChallenge.title}
                         className="w-full h-full object-cover"
                       />
@@ -414,7 +570,7 @@ const ChallengesContent = () => {
                     className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none"
                     placeholder="Ingresa un título atractivo"
                     value={currentChallenge.title}
-                    onChange={(e) => setCurrentChallenge({...currentChallenge, title: e.target.value})}
+                    onChange={(e) => setCurrentChallenge({ ...currentChallenge, title: e.target.value })}
                   />
                 </div>
 
@@ -440,11 +596,56 @@ const ChallengesContent = () => {
                   >
                     {challengeTypes.map((chType) => (
                       <option key={chType.id} value={chType.id}>
-                        {chType.type}
+                        {translateChallengeType(chType.type)}
                       </option>
                     ))}
                   </select>
                 </div>
+
+                {/* Completion Type Field */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Tipo de Completado</label>
+                  <select
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none"
+                    value={currentChallenge.completion_type || ''}
+                    onChange={(e) => setCurrentChallenge({ ...currentChallenge, completion_type: parseInt(e.target.value) })}
+                  >
+                    {completionTypes.map((compType) => (
+                      <option key={compType.id} value={compType.id}>
+                        {translateCompletionType(compType.type)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Conditional Location Select Field */}
+                {currentChallenge.completion_type && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                      Seleccionar Ubicación
+                    </label>
+                    <select
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none"
+                      value={currentChallenge.location || ''}
+                      onChange={(e) => setCurrentChallenge({ ...currentChallenge, location: e.target.value })}
+                    >
+                      <option value="">
+                        {currentChallenge.completion_type === 3 ? 'Selecciona una ruta' : 'Selecciona una ubicación'}
+                      </option>
+                      {locations
+                        .filter((loc) =>
+                          currentChallenge.completion_type === 3
+                            ? loc.LocationType.name === 'route'
+                            : loc.LocationType.name !== 'route'
+                        )
+                        .map((loc) => (
+                          <option key={loc.id} value={loc.id}>
+                            {loc.name}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                )}
 
                 {/* Category Field */}
                 <div>
@@ -505,7 +706,7 @@ const ChallengesContent = () => {
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
                       Prioridad
                     </label>
-                    <input 
+                    <input
                       type="number"
                       min="1"
                       max="10"
@@ -547,16 +748,16 @@ const ChallengesContent = () => {
                   <div className="flex items-center justify-center w-full">
                     <label className="flex flex-col items-center justify-center w-full h-24 bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 border-dashed rounded-xl cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-600/50 transition-all">
                       <div className="flex flex-col items-center justify-center pt-4 pb-4">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-500 mb-2"><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7"/><line x1="16" y1="5" x2="22" y2="5"/><line x1="19" y1="2" x2="19" y2="8"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-500 mb-2"><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7" /><line x1="16" y1="5" x2="22" y2="5" /><line x1="19" y1="2" x2="19" y2="8" /><circle cx="9" cy="9" r="2" /><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" /></svg>
                         <p className="text-sm text-gray-500 dark:text-gray-400">
-                          <span className="font-semibold text-blue-500">Haz clic para subir</span> 
+                          <span className="font-semibold text-blue-500">Haz clic para subir</span>
                         </p>
                       </div>
-                      <input 
-                        type="file" 
+                      <input
+                        type="file"
                         accept="image/*"
-                        className="hidden" 
-                        onChange={(e) => setCurrentChallenge({...currentChallenge, image: e.target.files[0]})}
+                        className="hidden"
+                        onChange={(e) => setCurrentChallenge({ ...currentChallenge, image: e.target.files[0] })}
                       />
                     </label>
                   </div>
@@ -571,18 +772,18 @@ const ChallengesContent = () => {
                       className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all outline-none"
                       placeholder="https://example.com/image.jpg"
                       value={currentChallenge.coverUrl || ''}
-                      onChange={(e) => setCurrentChallenge({...currentChallenge, coverUrl: e.target.value})}
+                      onChange={(e) => setCurrentChallenge({ ...currentChallenge, coverUrl: e.target.value })}
                     />
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" /><circle cx="9" cy="9" r="2" /><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" /></svg>
                     </span>
                   </div>
                 </div>
-                
+
                 {/* Continue with existing form fields... */}
               </div>
             </div>
-            
+
             {/* Footer */}
             <div className="p-6 border-t border-gray-200 dark:border-gray-700 sticky bottom-0 bg-gray-50 dark:bg-gray-800 z-10">
               <div className="flex flex-col sm:flex-row justify-end gap-3">
@@ -596,7 +797,7 @@ const ChallengesContent = () => {
                   className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-blue-500/30 flex items-center justify-center"
                   onClick={handleSave}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" /><polyline points="17 21 17 13 7 13 7 21" /><polyline points="7 3 7 8 15 8" /></svg>
                   Guardar
                 </button>
               </div>
