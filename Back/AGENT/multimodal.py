@@ -23,7 +23,7 @@ async def entrypoint(ctx: JobContext):
     
     model = openai.realtime.RealtimeModel(
         instructions=INSTRUCTIONS,
-        voice="shimmer",
+        voice="alloy",
         temperature=0.8,
         modalities=["audio", "text"]
     )
