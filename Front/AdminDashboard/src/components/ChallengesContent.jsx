@@ -234,7 +234,7 @@ const ChallengesContent = () => {
       status: 'Activo',
       completions: 0,
       abandonment: 0,
-      completion_type: null,
+      completion_type: completionTypes.length > 0 ? completionTypes[0].id : null,
       category: challengeTypes.length > 0 ? challengeTypes[0].type : '',
       coverUrl: '',
       repeatable: false,
