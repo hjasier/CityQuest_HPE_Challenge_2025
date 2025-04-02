@@ -137,7 +137,7 @@ const ChallengesContent = () => {
           abandonment: 0, // This would need a separate query
           completion_type: challenge.completion_type,
           category: challenge.ChallengeType?.type || 'Sin categoría',
-          cover_url: challenge.cover_url || '',
+          coverUrl: challenge.cover_url || '',
           type: challenge.type,
           location: challenge.location,
           longitude: longitude,
