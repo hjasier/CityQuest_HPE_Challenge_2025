@@ -180,13 +180,13 @@ create index IF not exists idx_group_member_group_id on public."GroupMember" usi
 
 -- Create triggers for updating timestamps
 CREATE
-OR REPLACE FUNCTION update_modified_column() RETURNS TRIGGER AS $ $ BEGIN NEW.updated_at = now();
-
-RETURN NEW;
-
+OR REPLACE FUNCTION update_modified_column() 
+RETURNS TRIGGER AS $$ 
+BEGIN 
+  NEW.updated_at = now();
+  RETURN NEW;
 END;
-
-$ $ language 'plpgsql';
+$$ language 'plpgsql';
 
 CREATE TRIGGER update_challenge_modtime BEFORE
 UPDATE
