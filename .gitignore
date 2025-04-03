@@ -12,5 +12,13 @@ Back/venv
 LivekitTest/LiveKit-AI-Car-Call-Centre/frontend/node_modules
 
 
+Back/AGENT/.env
+Back/API/.env
+
+Front/ClientApp/.env
+Front/AdminDashboard/.env
+
+
+
 
 
