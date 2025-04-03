@@ -137,7 +137,7 @@ const ChallengesContent = () => {
           abandonment: 0, // This would need a separate query
           completion_type: challenge.completion_type,
           category: challenge.ChallengeType?.type || 'Sin categoría',
-          cover_url: challenge.cover_url || '',
+          coverUrl: challenge.cover_url || '',
           type: challenge.type,
           location: challenge.location,
           longitude: longitude,
@@ -234,7 +234,7 @@ const ChallengesContent = () => {
       status: 'Activo',
       completions: 0,
       abandonment: 0,
-      completion_type: null,
+      completion_type: completionTypes.length > 0 ? completionTypes[0].id : null,
       category: challengeTypes.length > 0 ? challengeTypes[0].type : '',
       coverUrl: '',
       repeatable: false,
