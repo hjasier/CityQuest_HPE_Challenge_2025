@@ -55,9 +55,8 @@ def emit_test_location():
 
 @websocket_bp.route("/emit_test_accept_challenge")
 def emit_test_accept_challenge():
-    socketio.emit("mobile_action", {"action": "accept_challenge","challenge_id":4}, namespace="/")
+    socketio.emit("mobile_action", {"action": "accept_challenge","challenge":{"id": 6,"type": 2,"completion_type": 2,"location": 8,"name": "Visita el Parque de Doña Casilda Iturrizar","description": "Disfruta de un paseo por el Parque de Doña Casilda Iturrizar, un hermoso parque urbano con estanques y jardines.","reward": 50,"active": True,"repeatable": False,"cooldown_time": None,"cover_url": "https://yvouepcwwstjvdcgvmon.supabase.co/storage/v1/object/public/challenges/challenge-images/rbatqq4v01j.jpg","priority": 6,"created_at": "2025-03-28T21:58:38.948036+00:00","updated_at": "2025-03-30T17:38:08.354442+00:00","expiration_date": "2026-03-28T21:58:38.948036+00:00","ChallengeType": {"id": 2,"type": "visit"},"CompletionType": {"id": 2,"type": "GPS"},"ChallengeTags": [],"RequiredCapability": [],"Location": {"id": 8,"name": "Parque de Doña Casilda Iturrizar","Route": [],"email": None,"point": "0101000020E6100000A51133FB3C8607C0C365153603A24540","status": 2,"address": "Abando, 48009 Bilbao, Bizkaia","image_url": None,"description": "Parque urbano de 1907 con estanques, jardines, una pérgola y un parque infantil.","phone_number": None,"solicited_at": None,"location_type": 1,"opening_hours": None,"sustainability_score": None}}}, namespace="/")
     return "Mensaje enviado"
-
 
 
 

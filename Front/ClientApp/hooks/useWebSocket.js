@@ -12,7 +12,7 @@ const useWebSocket = (navigation) => {
   const [message, setMessage] = useState("");
   const [connected, setConnected] = useState(false);
   const [isAiIsSeeing, setIsAiIsSeeing] = useState(false); // Estado para controlar la cámara
-  const { acceptChallengeById } = useAcceptChallenge();
+  const { acceptChallenge } = useAcceptChallenge();
   const { apiUrl } = useApiUrl();
 
   useEffect(() => {
@@ -63,8 +63,8 @@ const useWebSocket = (navigation) => {
           setIsAiIsSeeing(true);
           break;
         case "accept_challenge":
-          const challengeId = data.challenge_id;
-          acceptChallengeById(challengeId);
+
+          acceptChallenge(data.challenge);
           break;
         case "get_location":
           handle_send_location();

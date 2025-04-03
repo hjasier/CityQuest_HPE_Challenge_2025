@@ -55,7 +55,8 @@ class AssistantFnc(llm.FunctionContext):
     @llm.ai_callable(description="Acepta el reto que el usuario ha elegido")
     async def accept_challenge(self, challenge_id: Annotated[int, llm.TypeInfo(description="ID del reto")]):
         logging.info(f"[AGENT API] Aceptando el reto {challenge_id}...")
-        await emit_event("server_command", {"action": "accept_challenge", "challenge_id": challenge_id})
+        challenge_details = db_driver.get_challenge_by_id(challenge_id)
+        await emit_event("server_command", {"action": "accept_challenge", "challenge": challenge_details})
         return f"Reto {challenge_id} aceptado, buena suerte!"
     
 

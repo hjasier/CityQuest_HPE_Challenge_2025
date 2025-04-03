@@ -10,7 +10,7 @@ import { supabase } from "../database/supabase";
  */
 export const useAcceptChallenge = () => {
 
-  const { challenges } = useChallenges();
+  const { challenges, fetchChallenges, loading, error } = useChallenges();
   const { setCurrentChallenge } = useCurrentChallenge();
   const { setCurrentRoute } = useCurrentRoute();
   
@@ -55,13 +55,23 @@ export const useAcceptChallenge = () => {
    * Accept a challenge by ID and navigate to it
    * @param {string} challengeId - The ID of the challenge to accept
    */
-  const acceptChallengeById = (challengeId) => {
+  const acceptChallengeById = async (challengeId) => {
+    await fetchChallenges();
+
     console.log('Accepting challenge with ID:', challengeId);
+
+    // Buscar el challenge en los desafíos cargados
     const challenge = challenges.find(challenge => challenge.id === challengeId);
+    
+    console.log('Found challenge:', challenge);
+  
     if (challenge) {
       acceptChallenge(challenge);
+    } else {
+      console.error('Challenge not found');
     }
   };
+  
 
 
   const handleAcceptChallengeSupabase = async (challenge) => {

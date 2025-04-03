@@ -23,9 +23,19 @@ class SupabaseDatabaseDriver:
 
 
     async def get_challenge_by_id(self, challenge_id: int):
-        """Retrieves a challenge by its ID"""
-        response = supabase.table("Challenge").select("*").eq("id", challenge_id).execute()
-        return response.data
+        """Retrieves a challenge by its ID with related data"""
+        response = supabase.table("Challenge").select("""
+            *,
+            ChallengeType (*),
+            CompletionType (*),
+            ChallengeTags (ChallengeTag (id,tag)),
+            RequiredCapability (LocationCapability (name)),
+            Location (*,Route(*))
+        """).eq("id", challenge_id).execute()
+        if response.error:
+            return {"error": response.error.message}
+        return response.data if response.data else None
+
 
     async def get_all_challenges(self):
         """Fetches all active challenges"""

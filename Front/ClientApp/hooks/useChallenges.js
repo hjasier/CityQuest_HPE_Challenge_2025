@@ -22,6 +22,7 @@ export const useChallenges = () => {
         `);
 
       if (error) throw error;
+      
         
       setChallenges(data);
       setLoading(false);
@@ -63,6 +64,7 @@ export const useChallenges = () => {
     challenges,
     loading,
     error,
+    fetchChallenges,
     refetch
   };
 };
