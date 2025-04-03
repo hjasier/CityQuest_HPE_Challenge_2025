@@ -63,7 +63,6 @@ const useWebSocket = (navigation) => {
           setIsAiIsSeeing(true);
           break;
         case "accept_challenge":
-
           acceptChallenge(data.challenge);
           break;
         case "get_location":
