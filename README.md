@@ -35,7 +35,7 @@ CityQuest! es una plataforma digital que combina gamificación, inteligencia art
 - ⚡ Node.js y npm  
 ## Installation
 
-Ejecuta el contenedor ejecutando el comando
+Ejecuta el contenedor de docker usando:
 
 ```bash
   sudo docker-compose build
