@@ -3,7 +3,7 @@
 
 <img src="https://github.com/hjasier/cds_app/blob/f2d037aaac54050ee142262926057ffcf443c45b/(readme%20media)/Logo-min.png?raw=true" alt="Logo" width="auto" height="200">
 
-
+📌 Este repositorio corresponde a la propuesta presentada para la **Fase II del [HPE CDS Tech Challenge 2025](https://cdstechchallenge.com/)**.
 
 ## Descripción
 
