@@ -5,6 +5,8 @@
 
 📌 Este repositorio corresponde a la propuesta presentada para la **Fase II del [HPE CDS Tech Challenge 2025](https://cdstechchallenge.com/)**.
 
+📄 El **informe técnico completo** con todos los detalles del proyecto **[puede leerse aquí](https://github.com/hjasier/CityQuest_HPE_Challenge_2025/raw/refs/heads/main/Entrega_de_proyecto_HPE_FASEII-1.pdf)**.
+
 ## Descripción
 
 CityQuest! es una plataforma digital que combina gamificación, inteligencia artificial y análisis de datos en tiempo real para mejorar la experiencia turística. Los visitantes pueden participar en desafíos geolocalizados, ganar recompensas y recibir asistencia personalizada mediante IA.
