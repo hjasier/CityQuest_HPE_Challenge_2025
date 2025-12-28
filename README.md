@@ -54,8 +54,9 @@ Ejecuta el contenedor de docker usando:
 
 <img src="https://github.com/hjasier/cds_app/blob/f2d037aaac54050ee142262926057ffcf443c45b/(readme%20media)/AS1-2.png?raw=true" alt="Logo" width="auto" height="600">
 
-
-
+🎥 **Demo video**
+You can watch a short demonstration of the system here:
+👉 [https://youtu.be/ojqASRLULw8](https://youtu.be/ojqASRLULw8)
 
 
 ## License
